@@ -1,0 +1,5 @@
+.homepage-body {
+    max-width: 576px;
+    margin: 0 auto; /* This centers the div horizontally, if needed */
+    padding: 10px; /* Optional: Add padding for better visual appearance */
+  }
