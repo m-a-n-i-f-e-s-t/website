@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Manifest AI</title>
+<title>Manifest AI - Blog</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -26,6 +26,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
 <script src="site_libs/quarto-nav/headroom.min.js"></script>
 <link href="./favicon.png" rel="icon" type="image/png">
+<script src="site_libs/quarto-listing/list.min.js"></script>
+<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/clipboard/clipboard.min.js"></script>
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -50,6 +52,35 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
+<script>
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-listing .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-date','listing-title','listing-author',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-title-sort'] }],
+      
+      searchColumns: ["listing-date","listing-title","listing-author"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  </script>
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-V0D26E23Q3"></script>
 
 <script type="text/javascript">
@@ -60,10 +91,11 @@ gtag('js', new Date());
 gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 </script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="">
-<meta property="og:image" content="manifest-ai-text-vector.png">
+<meta property="og:title" content="Manifest AI - Blog">
 <meta property="og:site-name" content="Manifest AI">
 </head>
 
@@ -98,55 +130,73 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-
-
-<div class="homepage-body">
-<p><img src="manifest-ai-text-vector.png" class="img-fluid" style="width:60.0%"></p>
-<section id="writing" class="level3">
-<h3 class="anchored" data-anchor-id="writing">writing</h3>
-<table class="table">
-<thead>
-<tr class="header">
-<th>Date</th>
-<th>Title</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Jan 5, 2024</td>
-<td><a href="./blogposts/faster-after-all/index.html">Linear Transformers Are Faster After All</a></td>
-</tr>
-<tr class="even">
-<td>Jan 5, 2024</td>
-<td><a href="./blogposts/mission/index.html">Our Mission</a></td>
-</tr>
-</tbody>
-</table>
-<form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
-  <label for="bd-email" style="width:25%">
-  Subscribe to posts:
-  </label>
-  <input style="width: 50%;" type="email" name="email" id="bd-email" placeholder="Email">
-  
-  <input style="width: 15%;" type="submit" value="Subscribe">
-</form>
-</section>
-<section id="about-us" class="level3">
-<h3 class="anchored" data-anchor-id="about-us">about us</h3>
-<p><a href="https://twitter.com/carlesgelada">Carles Gelada</a> and <a href="http://www.jacobbuckman.com">Jacob Buckman</a>. We each have 8+ years of deep learning research at institutions like OpenAI, Google Brain, and Mila. Our research has been published at NeurIPS, ICLR, ICML, etc., and been cited 1000+ times. After five years of academic collaboration, we founded Manifest AI in March 2023, backed by <a href="https://www.decibel.vc/">Decibel</a>.</p>
-</section>
-<section id="join-us" class="level3">
-<h3 class="anchored" data-anchor-id="join-us">join us</h3>
-<p>We are hiring software engineers and researchers.</p>
-<p>Engineers should have deep knowledge in areas like CUDA, XLA/MLIR, Jax, or distributed systems/HPC. Researchers should have solid math and engineering skills, and experience training large-scale deep learning models. We will work well together if you are independent-minded, capable of self-teaching, and value thinking from first principles.</p>
-We do not care about formal credentials. If you share our vision and would like to get involved, please send an example of some technical work that you are proud of to <span class="email">777b7a607577605479757a7d72716760757d3a777b79</span>
-<script src="text-xor.js"></script>
-</section>
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Blog</h1>
 </div>
 
 
 
-</main> <!-- /main -->
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+
+
+
+
+<div class="quarto-listing quarto-listing-container-table" id="listing-listing">
+
+<table class="quarto-listing-table table">
+<thead>
+<tr>
+<th>
+Date
+</th>
+<th>
+Title
+</th>
+<th>
+Author
+</th>
+</tr>
+</thead>
+<tbody class="list">
+<tr data-index="0" data-listing-date-sort="1704430800000" data-listing-file-modified-sort="1704738945795" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="21" data-listing-title-sort="Linear Transformers Are Faster After All" data-listing-filename-sort="index.qmd">
+<td>
+<span class="listing-date">Jan 5, 2024</span>
+</td>
+<td>
+<a href="./blogposts/faster-after-all/index.html" class="title listing-title">Linear Transformers Are Faster After All</a>
+</td>
+<td>
+<span class="listing-author">Jacob Buckman, Carles Gelada</span>
+</td>
+</tr>
+<tr data-index="1" data-listing-date-sort="1704344400000" data-listing-file-modified-sort="1704475035615" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="2" data-listing-title-sort="Our Mission" data-listing-filename-sort="index.qmd">
+<td>
+<span class="listing-date">Jan 4, 2024</span>
+</td>
+<td>
+<a href="./blogposts/mission/index.html" class="title listing-title">Our Mission</a>
+</td>
+<td>
+<span class="listing-author">Jacob Buckman, Carles Gelada</span>
+</td>
+</tr>
+</tbody>
+
+</table>
+<div class="listing-no-matching d-none">
+No matching items
+</div>
+</div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
