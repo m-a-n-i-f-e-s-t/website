@@ -3,3 +3,15 @@
     margin: 0 auto; /* This centers the div horizontally, if needed */
     padding: 10px; /* Optional: Add padding for better visual appearance */
   }
+  /* Method to change the button only in safari https://caniuse.com/css-hanging-punctuation  */
+@supports (hanging-punctuation: first) and (-webkit-appearance: none) {
+  input[type="submit"] {
+    background-color: rgb(238, 238, 238);
+    color: black; /* Set text color to white for better visibility */
+    border: 1px solid grey;
+    padding: 5px;
+    width: 200px;
+    cursor: pointer;
+    font-size: 11px;
+  }
+}
