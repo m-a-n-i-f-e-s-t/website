@@ -270,17 +270,17 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 <section id="linear-transformers" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="linear-transformers">1. Linear Transformers</h2>
 <p>The inputs to a transformer layer are sequences of <span class="math inline">\(Q_i, K_i, V_i \in \R^d\)</span> of query, key and values, where <span class="math inline">\(i\)</span> ranges from <span class="math inline">\(1\)</span> to the sequence length <span class="math inline">\(t\)</span>. The outputs are a sequence <span class="math inline">\(Y_i\in \R^d\)</span>. The well-known formula for the transformer layer, first popularized by Vaswani et al <span class="citation" data-cites="vaswani2017attention"><a href="#ref-vaswani2017attention" role="doc-biblioref">[12]</a></span>, is: <span class="math display">\[
-Y_i^\text{Transformer} = \sum_{j=1}^i e^{Q_i K_j^T} V_j
+Y_i^\text{Transformer} = \sum_{j=1}^i e^{Q^T_i K_j} V_j
 \]</span> Here we are excluding the denominator of the softmax for simplicity of notation. Although the normalization provided by the denominator is important for good learning performance, it doesn’t have a major impact on the computational cost or implementation speed, which are our main focus here.</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p>Even though we omit the normalization for the mathematical exposition, it is included in our implementation for all experiments.</p>
-</div></div><p>The formula for the <em>linear transformer</em> (LT) layer is quite similar: just change the term <span class="math inline">\(e^{Q_i K_j^T} \to Q_i K_j^T\)</span> yielding <span class="math display">\[
-Y_i^\text{LinearTransformer} = \sum_{j=1}^i Q_i K_j^T V_j
+</div></div><p>The formula for the <em>linear transformer</em> (LT) layer is quite similar: just change the term <span class="math inline">\(e^{Q^T_i K_j} \to Q^T_i K_j\)</span> yielding <span class="math display">\[
+Y_i^\text{LinearTransformer} = \sum_{j=1}^i Q^T_i K_j V_j
 \]</span></p>
 
 <div class="no-row-height column-margin column-container"><div class="">
-<p>All our experiments with linear transformers also include a normalization factor, which we empirically found to be important for learning performance. Drawing on <span class="citation" data-cites="katharopoulos2020transformers"><a href="#ref-katharopoulos2020transformers" role="doc-biblioref">[1]</a></span>, we divide each <span class="math inline">\(Y_i\)</span> by <span class="math inline">\(\sum_{j=1}^i Q_i K_j^T\)</span> after eunsuring the sum is positive by making keys and queries live in the positive quadrant using <code>softplus</code>.</p>
+<p>All our experiments with linear transformers also include a normalization factor, which we empirically found to be important for learning performance. Drawing on <span class="citation" data-cites="katharopoulos2020transformers"><a href="#ref-katharopoulos2020transformers" role="doc-biblioref">[1]</a></span>, we divide each <span class="math inline">\(Y_i\)</span> by <span class="math inline">\(\sum_{j=1}^i Q^T_i K_j\)</span> after eunsuring the sum is positive by making keys and queries live in the positive quadrant using <code>softplus</code>.</p>
 </div></div><p>This layer is “linear” in that the outputs <span class="math inline">\(Y\)</span> are linearly related to all of <span class="math inline">\(Q\)</span>, <span class="math inline">\(K\)</span>, and <span class="math inline">\(V\)</span>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> From now on, we will omit the superscript of <span class="math inline">\(Y_i^\text{LinearTransformer}\)</span> and just write <span class="math inline">\(Y_i\)</span>. To begin our exploration of the computational cost of linear transformers, consider the following implementation.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> LT_attention(Q, K, V):</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
@@ -295,13 +295,13 @@ Y_i^\text{LinearTransformer} = \sum_{j=1}^i Q_i K_j^T V_j
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>        Y_i <span class="op">=</span> zeros(d)</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        Q_i <span class="op">=</span> Q[i]</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i):       <span class="co"># loop cost: O(id)</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            A_ij <span class="op">=</span> K[j].T <span class="op">@</span> Q_i  <span class="co"># cost: O(d)</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>            A_ij <span class="op">=</span> inner(K[j], Q_i)  <span class="co"># cost: O(d)</span></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>            Y_i <span class="op">+=</span> A_ij <span class="op">*</span> V[j]   <span class="co"># cost: O(d)</span></span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>        Y_list.append(Y_i)</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> stack(Y_list)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Anyone who has worked with self-attention will recognize that this is a terrible implementation, since nested for-loops are not GPU-friendly. Don’t worry: in the next section, we will discuss implementations that parallelize computation, and thus run much faster on modern hardware. For now, the main point of this pseudocode is to highlight that first mode of computation, which we call <em>attention</em> formulation, has a FLOP cost of <span class="math inline">\(O(t^2 d)\)</span>.</p>
 <p>The key to the massive speedups we saw in the introduction comes from leveraging linearity to restructure the computation. Consider the following factorization: <span class="math display">\[
-Y_i = \sum_{j=1}^i Q_i K_j^T V_j = \underbrace{ \left (  \sum_{j=1}^i V_j  K_j^T\right )}_{S_i} \; \; Q_i
+Y_i = \sum_{j=1}^i Q^T_i K_j V_j = \underbrace{ \left (  \sum_{j=1}^i V_j  K_j^T\right )}_{S_i} \; \; Q_i
 \]</span> Written in this form, we notice that the term labeled <span class="math inline">\(S_i \in \R^{d\times d}\)</span> can be thought of as a state summarizing all the relevant information up to time <span class="math inline">\(i\)</span>. It’s easy to rewrite into the following recurrent equations <span class="math display">\[
 Y_{i} = S_i Q_i
 \;\;\;\;\;\;\;\;\;\;\;\;
@@ -318,7 +318,7 @@ S_i = S_{i-1} + V_i K_i^T
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    S_i <span class="op">=</span> zeros(d, d) <span class="co"># shape [d,d]</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    Y_list <span class="op">=</span> []</span>
 <span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(t):        <span class="co"># loop cost: O(t d^2)</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        S_i <span class="op">+=</span> K[i].T <span class="op">@</span> V[i]  <span class="co"># cost: O(d^2)</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        S_i <span class="op">+=</span> outer(K[i], V[i]) <span class="co"># cost: O(d^2)</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        Y_i <span class="op">=</span> S_i <span class="op">@</span> Q[i]      <span class="co"># cost: O(d^2)</span></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        Y_list.append(Y_i)</span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> stack(Y_list)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -328,7 +328,7 @@ S_i = S_{i-1} + V_i K_i^T
 <section id="parallel-implementations" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="parallel-implementations">2. Parallel Implementations</h2>
 <p>In general, for-loops are a terrible way to implement anything that will run on a GPU. When using high-level frameworks like PyTorch or JAX, the easiest way to get high GPU utilization is to only use primitives that are already highly optimized for GPU: matrix multiplication, elementwise operations, etc. We can rewrite our attention and state algorithms in this style to make them efficient.</p>
-<p>First, let’s do this for attention. Our main technique is to compute the attention matrix <span class="math inline">\(A\)</span>, which contains all the terms <code>Q[i].T @ K[j]</code> that appeared inside the for-loops of <code>LT_attention</code>, using a single heavyweight matrix multiply.</p>
+<p>First, let’s do this for attention. Our main technique is to compute the attention matrix <span class="math inline">\(A\)</span>, which contains all the terms <code>outer(Q[i], K[j])</code> that appeared inside the for-loops of <code>LT_attention</code>, using a single heavyweight matrix multiply.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> LT_attention_parallel_no_flash(Q, K, V):</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Shapes of inputs are</span></span>
@@ -343,7 +343,7 @@ S_i = S_{i-1} + V_i K_i^T
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> A <span class="op">@</span> V        <span class="co"># cost O(t^2 d)</span></span>
 <span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>This implementation lies at the core of nearly every transformer of the past five years, powering all of the AI models that have recently exploded in popularity. Since it is composed of such a small number of ultra-parallelizable ops, it obtains high GPU utilization. Recently, specialized <em>flash attention</em> kernels <span class="citation" data-cites="dao2023flashattention"><a href="#ref-dao2023flashattention" role="doc-biblioref">[3]</a></span> have been used to get even further speedups by avoiding explicitly storing the attention matrix <span class="math inline">\(A\)</span>, and thereby saving both memory and time spent on memory-transfers. Algorithmically, though, flash attention is a variant of parallel attention, and has the same computational cost (as measured in FLOPs). We use <code>LT_attention_parallel</code> to refer to the flash attention implementation.</p>
-<p>Next, let’s parallelize the recurrent formulation. This optimization is less well-known. The key is to compute all the terms <span class="math inline">\(K_i^T V_i\)</span> in parallel, and then use a cumulative-sum, which can be <a href="https://en.wikipedia.org/wiki/Prefix_sum">parallelized</a>, to combine them.</p>
+<p>Next, let’s parallelize the recurrent formulation. This optimization is less well-known. The key is to compute all the terms <span class="math inline">\(V_i K^T_i\)</span> in parallel, and then use a cumulative-sum, which can be <a href="https://en.wikipedia.org/wiki/Prefix_sum">parallelized</a>, to combine them.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> LT_state_parallel(Q, K, V):</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Shapes of inputs are</span></span>
@@ -376,7 +376,7 @@ S_i = S_{i-1} + V_i K_i^T
 <h2 class="anchored" data-anchor-id="chunked-formulation">3. Chunked Formulation</h2>
 <p>It’s evident that, for small context sizes, computing the <span class="math inline">\(t\)</span> by <span class="math inline">\(t\)</span> attention matrix is much more efficient than computing many <span class="math inline">\(d\)</span> by <span class="math inline">\(d\)</span> state matrices. But as <span class="math inline">\(t\)</span> grows, there is a point where the quadratic cost of the attention matrix ends up dominating. Noticing that attention is extremely efficient for small <span class="math inline">\(t\)</span> and that states are necessary for large <span class="math inline">\(t\)</span> motivates doing one last reworking of the LT equation.</p>
 <p>Let <span class="math inline">\(c \in \N\)</span> be a positive integer that we’ll call the <em>chunk size</em>. For any <span class="math inline">\(i\in \N\)</span> find the unique <span class="math inline">\(n\in \Z\)</span> s.t. <span class="math inline">\(cn &lt; i \le c(n+1)\)</span>. We can easily see that the following equations are equivalent to the previous ones. <span class="math display">\[
-Y_{i} = S_{cn}Q_i + \sum_{j=cn+1}^i K_j^T Q_i V_j
+Y_{i} = S_{cn}Q_i + \sum_{j=cn+1}^i Q_i^T K_j V_j
 \;\;\;\;\;\;\;\;\;\;\;\;
 S_{c(n+1)} = S_{cn} + \sum_{j=cn+1}^{c(n+1)} V_j K_j^T
 \]</span> The key idea is that we are only going to compute a subset of all states: <span class="math inline">\(S_0, S_c, S_{2c}, \cdots\)</span>. Then, to compute each output <span class="math inline">\(Y_i\)</span>, we need only to take into account the contribution via the most recent state <span class="math inline">\(S_{cn}\)</span>, as well as the contribution (computed via attention) of all moments in time <span class="math inline">\(j\)</span> in the range <span class="math inline">\(cn &lt; j \le i\)</span>.</p>
@@ -388,7 +388,7 @@ S_{c(n+1)} = S_{cn} + \sum_{j=cn+1}^{c(n+1)} V_j K_j^T
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Shapes of outputs are</span></span>
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">     Y: [c, d]</span></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    Y_state <span class="op">=</span> Q <span class="op">@</span> S[<span class="va">None</span>, ...]                    <span class="co"># cost O(c d^2)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    Y_state <span class="op">=</span> Q <span class="op">@</span> S                               <span class="co"># cost O(c d^2)</span></span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    Y_attention <span class="op">=</span> LT_attention_parallel(Q, K, V)  <span class="co"># cost O(c^2 d)</span></span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> Y_state <span class="op">+</span> Y_attention                     <span class="co"># cost O(cd)</span></span>
 <span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> Y</span>
@@ -421,12 +421,12 @@ S_{c(n+1)} = S_{cn} + \sum_{j=cn+1}^{c(n+1)} V_j K_j^T
 <h2 class="anchored" data-anchor-id="sampling">4. Sampling</h2>
 <p>When working with language models, efficient training is not the only performance that deserves consideration. Once the model is trained, how expensive is it to utilize? When we are sampling we have a sequence of tokens, <span class="math inline">\(z_1 \cdots z_t\)</span>, and we want to sample the next token, <span class="math inline">\(z_{t+1}\)</span>.</p>
 <p>The most efficient algorithm to sample from traditional transformers is called the <em>KV-cache</em> algorithm <span class="citation" data-cites="pope2023efficiently"><a href="#ref-pope2023efficiently" role="doc-biblioref">[14]</a></span>. This algorithm assumes that when we generate token <span class="math inline">\(z_{t+1}\)</span>, we will have already computed and cached all the <span class="math inline">\(K_i, V_i\)</span> for all <span class="math inline">\(0 \le i \le t\)</span>. In order to compute the output of the attention layer at time <span class="math inline">\(t+1\)</span> given this cached information, we can use <span class="math display">\[
-Y_{t+1}^\text{Transformer} = \sum_{j=1}^{t+1} e^{Q_i K_j^T} V_j
+Y_{t+1}^\text{Transformer} = \sum_{j=1}^{t+1} e^{Q^T_i K_j} V_j
 \]</span> It is easy to see that this is an <span class="math inline">\(O(td)\)</span> operation. In other words, as the sequence length grows, sampling each subsequent token becomes more computationally expensive.<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> This is one of the major limitations of the classic transformer architecture.</p>
 <p>With linear transformers, however, we have access to the recurrent formulation. A linear transformer is an RNN where the state has size <span class="math inline">\(O(d^2)\)</span>. <span class="math display">\[
-S_i = S_{i-1} + V_i K_i^T
-\;\;\;\;\;\;\;\;\;\;\;\;
 Y_{i} = S_i Q_i
+\;\;\;\;\;\;\;\;\;\;\;\;
+S_i = S_{i-1} + V_i K_i^T
 \]</span> We can compare the time it takes to generate any particular token when sampling a sequence:</p>
 <div class="column-body">
 <iframe width="700" height="500" src="plots/sampling_speeds.html">
