@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jacob Buckman">
+<meta name="author" content="Carles Gelada">
+<meta name="dcterms.date" content="2024-01-05">
+
+<title>Manifest AI - LongCrawl64: A Long-Context Natural-Language Dataset</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-V0D26E23Q3"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
+</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Manifest AI - LongCrawl64: A Long-Context Natural-Language Dataset">
+<meta property="og:description" content="">
+<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:site-name" content="Manifest AI">
+<meta name="citation_title" content="LongCrawl64: A Long-Context Natural-Language Dataset">
+<meta name="citation_author" content="Jacob Buckman">
+<meta name="citation_author" content="Carles Gelada">
+<meta name="citation_publication_date" content="2024-01-05">
+<meta name="citation_cover_date" content="2024-01-05">
+<meta name="citation_year" content="2024">
+<meta name="citation_online_date" content="2024-01-05">
+<meta name="citation_language" content="en">
+<meta name="citation_publisher" content="Manifest AI">
+<meta name="citation_reference" content="citation_title=Scaling language models: Methods, analysis &amp;amp;amp; insights from training gopher;,citation_author=Jack W. Rae;,citation_author=Sebastian Borgeaud;,citation_author=Trevor Cai;,citation_author=Katie Millican;,citation_author=Jordan Hoffmann;,citation_author=H. Francis Song;,citation_author=John Aslanides;,citation_author=Sarah Henderson;,citation_author=Roman Ring;,citation_author=Susannah Young;,citation_author=Eliza Rutherford;,citation_author=Tom Hennigan;,citation_author=Jacob Menick;,citation_author=Albin Cassirer;,citation_author=Richard Powell;,citation_author=George Driessche;,citation_author=Lisa Anne Hendricks;,citation_author=Maribeth Rauh;,citation_author=Po-Sen Huang;,citation_author=Amelia Glaese;,citation_author=Johannes Welbl;,citation_author=Sumanth Dathathri;,citation_author=Saffron Huang;,citation_author=Jonathan Uesato;,citation_author=John Mellor;,citation_author=Irina Higgins;,citation_author=Antonia Creswell;,citation_author=Nat McAleese;,citation_author=Amy Wu;,citation_author=Erich Elsen;,citation_author=Siddhant M. Jayakumar;,citation_author=Elena Buchatskaya;,citation_author=David Budden;,citation_author=Esme Sutherland;,citation_author=Karen Simonyan;,citation_author=Michela Paganini;,citation_author=Laurent Sifre;,citation_author=Lena Martens;,citation_author=Xiang Lorraine Li;,citation_author=Adhiguna Kuncoro;,citation_author=Aida Nematzadeh;,citation_author=Elena Gribovskaya;,citation_author=Domenic Donato;,citation_author=Angeliki Lazaridou;,citation_author=Arthur Mensch;,citation_author=Jean-Baptiste Lespiau;,citation_author=Maria Tsimpoukelli;,citation_author=Nikolai Grigorev;,citation_author=Doug Fritz;,citation_author=Thibault Sottiaux;,citation_author=Mantas Pajarskas;,citation_author=Toby Pohlen;,citation_author=Zhitao Gong;,citation_author=Daniel Toyama;,citation_author=Cyprien Masson d’Autume;,citation_author=Yujia Li;,citation_author=Tayfun Terzi;,citation_author=Vladimir Mikulik;,citation_author=Igor Babuschkin;,citation_author=Aidan Clark;,citation_author=Diego Las Casas;,citation_author=Aurelia Guy;,citation_author=Chris Jones;,citation_author=James Bradbury;,citation_author=Matthew J. Johnson;,citation_author=Blake A. Hechtman;,citation_author=Laura Weidinger;,citation_author=Iason Gabriel;,citation_author=William Isaac;,citation_author=Edward Lockhart;,citation_author=Simon Osindero;,citation_author=Laura Rimell;,citation_author=Chris Dyer;,citation_author=Oriol Vinyals;,citation_author=Kareem Ayoub;,citation_author=Jeff Stanway;,citation_author=Lorrayne Bennett;,citation_author=Demis Hassabis;,citation_author=Koray Kavukcuoglu;,citation_author=Geoffrey Irving;,citation_publication_date=2021;,citation_cover_date=2021;,citation_year=2021;,citation_fulltext_html_url=https://arxiv.org/abs/2112.11446;,citation_volume=abs/2112.11446;,citation_journal_title=CoRR;">
+</head>
+
+<body class="floating nav-fixed slimcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
+    </a>
+  </div>
+          <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/manifest__ai" rel="" target=""><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+   
+  <ul>
+  <li><a href="#how-to-download-the-dataset" id="toc-how-to-download-the-dataset" class="nav-link active" data-scroll-target="#how-to-download-the-dataset">How to download the dataset</a></li>
+  <li><a href="#how-the-dataset-was-constructed" id="toc-how-the-dataset-was-constructed" class="nav-link" data-scroll-target="#how-the-dataset-was-constructed">How the dataset was constructed</a></li>
+  <li><a href="#how-to-use-the-dataset" id="toc-how-to-use-the-dataset" class="nav-link" data-scroll-target="#how-to-use-the-dataset">How to use the dataset</a></li>
+  
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">LongCrawl64: A Long-Context Natural-Language Dataset</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jacob Buckman </p>
+             <p>Carles Gelada </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 5, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<p>As part of <a href="../../articles/linear-transformers-faster">our broader mission of training language models with ultra-long context</a>, we are releasing a dataset for use in research on architectures and algorithms for long-context modeling. This dataset, which we call <strong>LongCrawl64</strong>, is <a href="">available on GitHub</a>. It consists of 6,661,465 pre-tokenized documents, each of which is 65536 tokens long, for a total token count of 435 billion.</p>
+<section id="how-to-download-the-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="how-to-download-the-dataset">How to download the dataset</h3>
+<p>The dataset is hosted on a Google Cloud bucket. The easiest way to download it is using <code>gsutil</code>, which can be installed with:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://sdk.cloud.google.com <span class="kw">|</span> <span class="fu">bash</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> init</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>To download, use:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">GSUTIL_PARALLEL_THREAD_COUNT</span><span class="op">=</span>5 <span class="va">GSUTIL_PARALLEL_PROCESS_COUNT</span><span class="op">=</span>5 <span class="ex">gsutil</span> <span class="at">-m</span> cp <span class="at">-r</span> gs://longcrawl64/ /local/path/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Choose threads and processes as appropriate for your system.</p>
+</section>
+<section id="how-the-dataset-was-constructed" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="how-the-dataset-was-constructed">How the dataset was constructed</h3>
+<p>Included in the GitHub repository are the scripts we used to generate this dataset. This is included as a reference for anyone who wants to understand in detail what exactly the dataset consists of, and also will be a useful starting point for anyone who wants to put together a variant.</p>
+<p>The starting point for LongCrawl64 is <a href="https://github.com/togethercomputer/RedPajama-Data">RedPajama-v2</a>, a dataset consisting of all of the Common Crawl scrapes of the public internet. RedPajama-v2 is divided into three partitions, which they call <em>head</em>, <em>middle</em>, and <em>tail</em>. The head &amp; middle partitions come alongside useful pre-computed metrics, such as mean word length, whether each document is a duplicate, etc.</p>
+<p>We first use these metrics to filter RedPajama-v2 head &amp; middle, keeping only high-quality<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, non-duplicated documents with 16k words or more. We then tokenize each one with <a href="https://github.com/openai/tiktoken">OpenAI’s TikToken</a> tokenizer for GPT-2, which uses BPE with a vocabulary size of 50304. We then further discard any documents shorter than 64 kibitokens (KiT).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> LongCrawl64 includes all documents that remain.</p>
+<p>Unlike most LLM datasets, LongCrawl64 is not published as raw text. Instead, it is released in an “opinionated” format, after performing further preprocessing steps which make the dataset easy to use for research. This consists of three steps:</p>
+<ul>
+<li>Truncating each entry to be exactly 64 KiT.</li>
+<li>Shuffling the dataset along the document dimension.</li>
+<li>Rolling each document a random amount along the sequence dimension.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
+</ul>
+<p>The end result is a 6661465 x 65336 <a href="https://zarr.readthedocs.io/en/stable/">Zarr</a> array of uint16s.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>If we always start at the beginning of each document, we could be misled by structure in the dataset itself; for example, if each document begins with an easy-to-predict subsequence, loss will increase on contexts outside of this window. Rolling solves this issue.</p>
+</div></div></section>
+<section id="how-to-use-the-dataset" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="how-to-use-the-dataset">How to use the dataset</h3>
+<p>The design of LongCrawl64 makes it easy to efficiently load IID minibatches at any context length. Alongside the dataset, we provide <a href="">an example of a dataloader</a>.</p>
+<p>The dataset can be visualized as a rectangle:</p>
+<div class="column-body" style="text-align: center;">
+<p><img src="figures/dataset_square.jpeg" alt="Image" style="max-width:50%; height:auto; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);"></p>
+</div>
+<p>When sampling a minibatch, all we need to do is slice a smaller rectangle out from the underlying dataset. Thanks to the preprocessing, we can get minibatches of data of any context length with the statistical properties we desire via a simple iterative scheme.</p>
+<p>A visual explanation is easiest. To train with context length 64 KiT, simply iterate through the rows:</p>
+<div class="column-body" style="text-align: center;">
+<p><img src="figures/sampling_whole_sequences.gif" alt="Image" style="max-width:50%;"></p>
+</div>
+<p>To train with context length 64 KiT, simply iterate through the columns and then the rows:</p>
+<div class="column-body" style="text-align: center;">
+<p><img src="figures/sampling_smaller_sequences.gif" alt="Image" style="max-width:50%;"></p>
+</div>
+<p>Thanks to the shuffling &amp; rolling, any such rectangle will consist of rows uncorrelated from one another both in content and in position within their respective documents; and, by iterating in column-major order, we also ensure there are no correlations between consecutive minibatches.</p>
+<p>Under the hood, data is stored as compressed chunks of 2048 x 2048 tokens (~10Mb each). The iterative loading described above is therefore very efficient, since it performs only contiguous reads on a small number of chunks each time. It also permits reuse between subsequent minibatches via a simple LRU caching mechanism.</p>
+<p>One final detail: after tokens have been loaded, they must be converted into a input/target pair for training. We recommend using the loaded data as targets, and constructing the inputs by adding a padding token to the beginning of the sequence and dropping its final element.</p>
+<form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
+  <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
+  Subscribe to be notified of new posts:
+  </label>
+  <input style="width: 35%;" type="email" name="email" id="bd-email" placeholder="Email">
+  
+  <input style="width: 80px;" type="submit" value="Subscribe">
+</form>
+</section>
+
+
+
+<div id="quarto-appendix" class="default"><section id="acknowledgments" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">Acknowledgments</h2><div class="quarto-appendix-contents">
+
+<p>We would like to thank: Jono Ridgway for helping to prepare the release; …</p>
+
+
+
+</div></section><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" role="list">
+<div id="ref-gopher" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">J. W. Rae <em>et al.</em>, <span>“Scaling language models: Methods, analysis <span>&amp;</span> insights from training gopher,”</span> <em>CoRR</em>, vol. abs/2112.11446, 2021, Available: <a href="https://arxiv.org/abs/2112.11446">https://arxiv.org/abs/2112.11446</a></div>
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>We use the same criteria as <span class="citation" data-cites="gopher"><a href="#ref-gopher" role="doc-biblioref">[1]</a></span>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>The SI prefix “kibi” means 1024, so 64 KiT = 65536 tokens.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>By “roll”, we mean in the <code>numpy.roll</code> sense. For example, rolling <code>[12, 5, 7, 4, 21]</code> by 3 would yield <code>[7, 4, 21, 12, 5]</code>. This preprocessing step causes us to sometimes be predicting tokens from the start of a document, conditional on tokens from its end. This is atypical, but completely legitimate; we invite any skeptics to watch the Star Wars movies in release order, beginning with Episode IV.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>We split this into a train set of 6,609,334 documents and a heldout set of 52,131 documents.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@misc{buckman2024,
+  author = {Buckman, Jacob and Gelada, Carles},
+  publisher = {Manifest AI},
+  title = {LongCrawl64: {A} {Long-Context} {Natural-Language} {Dataset}},
+  date = {2024-01-05},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-buckman2024" class="csl-entry quarto-appendix-citeas" role="listitem">
+<div class="">J.
+Buckman and C. Gelada, <span>“LongCrawl64: A Long-Context
+Natural-Language Dataset.”</span> Manifest AI, Jan. 05, 2024.</div>
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">© 2024 Manifest AI</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+</body></html>

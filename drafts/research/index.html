@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jacob Buckman">
+<meta name="author" content="Carles Gelada">
+<meta name="dcterms.date" content="2023-12-27">
+
+<title>Manifest AI - An Architecture For Neural Language Modeling</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-V0D26E23Q3"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Manifest AI - An Architecture For Neural Language Modeling">
+<meta property="og:description" content="">
+<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:site-name" content="Manifest AI">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
+    </a>
+  </div>
+          <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/manifest__ai" rel="" target=""><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+   
+  <ul>
+  <li><a href="#language-modeling" id="toc-language-modeling" class="nav-link active" data-scroll-target="#language-modeling">1) Language Modeling</a>
+  <ul class="collapse">
+  <li><a href="#modeling-with-deep-learning" id="toc-modeling-with-deep-learning" class="nav-link" data-scroll-target="#modeling-with-deep-learning">1.1) Modeling with Deep Learning</a></li>
+  <li><a href="#autoregressive-modeling" id="toc-autoregressive-modeling" class="nav-link" data-scroll-target="#autoregressive-modeling">1.2) Autoregressive Modeling</a></li>
+  <li><a href="#autoregressive-sampling" id="toc-autoregressive-sampling" class="nav-link" data-scroll-target="#autoregressive-sampling">1.3) Autoregressive Sampling</a></li>
+  </ul></li>
+  <li><a href="#deep-learning-with-sequences" id="toc-deep-learning-with-sequences" class="nav-link" data-scroll-target="#deep-learning-with-sequences">2) Deep Learning with Sequences</a>
+  <ul class="collapse">
+  <li><a href="#sequence-transformations" id="toc-sequence-transformations" class="nav-link" data-scroll-target="#sequence-transformations">2.1) Sequence Transformations</a></li>
+  <li><a href="#example-architectures" id="toc-example-architectures" class="nav-link" data-scroll-target="#example-architectures">2.3) Example Architectures</a>
+  <ul class="collapse">
+  <li><a href="#recurrent-neural-networks" id="toc-recurrent-neural-networks" class="nav-link" data-scroll-target="#recurrent-neural-networks">2.3.1) Recurrent Neural Networks</a></li>
+  <li><a href="#transformers" id="toc-transformers" class="nav-link" data-scroll-target="#transformers">2.3.2) Transformers</a></li>
+  <li><a href="#k-gram-mlp" id="toc-k-gram-mlp" class="nav-link" data-scroll-target="#k-gram-mlp">2.3.3) k-gram MLP</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#efficient-autoregressive-modeling" id="toc-efficient-autoregressive-modeling" class="nav-link" data-scroll-target="#efficient-autoregressive-modeling">3) Efficient Autoregressive Modeling</a>
+  <ul class="collapse">
+  <li><a href="#cost-of-training" id="toc-cost-of-training" class="nav-link" data-scroll-target="#cost-of-training">3.1) Cost of Training</a></li>
+  <li><a href="#causal-sequence-transformations" id="toc-causal-sequence-transformations" class="nav-link" data-scroll-target="#causal-sequence-transformations">3.2) Causal Sequence Transformations</a></li>
+  <li><a href="#efficient-sampling" id="toc-efficient-sampling" class="nav-link" data-scroll-target="#efficient-sampling">3.3) Efficient Sampling</a></li>
+  <li><a href="#state-machines" id="toc-state-machines" class="nav-link" data-scroll-target="#state-machines">3.4) State Machines</a>
+  <ul class="collapse">
+  <li><a href="#rnn-state-machines" id="toc-rnn-state-machines" class="nav-link" data-scroll-target="#rnn-state-machines">RNN State Machines</a></li>
+  <li><a href="#self-attention-state-machines" id="toc-self-attention-state-machines" class="nav-link" data-scroll-target="#self-attention-state-machines">Self Attention State Machines</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">3.5) Summary</a></li>
+  </ul></li>
+  <li><a href="#linear-transformer" id="toc-linear-transformer" class="nav-link" data-scroll-target="#linear-transformer">4) Linear Transformer</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">An Architecture For Neural Language Modeling</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jacob Buckman </p>
+             <p>Carles Gelada </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 27, 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<p><span class="math display">\[
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\sft}{\text{softmax}}
+\newcommand{\List}{\text{List}}
+\newcommand{\Seq}{\text{Seq}}
+\newcommand{\SeqT}{\text{SeqT}}
+\newcommand{\CSeqT}{\text{CSeqT}}
+\newcommand{\Dist}{\text{Dist}}
+\newcommand{\SM}{\text{SM}}
+\newcommand{\id}{\text{id}}
+\newcommand{\Fn}{\text{Fn}}
+\newcommand{\Tok}{\text{Tok}}
+\newcommand{\Aij}{ A_{[i,j]}}
+\]</span></p>
+<p>A crucial decision in neural language modeling is the choice of architecture, which governs the compuatational and statistical properties of the model. A well-selected architecture can improve performance-per-dollar by orders of magnitude.</p>
+<p>The objective of this work is to find an architecture with the following four properties:</p>
+<ul>
+<li>Good scaling law on model size.</li>
+<li>Good scaling law on context size.</li>
+<li>Efficient usage of GPU during training.</li>
+<li>Efficient sampling.</li>
+</ul>
+<p>At the time of writing, the most popular architecture for neural language modeling, the Transformer, has only three of these properties (it lacks efficient sampling). Many other architectures have been been proposed, but none that meets all four criteria.</p>
+<p>We believe that such an architecture exists. This document is an expository writeup of progress we have made towards the goal of discovering it. This document contains our evolving understanding of the key concepts and results needed to understand neural language modeling, including mathematical, computational, and experimental results. Unlike a traditional research paper, this is living document that will continually be updated as we make progress.</p>
+<p>Much of the content of this document will already be familiar to anyone who has thought deeply about language modeling. There is nothing particularly groundbreaking here. But we found a lot of value in explicitly formalizing the concepts, e.g.&nbsp;how think of Transformers and RNNs as members the same family; as well as grounding all of these ideas in rigorous mathematics. Also, in order to properly understand our specific setting, we often find that it is helpful to describe more general objects of which neural language modeling is a specific case. Where applicable and insightful, we provide such results in their full generality; and as such, this document contains many ideas that may be of independent interest to researchers in related areas.</p>
+<p>It’s not about minimizing floating point operations. It’s about optimizing tokens per second on our hardware. GPUs perform well with tasks that hare highly <strong>parallelizable</strong>. RNNs, the more “clasical” architectures for sequences, are not very well suited for these types of tasks.</p>
+<p>important feature of the transformer architecture is that it can compute We find that it’s important to think about sequences, and maps between sequences as the core objects.</p>
+
+<!-- 
+During the course of this reasearch we've converged to a framework that helps us think about what makes an architecture suitable for efficient language modeling. We refer to the key property that enables efficient training as **causal sequence transformations**. Surprizingly, efficient sampling turs out to be a consequence of a totally independent property, one that has to do with **state machines**. This helps us to draw the connection between the classic KV caching optimization for transformer sampling and the recurrence property that makes RNNs so well suited for sampling. A funny side effect of understanding how to do things efficiently is that you also learn how to do them inneficinetly. We will see how there is a very straightforward way to turn any generic architecture (like an MLP) into an autoregressive language model. Albeit one that is very inneficient for both, training and sampling.
+-->
+<section id="language-modeling" class="level1 page-columns page-full">
+<h1>1) Language Modeling</h1>
+<p>Let’s begin by defining some basic concepts and definitions.</p>
+<p><strong>Definition 1:</strong> Given a set <span class="math inline">\(X\)</span>, <span class="math inline">\(t\in \N\)</span> and elements <span class="math inline">\(x_1, \cdots, x_t \in X\)</span>, we say that <span class="math inline">\([x_1, \cdots, x_t]\)</span> is a length <span class="math inline">\(t\)</span> sequence with elements in <span class="math inline">\(X\)</span>. We denote by <span class="math inline">\(\Seq_t X\)</span> the collection of all such sequences. In other words, <span class="math inline">\(\Seq_t X\)</span> is the cross product of <span class="math inline">\(t\)</span> copies of the set <span class="math inline">\(X\)</span>. <span class="math display">\[
+\Seq_t X =   \underbrace{X\times \cdots \times X }_\text{t}
+\]</span></p>
+<p>This is somewhat on an uncommon notation. To refer to the cross product of to <span class="math inline">\(t\)</span> copies of <span class="math inline">\(X\)</span>, it would be more standard to write <span class="math inline">\(X^{\times t}\)</span> instead of <span class="math inline">\(\Seq_t X\)</span>. But in the context of language modeling we find it nicer to talk about sequences instead of cross products.</p>
+<p><strong>Definition 2:</strong> We denote by <span class="math inline">\(\Seq X\)</span> the set of all sequences of any finite length: <span class="math display">\[
+\Seq X =  \bigcup_{t\in \N} \Seq_t X
+\]</span></p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>Note that even when <span class="math inline">\(X\)</span> is a finite set, <span class="math inline">\(\Seq X\)</span> will contain infinitely many elements. But don’t confuse that with the sequences in <span class="math inline">\(\Seq X\)</span> potentially having infinite length. Any sequence in <span class="math inline">\(\Seq X\)</span> will be a collection of <span class="math inline">\(t\)</span> elements of <span class="math inline">\(X\)</span> for some <span class="math inline">\(t\in \N\)</span>. Infnite length sequences are of course an important mathematicl object, but we are not concerned with them in this work.</p>
+</div></div><p>In this work, when we talk about <strong>language</strong> we refer to written language, represented as a sequence of tokens which could be alphanumeric characters, words in a vocabulary or some other tokenization scheme. Here <span class="math inline">\(Z = \{\text{"a"},\text{"b"}, \cdots \}\)</span> would be the set of alphanumeric characters. And an element of <span class="math inline">\(\Seq Z\)</span> is just a piece of text like <span class="math inline">\(\text{"I like penguins"} \in \Seq Z\)</span> but also <span class="math inline">\(\text{"I like potatos"} \in \Seq Z\)</span> and the sequence <span class="math inline">\(\text{"Adk23rhf"} \in \Seq X\)</span>and all the works of Shakespeare. <span class="math inline">\(\Seq X\)</span> contains every relegious holly book, the proof to the Riemann hypothesis, the details of what happened to Amelia Earhart. Every truth and every lie. The entire story of your life and of how you will die. Our anthestors communicate with us via elements of <span class="math inline">\(\Seq X\)</span>. And even after other forms of commuincation became technologically possible, we still largely prefer to use <span class="math inline">\(\Seq Z\)</span> to share work and ideas. <span class="math inline">\(\Seq Z\)</span> seems to have some sort of universality, where all the important questions and their answers can be naturally encoded as points in it. The reason text has been playing such an outsized role in the field of artificial intelligence has something to do with the combiation of this universality and the fact that, for the last 3000 years, one of major endevours of humanity has been to gather a vast collection of interesting points in <span class="math inline">\(\Seq Z\)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hackmd.io/_uploads/HJLq0zp7a.jpg" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">387588502_1063711931451275_6779269320171301447_n.jpeg</figcaption>
+</figure>
+</div>
+<p>The first step one must take when doing language modeling is to go into the wild and collect a dataset of them <span class="math inline">\(D \in \Seq_n \Seq_t Z\)</span>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>We could generalize the language modeling task to involve variable length sequeneces, but it’s convinient to assume all sequences on the dataset <span class="math inline">\(D \subset \Seq Z\)</span> have length <span class="math inline">\(t\)</span>. First of all, talking about <span class="math inline">\(\Dist \Seq X\)</span> requires significantly more complex mathematics, as when talking about the distributions over infinite sets one must consider carefuly what it means for the probability must sum to 1. It involves considerations about the convergence of the sum. Another reason we prefer to think about <span class="math inline">\(\Seq_t Z\)</span> is that we will be very interested in how the computational cost of training models changes with the sequence length <span class="math inline">\(t\)</span>. It would be very cumbersome to do that analysis when the dataset is composed of variable length sequences. And since any variable length dataset can be trivially converted into a fixed length one (by padding short sequences of cutting off long ones), we make this simplifying assumption.</p>
+</div></div><p>Before we discuss the next step, let us properly define the concept of a distribution.</p>
+<p><strong>Definition.</strong> Given a finite set <span class="math inline">\(X\)</span>, the space of distributions <span class="math inline">\(\Dist X\)</span> is the collection of functions <span class="math inline">\(f: X \to \R\)</span> where <span class="math inline">\(f(x) \ge 0\)</span> and <span class="math inline">\(\sum_{x\in X} f(x) = 1\)</span>.</p>
+<p><strong>Definition</strong> Given two finite sets <span class="math inline">\(X,Y\)</span> and <span class="math inline">\(f_X\in \Dist X, \; f_Y \in \Dist Y\)</span>. The independent distribuiton <span class="math inline">\(f_{X\times Y} \in \Dist(X\times Y)\)</span> is defined as <span class="math display">\[
+f_{X\times Y}(x,y)=f_X(x) f_Y(y)
+\]</span></p>
+<p><strong>Proof is well defined</strong> To see that <span class="math inline">\(f_{X\times Y}\)</span> is well defined we need to check that the outputs are non negative and sum to 1. <span class="math inline">\(\blacksquare\)</span></p>
+<p>Independent distributions is the key that allows us to defined the learning objective behind language modeling.</p>
+<p>Given that our dataset <span class="math inline">\(D\)</span> was a sequence of peices of text, we can apply</p>
+<p><strong>Corollary</strong> Given a finite set <span class="math inline">\(X\)</span> and distribution <span class="math inline">\(f\in \Dist X\)</span>, the independed distribution over <span class="math inline">\(\Seq_t X\)</span> is by extension of the previous result <span class="math display">\[
+f_{\Seq_t X}(x_1 \cdots x_t) = \prod_{i=1}^t f(x_i)
+\]</span></p>
+<p>In language modeling, we aim to find a model <span class="math inline">\(f : \Dist \Seq_t X\)</span> that closely matches our natural-language-derived training data. Letting <span class="math inline">\(c = |X|\)</span>, we can visualize <span class="math inline">\(\Seq_t X\)</span>, the space of length <span class="math inline">\(t\)</span> documents <span class="math inline">\(\Seq_t X\)</span>, as a table with <span class="math inline">\(c^t\)</span> rows, each of length <span class="math inline">\(t\)</span>.</p>
+<p>We are looking for a point <span class="math inline">\(f\in\Dist \Seq_t X\)</span> that assigns high probablity to our dataset <span class="math inline">\(D\)</span>. <span class="math display">\[
+\prod_{(x_1 \cdots x_t)\in D} f(x_1 \cdots x_t)
+\]</span></p>
+<p>In practice, it is more common to frame the problem as minimization rather than maximization, and useful to work in log-space (this doesn’t change the optimum since log is monotonic), giving us our loss <span class="math display">\[l(D) = -\ln Pr(D | f) = \sum_{(x_1 \cdots x_t)\in D} -\ln f(x_1 \cdots x_t)\]</span></p>
+<p>ASIDE 3: The primary reason to use the log-prob loss is that it enables minibatching, which is an important technique when training models on large datasets. The minibatch approximates the loss on the entire dataset by computing the loss on a subsample from the dataset. In order for this approximation to be unbiased, we require <span class="math inline">\(l(D) = \mathbb{E}_{B \sim D}[l(B)]\)</span>, a property that can easily be seen to hold for the log-prob loss. A secondary reason to use the log-prob loss is for numerical stability; working directly with probabilities when using floating-point numbers is challenging, since for relatively long sequences the cumulative product of probabilities becomes very small. Since the logarithm transforms products into sums, log-probabilities tend to still stay within representable regions.</p>
+<section id="modeling-with-deep-learning" class="level3">
+<h3 class="anchored" data-anchor-id="modeling-with-deep-learning">1.1) Modeling with Deep Learning</h3>
+<p>A modeling task is about two problems. First you construct a model family / architecture / parametrized family etc.. then you find a good point on it usually with a variant of gradient descent.</p>
+<p><strong>Definition.</strong> Given sets <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, a model architecture is a map <span class="math inline">\(\phi: \R^p \to \Fn(X, Y)\)</span>. Given a parameter vector <span class="math inline">\(\theta \in \R^p\)</span>, the architecture gives us a function <span class="math inline">\(f = \phi(\theta)\)</span>.</p>
+<p><strong>deep learning</strong> generally refers to cases where the architecture <span class="math inline">\(\phi\)</span> is constructed with the following principles in mind * <strong>compositional:</strong> individual building blocks stacked on top of each other creating a stacked computation. Usualluy alternate between linear functions and some nonlinearlity. * <strong>differentiable:</strong> We optimize the parameters <span class="math inline">\(\theta\)</span> with a variant of gradient descent. This means we will need to construct a loss function <span class="math inline">\(l : \R^p \to \R\)</span> over the parameters that we can compute <span class="math inline">\(\nabla_\theta l\)</span> during the optimization stage. This menas that the architcture <span class="math inline">\(\phi\)</span> must be differentiable, meaning that if the parameters change a little bit, so do the outputs of the function. * <strong>scale</strong> There are some trends that reliably increase performance. One can reliably estimate the gains of training with larger models on more data. When evaluating an architecture, the goal is to understand how what would be the performance attained at any model scale and data ammount. * <strong>high throughput:</strong> It’s not about minimizing floating point operations. It’s about optimizing tokens per second on our hardware. * <strong>parallelizable</strong>. GPUs and other DL speciallized hardware perform well with tasks that are highly parallelizable. It’s another essential characteristic of deep learning.</p>
+<p>In this work, we will generally suppress <span class="math inline">\(\theta\)</span> for notational cleanliness, writing models as <span class="math inline">\(f\)</span> instead of <span class="math inline">\(f_\theta\)</span> unless necessary.</p>
+</section>
+<section id="autoregressive-modeling" class="level3">
+<h3 class="anchored" data-anchor-id="autoregressive-modeling">1.2) Autoregressive Modeling</h3>
+<p>Ok, so we will be looking for a distribution <span class="math inline">\(f \in \Dist \Seq_t X\)</span> assigning high log-probability to the data. But how do go about constructing (i.e.&nbsp;implementing in a computer) such a distribution? If the number of tokens is <span class="math inline">\(c\)</span>, the space of all documents of length <span class="math inline">\(t\)</span> has <span class="math inline">\(c^t\)</span> elements. <em>WARNING: cliche incoming.</em> Even for short sentences of length <span class="math inline">\(t=100\)</span>, <span class="math inline">\(c^t\)</span> will be larger than the number of atoms in the universe, and so impossible to represent explicitly.</p>
+<p>The most common approach is to tackle this problem is via <strong>autoregressive modeling</strong>, which emerges out of two key realizations:</p>
+<ul>
+<li>It’s very easy to computationally represent a model <span class="math inline">\(g: \Seq X\to \Dist X\)</span>, that maps sequences to distributions over tokens.</li>
+<li>For any fixed <span class="math inline">\(t\in \N\)</span>, there is a natural way to transform any <span class="math inline">\(g: \Seq X\to \Dist X\)</span> into an <span class="math inline">\(f\in \Dist \Seq_t X\)</span>, and vice versa.</li>
+</ul>
+<p>We call this transformation the <em>autoregressive map</em>.</p>
+<p><strong>Definition 3:</strong> For a given <span class="math inline">\(t\in \N\)</span> and any <span class="math inline">\(g: \Seq X \to \Dist X\)</span> and <span class="math inline">\(x_1 \cdots x_t \in \Seq_t X\)</span>, the autoregressive map <span class="math inline">\(A_t\)</span> is defined as <span class="math display">\[
+A_t(g)(x_1 \cdots x_t) = \prod_{i=0}^t g(x_1 \cdots x_{i-1})(x_i)
+\]</span></p>
+<p>Out of this definition, it’s obvious that <span class="math inline">\(A(g)\)</span> is a function in <span class="math inline">\(\Fn(\Seq_t X, \R)\)</span>. But it’s not clear that it also is a distribution in <span class="math inline">\(\Dist \Seq_t X\)</span>. It’s also not clear that for all <span class="math inline">\(f\in \Dist \Seq_t X\)</span> there exists a <span class="math inline">\(g\in \Fn(\Seq X, \Dist X)\)</span> such that <span class="math inline">\(f=A(g)\)</span>. The result below adress these concerns.</p>
+<p><strong>Result 1:</strong> The map <span class="math inline">\(A_t: \Fn(\Seq X, \Dist X) \to \Dist \Seq_t X\)</span> is well defined and is surjective.</p>
+<p><strong>Proof.</strong> To see that <span class="math inline">\(A_t(g)\in \Dist \Seq_t X\)</span> we need to show the outputs of <span class="math inline">\(A_t(g)\)</span> are possitive and sum to <span class="math inline">\(1\)</span>. Seeing that <span class="math inline">\(A_t(g)(x_1 \cdots x_t) \ge 0\)</span> is trivial, since the outputs are product of <span class="math inline">\(t\)</span> terms of the form <span class="math inline">\(g(x_1 \cdots x_{i-1})(x_i)\)</span>, which are all positive due to the assumption that <span class="math inline">\(g: \Seq X \to \Dist X\)</span>. Now, showing that <span class="math display">\[
+\sum_{x_1 \cdots x_t \in \Seq_t X} A_t(g)(x_1 \cdots x_t) = 1
+\]</span></p>
+<p>is a little tricker. We are going to proceed via induction. Take <span class="math inline">\(t=1\)</span> as the base case. <span class="math display">\[
+\sum_{x_1 \in \Seq_1 X} A_t(g)(x_1) = \sum_{x \in X} g()(x) = 1
+\]</span></p>
+<p>Now assume the result holds for all sequences up to length <span class="math inline">\(t\)</span>. Then <span class="math display">\[\begin{align}
+\sum_{x_1 \cdots x_t \in \Seq_t X}  f(x_1 \cdots x_t) &amp;= \sum_{x_1 \cdots x_t \in \Seq_t X}   \prod_{i=0}^t h(x_1 \cdots x_{i-1})(x_i)   \\
+&amp;= \sum_{x_1 \cdots x_{t-1} \in \Seq_{t-1} X} \sum_{x_t \in X}  \prod_{i=0}^{t-1} h(x_1 \cdots x_{i-1})(x_i) h(x_1 \cdots x_{t-1})(x_t) \\
+&amp;= \sum_{x_1 \cdots x_{t-1} \in \Seq_{t-1} X} \prod_{i=0}^{t-1} h(x_1 \cdots x_{i-1})(x_i)  \sum_{x_t \in X}  h(x_1 \cdots x_{t-1})(x_t) \\
+&amp;= \sum_{x_1 \cdots x_{t-1} \in \Seq_{t-1} X} \prod_{i=0}^{t-1} h(x_1 \cdots x_{i-1})(x_i) \\
+&amp;= \sum_{x_1 \cdots x_{t-1} \in \Seq_{t-1} X} A_{t-1}(g) \\
+&amp;= 1
+\end{align}\]</span></p>
+<p>We have shown that <span class="math inline">\(A_t(g) \in \Dist\Seq_t X\)</span>. Now we just need to show the map is surjective. TODO</p>
+<p><span class="math inline">\(\blacksquare\)</span></p>
+<p>Once we are looking for a function from <span class="math inline">\(g: \Seq X \to \Dist X\)</span> we are completely within the domain of deep learning. This result is at the core of what allows deep learning to tackle sequence modeling. With this established, let’s now explore in more detail how to construct a neural network <span class="math inline">\(g: \Seq X \to \Dist X\)</span>.</p>
+<p>ASIDE 4: There are also radically different approaches to use NNs to model distributions over sequences, that are non-autoregessive and thus do not rely on this result; but autoregressive modeling is what has been behind everything impressive so far.</p>
+<p>TODO: perhaps we could explain here how to turn an MLP into an autoregressive language model</p>
+</section>
+<section id="autoregressive-sampling" class="level3">
+<h3 class="anchored" data-anchor-id="autoregressive-sampling">1.3) Autoregressive Sampling</h3>
+<p>There are two main things we want to do with our language model <span class="math inline">\(f\in \Dist \Seq_t Z\)</span>. For training we want to evaluate the probability <span class="math inline">\(f(x_1\cdots x_t)\)</span> of specific sequences in the dataset. But once the model is trained, presumably we will want to use it to sample sequencs from it.</p>
+<p><strong>The dumbest way to sample:</strong> Given a finite set <span class="math inline">\(X\)</span> with <span class="math inline">\(n\)</span> elements, there is a very simple way to sample from any distribution <span class="math inline">\(p \in \Dist X\)</span>. You first have to pick an ordering of the set of elements <span class="math inline">\(x_1 \cdots x_n\)</span>. You then sample a random real number <span class="math inline">\(r \sim \text{Uniform}(0, 1)\)</span>. Then start going throgh the elements in order and accumulate the total probability seen <span class="math display">\[
+a_i = \sum_{j=1}^i p(x_j)
+\]</span></p>
+<p>Once the accumulated probability <span class="math inline">\(a_i &gt;r\)</span>, you return the element <span class="math inline">\(x_i\)</span> as the sample.</p>
+<p>When we are sampling sequences, the total number of elements in <span class="math inline">\(\Seq_t Z\)</span> is <span class="math inline">\(c^t\)</span>. This means we would need to evaluate the probability of an enormous number of sequences to get a single sample (yes, there is a lot of optimizations we could do on top of this basic algorithm, but this is so astronomically inefficinet that it’s really not worth trying to find imporvements)</p>
+<p><strong>The autoregressive way:</strong> Luckily for us, the fact we get our distribution <span class="math inline">\(f\)</span> out of <span class="math inline">\(g\in \Fn(X,Y)\)</span> via <span class="math inline">\(f=A_t(g)\)</span> opens up a completely different approach to sampling. Think about the following pocedure. Start with the empty sequence and sample <span class="math inline">\(x_1 \sim g()\)</span>, then sample <span class="math inline">\(x_2 \sim g(x_1)\)</span> followed by <span class="math inline">\(x_3\sim g(x_1, x_2)\)</span> and so on.</p>
+<p><strong>Result:</strong> When recursively sampling from <span class="math inline">\(g\)</span>, the proability of sampling the sequence <span class="math inline">\(z_1 \cdots z_t \in \Seq_t Z\)</span> is precisely <span class="math inline">\(A_t(g)(z_1 \cdots z_t )\)</span>. <strong>Proof:</strong> Fix a sequence <span class="math inline">\(z_1 \cdots z_t \in \Seq_t Z\)</span>. Clearly, the probability of first sampling <span class="math inline">\(z_1\)</span> is <span class="math inline">\(g()(z_1)\)</span>. Then, given that we’ve sampled <span class="math inline">\(z_1\)</span> the probability of sampling <span class="math inline">\(z_2\)</span> is <span class="math inline">\(g(z_1)(z_2)\)</span>. Continuing the patter we get that the probability of sampling the full sequence is <span class="math inline">\(z_1 \cdots z_t\)</span> is <span class="math display">\[
+\prod_{i=1}^t g(z_1 \cdots z_{i-1})(z_i) = A_t(g)(z_1 \cdots z_t)
+\]</span></p>
+<p><span class="math inline">\(\blacksquare\)</span></p>
+<p>Talk about gains. We’ve gone form needing <span class="math inline">\(O(|Z|^t)\)</span> evaluatioin of the function <span class="math inline">\(g\)</span> to only needing <span class="math inline">\(t\)</span>! That is the other major advantage of using <span class="math inline">\(\Fn(\Seq Z, \Dist Z)\)</span> to construct our language model. Not only does <span class="math inline">\(A_t\)</span> enable us to construct distributions over sequences in a way that works well with neural networks, it does so in a way that is cheap to sample form.</p>
+</section>
+</section>
+<section id="deep-learning-with-sequences" class="level1 page-columns page-full">
+<h1>2) Deep Learning with Sequences</h1>
+<p>Ok, so to train an autoregressive LM we need an architecture <span class="math inline">\(\Seq Z \to \Dist Z\)</span>. To think clearly about all the ways we can go about constructing such architecures it is useful to take a step back and breifly consider a more general class of deep learning problems. Tasks that involve sequences as inputs or outputs. This more generic problem is of independent interest, becuase sequence spaces turn out to be common in modeling many real world phenomena, not just language. Some examples would be:</p>
+<ul>
+<li><strong>Point clouds.</strong> The set <span class="math inline">\(X = \R^3\)</span>, 3 coordinates representing a position in space. <span class="math inline">\(\Seq X\)</span> would be the set of all possible point clouds</li>
+<li><strong>Molecular representations.</strong> A molecule could be the descripition of an atom, a list of numbers representing the position (like for 3D point clouds) but also other information like momentum, charge, or anything else physically relevant. <span class="math inline">\(\Seq X\)</span> would represent the configuration of a phyisical world with many such atoms.</li>
+<li><strong>Aminoacid sequences.</strong> <span class="math inline">\(X\)</span> is the set of aminoacids The description of an aminoacid might or mihgt not have a spatial location.</li>
+<li><strong>Images.</strong> Images can be thought of as a sequence of pixels. An image of RGB pixels with <span class="math inline">\(h\)</span> vertical pixels and <span class="math inline">\(w\)</span> horizontal ones would correspond to an element in <span class="math inline">\(\Seq \R^3\)</span> of length <span class="math inline">\(h\times w\)</span>. What about elements of <span class="math inline">\(\Seq \R^3\)</span> that don’t have length multiple of <span class="math inline">\(w\)</span>, they correspond to non square images… you can see that <span class="math inline">\(\Seq \R^3\)</span> is not a super natural to represent the space of images. And indeed, the architectures that “think” about images in a different way tend to be more succsfull (yes, I’m talking about convolutional networks). But still, <span class="math inline">\(\Seq \R^3\)</span> is a perfectly legitimate way to think of images.</li>
+</ul>
+<p>These sequence spaces are used in tasks like the following:</p>
+<ul>
+<li><strong>Molecular modeling.</strong> Given the desciption of the physical state, predict the evolution of the system.</li>
+<li><strong>Protein folding.</strong> Here <span class="math inline">\(X\)</span> is a representation of an aminoacid and the outputs are a sequence of 3D points of the position in space of the corresponding aminoacid.</li>
+<li><strong>Point cloud classification.</strong> For a finite set of categories <span class="math inline">\(C\)</span> we are looking for afunciton <span class="math inline">\(\Seq \R^3 \to \Dist C\)</span>.</li>
+<li><strong>Image coloring.</strong> Given an grayscale image, assign an RGB value to each pixel.</li>
+</ul>
+<p>In these tasks we’ve seen signatures of the type</p>
+<ul>
+<li><span class="math inline">\(\Seq X \to Y\)</span></li>
+<li><span class="math inline">\(\Seq X \to \Seq Y\)</span></li>
+</ul>
+<p>And we would like to have a good sense about how to construct architectures in all of these cases. Even tough this seems like a very generic problem, it turns out that there is a much more constrained type of architecture that plays an outsized role in the space of deep learning architectures. And even when our task demands a more generic architecture, we can reduce the problem into using architectures of this constrained type under the hood.</p>
+<section id="sequence-transformations" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="sequence-transformations">2.1) Sequence Transformations</h2>
+<p><strong>Definition</strong> We say <span class="math inline">\(h: \Seq X \to \Seq Y\)</span> is a <strong>sequence transformation</strong> if <span class="math inline">\(h\)</span> preserves the length of the sequence. Meaning that if the input sequence has lenght <span class="math inline">\(t\)</span>, so does the output sequence.</p>
+<p>We refer to <span class="math inline">\(\SeqT(X, Y)\subset \Fn(\Seq X, \Seq Y)\)</span> as the subset of all sequence transformations.</p>
+<p>In deep learning we care about composing multiple layers into more complex architectures. Sequence transformations are very well behaved in this way, as the composition of two sequence transforms is a sequence transform itself.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> This is a completely obvious fact, but since it is quite an important one it’s worth stateting it as a result.</p>
+<p><strong>Result:</strong> If <span class="math inline">\(h\in \SeqT(X, Y)\)</span> and <span class="math inline">\(f\in \SeqT(Y, Z)\)</span> then <span class="math inline">\(f\circ h \in \SeqT(X,Z)\)</span>.</p>
+<p>In the next section we’ll see how RNNs and Transformers are examples of sequence transformations. So are elementwise functions on the sequence elements.</p>
+<p>Just from a quick glance at the list above, it’s quite obvious that many lerning problems naturally involve sequence transformations. For tasks like <strong>protein folding</strong> and <strong>image coloring</strong>, each entrie of the output sequence is trying to predict missing information of the same entrie on the input sequence. Thus, for this type of tasks we need the output sequence to have the same length as the input one, and so we our model architectures must be a sequence transformation. But of course that isn’t always the case. In particular our central objective of autoregressive language modeling requires architectures with a different signature <span class="math inline">\(\Seq X \to Y\)</span>.</p>
+<p>What is surprizing is that even for tasks like these, sequence transformations turn out to be an extremely useful building block that is used under the hood. To see why, take a moment to think about how you might construct an architecture with the desired input and output spaces. In one side you have the space <span class="math inline">\(\Seq X\)</span>, where a point might contain an unboudedly large amount of informaiton. On the other, you have a <span class="math inline">\(Y\)</span>, which often is a finite dimensional vector space. <span class="math inline">\(Y\)</span> is a much “bounded” space than <span class="math inline">\(\Seq X\)</span>. When designing your architecture you are forced to decide where to place the projection from the variable sized space to the fixed sized one. Given that neural network architectures are allways constructed as the composition of many individual layers, there are two very natural choices of where to place the projection: in the beginning, or at the end. We would call the choice early drop and late drop respectively. Early drop architectures would look something like <span class="math display">\[
+\Seq X \to \R^d \to \cdots \to \R^d \to Y
+\]</span></p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p><span class="math inline">\(d\)</span> represents the width of each layer of the neural network. The arrows represent the individual layers of the neural network.</p>
+</div></div><p>and the late drop type would be constructed out of many sequence transforms layers except for the last one <span class="math display">\[
+\Seq X \to \Seq \R^d \to \cdots \to \Seq \R^d \to Y
+\]</span></p>
+<p>One can definetely construct neural network architectures in the two ways, and we are about to see some examples of both. But it does seem to be the case that all the architectures we actually used in practice (e.g.&nbsp;transformers and RNNs) are of the drop last type. We could speculate about why:</p>
+<ul>
+<li>using sequences interally is a good inductive bias for tasks that are naturally expressed as sequences.</li>
+<li>adaptive computation. More complex tasks have more internal state abailable to solve them</li>
+</ul>
+<p>But honestly, that just leads to a lot of talk with little substance. What is certainly true is that the second type is the one with widespread use, it seems to be the deep learning way of doing things. Moreover, in section 3 we will see how thinking about architectures based on sequence transforms enable one massive optimization to train autoregressive language models.</p>
+<p>TODO: Even when your architecture can be thought of in a different way, sequence transform perspective is what allows you to implement them efficiently on hardware. Unleash all your cores to compute different parts of the output all at the same time. Unconstrain yourself</p>
+</section>
+<section id="example-architectures" class="level2">
+<h2 class="anchored" data-anchor-id="example-architectures">2.3) Example Architectures</h2>
+<p>TODO: make the point that sequence transforms give us a unified perspective to think about RNNs and Transformers</p>
+<section id="recurrent-neural-networks" class="level3">
+<h3 class="anchored" data-anchor-id="recurrent-neural-networks">2.3.1) Recurrent Neural Networks</h3>
+<p>An RNN has the signature <span class="math display">\[
+r(s_{t-1}, x_t) = (s_t, y_t)
+\]</span></p>
+<p>For example, a very basic RNN layer might be something like <span class="math display">\[
+s_{i+1} = \sigma(W s_i) + x_i  \;\;\;\;\;\;\;\;\;\; y_i = U s_i
+\]</span></p>
+<p>where <span class="math inline">\(x_i, s_i, y_i \in \R^d\)</span> are the inputs, states and outputs respectively and <span class="math inline">\(W, U \in \R^{d\times d}\)</span> are weight matrices and <span class="math inline">\(\sigma\)</span> is a nonlinearlity like a sigmoid. Of course, there is an infinitude of variations. The specific step equations matter much less than the general pattern of a layer with the signature of <span class="math inline">\(r\)</span>.</p>
+<p>As written, it’s not clear that we have a sequence transformation in our hads. But once we pick an initial state <span class="math inline">\(s_{-1}\in \R^d\)</span>, any function with such a recurrent formulation can be Given the input sequence <span class="math inline">\(x_1 \cdots x_t\)</span> we can <em>unrolled</em> the recurrent step and compute the sequence <span class="math inline">\(y_1 \cdots y_t\)</span>. Thus we have a sequence transform in our hands.</p>
+<p>In deep learning we will want to stack many such layers <span class="math inline">\(r\)</span>. For example let’s consider stacking <span class="math inline">\(n\)</span> layers <span class="math inline">\(r\)</span> to construct a deep RNN. The stack of layers will have the same signature of our basic RNN, the only difference is that the state will consist of <span class="math inline">\(n\)</span> vectors in <span class="math inline">\(\R^d\)</span>. The following diagram represents the computation of a deep RNN with 2 layers and <span class="math inline">\(t=3\)</span>. The blue boxes represent each step of unrolling the RNN through time.</p>
+<p><img src="https://hackmd.io/_uploads/rJjhy0Mda.jpg" class="img-fluid" alt="File (11)"> But people don’t tend to implement deep RNNs this way! Anyone who has seen an implementation of an RNN will recognize that the actual computation we implement is instead:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hackmd.io/_uploads/r1HhkCfup.jpg" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">File (12)</figcaption>
+</figure>
+</div>
+<p>It’s like we try to avoid the recurrent formulation of a deep RNN and instead prefer to see it as a stack of sequence transformations. But why? Ofc they are mathematicaully equivalent, but there is a difference in practical performance in hardware: cache hits EXPAND FURTHER. We start to see how thinking about sequence transforms seems to have some computational advantages.</p>
+<p>To create the function we need for our autoregressive LM we could take a stack of RNN layers and on the last layer throw out all the outputs except for <span class="math inline">\(y_t\)</span>. That gives us a function with signature <span class="math inline">\(\Seq X\to Y\)</span>.</p>
+</section>
+<section id="transformers" class="level3">
+<h3 class="anchored" data-anchor-id="transformers">2.3.2) Transformers</h3>
+<p>A transformer layer takes in a sequence of inputs <span class="math inline">\(X_1 \cdots X_t \in \R^d\)</span> and uses weight matrices <span class="math inline">\(W_Q, W_K, W_v \in \R^{d\times d}\)</span> to compute <span class="math inline">\(Q_i = W_Q X_i\)</span> etc.. The outputs of the layer are <span class="math display">\[
+Y_i = \sum_{j=0}^t e^{Q_i K_j^T} V_j
+\]</span></p>
+<p>An the causal transformer layer is <span class="math display">\[
+Y_i = \sum_{j=0}^t e^{Q_i K_j^T} V_j
+\]</span></p>
+<p>They are both clearly sequence transformations since we get <span class="math inline">\(t\)</span> outputs <span class="math inline">\(Y_i\)</span>.</p>
+<p>One massive advantage of transformers over alternative architectures like the RNNs we’ve just seen is that they are highly parallelizable. Our GPUs with many cores can split the work of computing all the <span class="math inline">\(Y_i\)</span> in parallel. You don’t need to finish computing <span class="math inline">\(Y_1\)</span> before you can move on to <span class="math inline">\(Y_2\)</span>.</p>
+<p>The potential for this parallelism is something quite natural when one thinks in terms of sequence transformations <span class="math inline">\(h: \Seq X \to \Seq Y\)</span>. There is nothing inherent that says that one must compute the output sequence one step at a time.</p>
+<p>To create a practical architecture for our autoregressive language modeling we would stack a sereies of transformer layers, normally with some MLPs in between. Just like for RNNs, we would throw out all the outputs of the last layer except for <span class="math inline">\(Y_t\)</span>. That will gives us a function with the desired signature <span class="math inline">\(\Seq X\to Y\)</span>.</p>
+<p><em>Note how it really doesn’t matter is we use causal or non causal transformers for this task. We can get an autoregressive LM out of each. Yes, there is a very good reason to use causal transformers, but to see why we will need to think carefuly about training costs. Something that we will do in section 3.</em></p>
+</section>
+<section id="k-gram-mlp" class="level3">
+<h3 class="anchored" data-anchor-id="k-gram-mlp">2.3.3) k-gram MLP</h3>
+<p>We’ve seen a couple of common examples of “drop last” architectures. Let’s give 1 of the “drop first” type. As stated, this is not a common thing to do, and the experienced deep learning practitioner will recognize it’s kind of funky. Let’s do it non the less for the sake of completeness</p>
+<p>Inspired by the classic <span class="math inline">\(k\)</span>-gram models. If the input sequence is <span class="math inline">\(\Seq \R^d\)</span>, we could “stack” the <span class="math inline">\(k\)</span> last inputs and apply an MLP to the vector in <span class="math inline">\(\R^{nd}\)</span>. The last layer of the <span class="math inline">\(MLP\)</span> would map into <span class="math inline">\(Y\)</span>.</p>
+<p>Independent of how well this arch learns. It turns out that it is very poorly behaved computationally compared to RNNs and causal transformers. In section 3 we will see how this architecture is poorly suited for the porpuses of autoregressive language modeling in the same way than non causal transformers are.</p>
+</section>
+</section>
+</section>
+<section id="efficient-autoregressive-modeling" class="level1">
+<h1>3) Efficient Autoregressive Modeling</h1>
+<p>TODO: come up with a better name for the section</p>
+<p>Combining what we have seen in the last two sections we have everything we need to implement a neural network that can be used for autoregressive language modeling.</p>
+<p>But as we will now see, there is a lot left on the plate. We will now study the costs of training and sampling and see how, by introducing a new type of archtecture, we can make get a lot more value out of our GPUs.</p>
+<section id="cost-of-training" class="level2">
+<h2 class="anchored" data-anchor-id="cost-of-training">3.1) Cost of Training</h2>
+<p>Now, let’s return to considering autoregressive language modeling, <span class="math inline">\(f : \Seq X \to \Dist X\)</span>. How many times do we have to call the underlying function <span class="math inline">\(f\)</span> to evaluate the loss <span class="math inline">\(l\)</span>?</p>
+<p>When we evaluate the loss we have to compute <span class="math display">\[ l = \sum_{x\in \Seq_t X} \sum_{i=1}^t -\ln[f(x_1 \cdots x_{i-1})(x_i)]\]</span></p>
+<p>For example, suppose our dataset consists of a single sentence: <span class="math inline">\(\text{"I like penguins"}\)</span>. To evaluate the loss we need to evaluate our model <span class="math inline">\(f\)</span> on the empty sequence <span class="math inline">\(\text{""}\)</span> and the first character <span class="math inline">\(\text{"I"}\)</span> and <span class="math inline">\(\text{"I "}\)</span> and <span class="math inline">\(\text{"I l"}\)</span>, <span class="math inline">\(\text{"I lik"}\)</span> etc..</p>
+<p><span class="math display">\[
+f(\text{""}) \\
+f(\text{"I"}) \\
+f(\text{"I "}) \\
+f(\text{"I l"}) \\
+f(\text{"I li"}) \\
+\vdots
+\]</span></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hackmd.io/_uploads/BySruQpX6.jpg" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">385505895_353915030504501_2594593902089499332_n.jpeg</figcaption>
+</figure>
+</div>
+<p>So, for every sequence <span class="math inline">\(x_1 \cdots x_t \in D\)</span>, to compute the loss we need to call our model on <span class="math inline">\(t\)</span> different inputs.</p>
+<p><strong>The motivatiion to find a speed up</strong> We have been considering the possibility of using an architecture of the type <span class="math display">\[
+f:\Seq X \to \Seq \R^d \to \cdots \to \Seq \R^d \to Y
+\]</span></p>
+<p>but it might be dumb that all the steps of the computation <span class="math inline">\(f(x\cdots x_t)\)</span> involve sequences <span class="math inline">\(t\)</span> and at the end we project down and output a vector.</p>
+<p>Perhaps, we could use a different architecture that was a sequence transformation</p>
+<p><span class="math display">\[
+g: \Seq X \to \Seq \R^d \to \cdots \to \Seq \R^d \to \Seq Y
+\]</span></p>
+<p>The dream would be that <span class="math inline">\(g(\text{"I like penguins"}) = [f(\text{"I"}), f(\text{"I "}), f(\text{"I l"}), f(\text{"I li"}), \cdots]\)</span>, so the output sequence contains all the values we need in a single call to our architecture.</p>
+</section>
+<section id="causal-sequence-transformations" class="level2">
+<h2 class="anchored" data-anchor-id="causal-sequence-transformations">3.2) Causal Sequence Transformations</h2>
+<p>The fundamental principle of causality is that <em>the past does not depend on the future</em>. The way to formalize this intuition is to say that evaluating a causal sequence transformation on a subsequence produces an output sequence that is also a subsequence.</p>
+<p><strong>Definition</strong> We say <span class="math inline">\(h\in \SeqT(X,Y)\)</span> is a <strong>causal sequence transformation</strong> if, given a sequence <span class="math inline">\(x_1 \cdots x_t \in \Seq_t X\)</span> with output sequence <span class="math inline">\(y_1 \cdots y_t = h(x_1 \cdots x_t)\)</span>, for any <span class="math inline">\(i\le t\)</span>, evaluating <span class="math inline">\(h\)</span> on the subsequence <span class="math inline">\(x_1 \cdots x_i \in \Seq_i X\)</span>, the outputs <span class="math inline">\(y'_1 \cdots y'_i = h(x_1 \cdots x_i)\)</span> have the property that <span class="math inline">\(y_j = y'_j\)</span> for all <span class="math inline">\(j\le i\)</span>.</p>
+<p>We refer to <span class="math inline">\(\CSeqT(X, Y) \subset \SeqT(X, Y)\)</span> as the subset of all causal sequence transformations.</p>
+<p>The reader is encouraged to check that all functions below are causal sequence transformations * RNNs as defined in EQX * Transformers as defined in EQY * Elementwise functions <span class="math inline">\(h(x_1 \cdots x_t) = \sigma(x_1) \cdots \sigma(x_t)\)</span></p>
+<p>Just like sequence transformations, causal sequence transformations form a category, meaning that they are closed under composition. This means we can use layers that we know are causal sequence transforms and combine as building blocks into more complex architectures.</p>
+<p><strong>Result:</strong> If <span class="math inline">\(h\in \CSeqT(X, Y)\)</span> and <span class="math inline">\(f\in \CSeqT(Y, Z)\)</span> then <span class="math inline">\(f\circ h \in \CSeqT(X,Z)\)</span>. <strong>Proof</strong> Bruh, why you expanding this proof? Don’t be lazy and do it yourself. It’s real easy.</p>
+<p>For example, a full transformer architecture usually would be constructed by composing many transformer blocks. Where each block consists of a transformer layer as in EQY followed by an MLP applied elementwise to all outputs of the transformer layer. Thanks to the previous result we know that the full transformer architecture will be causal just by confirming that elementwise functions and EQY are causal sequence transformations.</p>
+<p>Alright, now that we understand causal sequence transformations and we have a vast space of such architectures at our dispoal, let’s see why they are so useful for the problem we were trying to solve.</p>
+<p><strong>Definition:</strong> The “take last” function <span class="math inline">\(L: \CSeqT(X, Y) \to \Fn(\Seq X, Y)\)</span> is defined the following way: given an <span class="math inline">\(h\in \CSeqT(X,Y)\)</span>, if <span class="math inline">\(x_1 \cdots x_t \in \Seq_t X\)</span> then <span class="math inline">\(L(h)(x_1 \cdots x_t) = [h(x_1 \cdots x_t)]_t\)</span>. In other words, if <span class="math inline">\(y_1 \cdots y_t = h(x_1 \cdots x_t)\)</span> then <span class="math inline">\(L(h)(x_1 \cdots x_t) = y_t\)</span>.</p>
+<p><strong>Result</strong> <span class="math inline">\(L\)</span> is a 1-1 mapping where the inverse “concatifies” a function <span class="math inline">\(f \in \Fn(\Seq X, Y)\)</span> by evaluating it on <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_1, x_2\)</span> etc.. Concretely: <span class="math display">\[
+L^{-1}(f)(x_1 \cdots x_t) = \left(f(x_1), f(x_1, x_2), \cdots, f(x_1 \cdots x_t) \right)
+\]</span></p>
+<p><strong>Proof</strong> First note that, given an <span class="math inline">\(f\in \Fn(\Seq X, Y)\)</span>, if <span class="math inline">\(h\)</span> is the concatification of <span class="math inline">\(f\)</span>, meaning that <span class="math inline">\(h(x_1 \cdots x_t) = \left(f(x_1), f(x_1, x_2), \cdots, f(x_1 \cdots x_t) \right)\)</span> then clearly, <span class="math inline">\(L(h)(x_1 \cdots x_t) = f(x_1 \cdots x_t)\)</span>.</p>
+<p>We also need to check the other direction. Given an <span class="math inline">\(h\in \CSeqT(X, Y)\)</span>: <span class="math display">\[\begin{align}
+h(x_1 \cdots x_t) &amp;= \left([h(x_1 \cdots x_t)]_1, [h(x_1 \cdots x_t)]_2, \cdots, [h(x_1 \cdots x_t)]_t \right)  \\
+&amp;= \left([h(x_1)]_1, [h(x_1, x_2)]_2, \cdots, [h(x_1 \cdots x_t)]_t \right)   &amp;  \text{using the fact that $h$ is causal}  \\
+&amp;=  \left(L(h)(x_1), L(h)(x_1, x_2), \cdots, L(h)(x_1 \cdots x_t) \right) &amp;  \text{using the definition of $L$}
+\end{align}\]</span></p>
+<p>so if we concatify <span class="math inline">\(L(h)\)</span> we get <span class="math inline">\(h\)</span> back. <span class="math inline">\(\blacksquare\)</span></p>
+<p>In summary, <img src="https://hackmd.io/_uploads/r1f_JCaIa.jpg" class="img-fluid" alt="File (5)"></p>
+<p>We’ve established a 1-1 mapping between the two function spaces. But computationally there is a very big difference between applying <span class="math inline">\(L\)</span> and applying <span class="math inline">\(L^{-1}\)</span>. One is expensive the other is cheap. The color of the arrows represent that.</p>
+<p>We get another interesting diagram when we combine this result with the previous one we get the following picture (where horizontal lines indicate the function is invertible and vertical ones indicate the function is surjective)</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hackmd.io/_uploads/B1hwM0TLp.jpg" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">File (6)</figcaption>
+</figure>
+</div>
+<p>When we are trying to construct our distribution over length <span class="math inline">\(t\)</span> sequences we loose no expresivety if we start with an <span class="math inline">\(h\in \CSeqT(X, \Dist X)\)</span> and we apply <span class="math inline">\(A_t\circ L: \CSeqT(X, \Dist X) \to \Dist \Seq_t X\)</span>. For any <span class="math inline">\(f\in \Dist \Seq_t X\)</span> there will be an <span class="math inline">\(h\in \CSeqT(X, \Dist X)\)</span> s.t. <span class="math inline">\(f = A_t \circ L (h)\)</span>. So mathematically it really doesn’t matter if our base architecture is <span class="math inline">\(g\in \Fn(\Seq X, \Dist X)\)</span> or <span class="math inline">\(h\in \CSeqT(X, \Dist X)\)</span>, but computationally it makes a massive differene!</p>
+<p>Suppose <span class="math inline">\(g = L (h)\)</span>. Then, to evaluate the loss on a single sequence <span class="math inline">\(\text{"hat"})\)</span> we required 3 invokations of the function <span class="math inline">\(g\)</span> <span class="math display">\[
+g(\text{"h"}), \; g(\text{"ha"}), \; g(\text{"hat"})
+\]</span></p>
+<p>But when we evaluate <span class="math inline">\(h(\text{"hat"})\)</span>, since <span class="math inline">\(h = L^{-1} \circ L (h) = L^{-1} \circ g\)</span> then <span class="math display">\[
+h(\text{"hat"}) = L^{-1}(g)(\text{"hat"})  = \left (g(\text{"h"}), \; g(\text{"ha"}), \; g(\text{"hat"})  \right)
+\]</span></p>
+<p>For a sequence of length <span class="math inline">\(t\)</span>, just by evaluating <span class="math inline">\(h\)</span> a single time we get the <span class="math inline">\(t\)</span> evaluations of <span class="math inline">\(f\)</span> that we need for the loss. Using a causal sequence transformation is an incredible bargain. <em>You compute 1 and get <span class="math inline">\(t-1\)</span> for free!</em></p>
+<!--
+### The Causal Partial ordering
+*NOTE: this section should be folded by default*
+
+There is an alternative approach to reach the same definition of causal sequence transformation. We won't really use it anywhere else in the doc but we believe its a particlarly beautiful angle, so we discuss it anyways. feel free to skip this section.
+
+
+There is a natural partial ordering of $\Seq(X)$. A sequence $x_1 \cdots \in \Seq(X)$ is a continuation of $y_1 \cdots \in \Seq(X)$ iff $len(x)\ge len(y) = t$ and $x_1=y_1, \;\cdots, \; x_t =y_t$
+
+A sequence transformation $f:\Seq X \to \Seq Y$ is causal if it preserves this ordering relation. Meaning that if we have two inputs $x, x' \in \Seq(X)$ with $x \le x'$ ($x'$ is a continuation of $x$) then $f(x')$ will also be a continuation of $f(x)$. In other words, if $x\le x'$ then $f(x)\le f(x')$.
+
+Any function that preserves this ordering must respect that th e**the past does not depend on the future**. If $y_1 \cdots y_t = f(x_1 \cdots x_t)$. The first output $y_1$ depends only on $x_1$, meaning that for two completely different input sequences sharing the same initial token $x_1 x_2 \cdots x_t$ and $x_1 x'_2 \cdots x'_t$  the two output sequences would have the same $y_1$.
+
+----
+**Result** A sequence transform $f: \Seq X \to \Seq Y$ is causal iff it perserves the causal ordering.
+
+**proof**
+
+-->
+</section>
+<section id="efficient-sampling" class="level2">
+<h2 class="anchored" data-anchor-id="efficient-sampling">3.3) Efficient Sampling</h2>
+<p><strong>Can we do even better?</strong> Let’s consider what would it would look like to follow the autoregressive sampling procedure for the RNN of EQX. First we call <span class="math inline">\(g(x_1)\)</span> which requires <span class="math display">\[
+s_1, y_1 = r(s_0, x_1) \;\;\;\;\; z_1 \sim y_1 \in \Dist Z
+\]</span></p>
+<p>Then we want to call <span class="math inline">\(g(x_1, x_2)\)</span> which requires <span class="math display">\[
+s_1, y_1 = r(s_0, x_1) \;\;\;\;\; s_2, y_2 = r(s_1, x_2) \;\;\;\;\; z_2 \sim y_2 \in \Dist Z
+\]</span></p>
+<p>And we can already see the problem. The second invocation of <span class="math inline">\(g\)</span> internally recomputes the term <span class="math inline">\(s_1\)</span> which was already computed in the first call. This is a consequence that the way we are calling <span class="math inline">\(g\)</span> is very structured. And often there is potential for cacheing values and reusing computation between the individual calls.</p>
+<p>In the case of an RNN, the way you actually want to sample is to first compute <span class="math inline">\(s_1, y_1 = r(s_0, x_1)\)</span> and sample <span class="math inline">\(z_1 \sim y_1\)</span>. Then reuse <span class="math inline">\(s_1\)</span> and compute <span class="math inline">\(s_2, y_2 = r(s_1, x_2)\)</span> and sample <span class="math inline">\(z_2 \sim y_2\)</span> and so on. This is a big optimization because we are cacheing computation into the state.</p>
+</section>
+<section id="state-machines" class="level2">
+<h2 class="anchored" data-anchor-id="state-machines">3.4) State Machines</h2>
+<p>To optimize training we exchanged <span class="math inline">\(t\)</span> calls to an expensive function <span class="math inline">\(g\)</span> into <span class="math inline">\(1\)</span> call to an equally expensive function <span class="math inline">\(h\)</span>. To optimize sampling we will echange <span class="math inline">\(t\)</span> calls to an expensive function <span class="math inline">\(g\)</span> into <span class="math inline">\(t\)</span> calls to a function <span class="math inline">\(r\)</span> which is cheaper because it reuses cached computation from the previous calls.</p>
+<p><strong>Definition:</strong> A <strong>state machine</strong> A state machine in <span class="math inline">\(\SM(X,Y)\)</span> is a tuple <span class="math inline">\((S, s_0, r)\)</span> where <span class="math inline">\(S\)</span> is a set called the state space, <span class="math inline">\(s_0 \in S\)</span> is a point we call the origin and <span class="math inline">\(u: S, X \to S, Y\)</span> is a step/tick function <span class="math display">\[
+r(s_{t-1}, x_t) = (s_t, y_t)
+\]</span></p>
+<p>There is no difference between these equations and the basic form of an RNN, but there are a few reasons we are choosing to call the object state machine instead of RNN. * We will apply this type of equation to things that in no way can be considered neural networks. A good example is a tape, which we will discuss shortly. Using the term NN (i.e.&nbsp;neural network) to refer to such objects feels silly. * Another reason is that for RNN it is usually assumed that <span class="math inline">\(s_t \in \R^d\)</span> for some <span class="math inline">\(d\in \N\)</span>. In other words, the state has a “fixed size”. As we will now see, to be able to unify transformers and RNNs, it’s very important to think in terms of state machines with states of “growing size”.</p>
+<p>It’s kind of obvious that, if the whole idea of state machines is to allow for the cacheing of information during the repreated invokations of <span class="math inline">\(g\)</span>, there will always be a “worst case state machine” for any <span class="math inline">\(g\)</span>: the state machine that caches no computations. We call this the <strong>tape state machine</strong> because the only thing it stores is the inputs.</p>
+<p><strong>Definition:</strong> The tape state machine <span class="math inline">\(P(g)\in \SM(X,Y)\)</span> of a function <span class="math inline">\(g\in \Fn(\Seq X, Y)\)</span> is <span class="math display">\[
+P(g)=( \underbrace{\Seq X}_S, \underbrace{[\;]}_{s_0}, r_g )
+\]</span></p>
+<p>where the tick funciton <span class="math inline">\(r_g\)</span> is defined as <span class="math display">\[
+r_g \bigg( \underbrace{[x_1 \cdots x_{t-1}]}_{s_{t-1}}, \; x_t \bigg)
+= \bigg( \underbrace{[x_1 \cdots x_t]}_{s_t}, \; \underbrace{g(s_t)}_{y_t} \bigg)
+\]</span></p>
+<p>The tape state machine might seem like a bit of a silly object,</p>
+<ul>
+<li>It helps us see that all <span class="math inline">\(g\)</span> can be thought of as state machiens. Once we have this unified framework to compare sampling costs of different models. We just compare the size of the sates and the cost of every tick. We are going to do that next.</li>
+<li>Even though you never want to run the tape state machine, it’s a useful starting point to start the analysys of imporovements. We can sample from autoregressive MLPs. It’s also useful to construct baselines.</li>
+<li>And is useful as a software engineering idea. You can see if the samples from a model are good and only then take the effort to implement a highly optimized state machine. Another aplication is testing. When you are implementing an optimized SM, it’s useful to have a (slow) reference that has the exact same interface and outputs as the funciton you are trying to implement.</li>
+</ul>
+<p><strong>Result:</strong> The unrolling funciton <span class="math inline">\(U: \SM(X,Y) \to \CSeqT(X,Y)\)</span> is surjective. Given <span class="math inline">\(m = (S, s_0, p) \in \SM(X,Y)\)</span> <span class="math display">\[
+U(m)(x_1 \cdots x_t) = [y_1 \cdots y_t] \;\;\;\; \text{where} \;\;\;\;  (s_t, y_t) = p(s_{t-1}, x_t)
+\]</span></p>
+<p><strong>Proof:</strong> Use the tape state machine… <span class="math inline">\(\blacksquare\)</span></p>
+<p>The following diagram summarizes the result</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hackmd.io/_uploads/BJ3601kva.jpg" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">File (10)</figcaption>
+</figure>
+</div>
+<p>Note how <span class="math inline">\(P\circ L\)</span> behaves similarly to an inverse of <span class="math inline">\(U\)</span> because <span class="math inline">\(U \circ P \circ L = \text{id} : \Fn(X,Y) \to \Fn(X,Y)\)</span>. But the other direction is not necessarily true. For example if we start with a classic RNN <span class="math inline">\((\R^d, 0, r)\)</span> and we <span class="math inline">\(P \circ L \circ U\)</span> we end up with tape state machine that is different from the RNN.</p>
+<p>We can also combine it with the autoregressive correspondance result to get the diagram: <img src="https://hackmd.io/_uploads/SJxRAy1D6.jpg" class="img-fluid" alt="File (9)"></p>
+<section id="rnn-state-machines" class="level3">
+<h3 class="anchored" data-anchor-id="rnn-state-machines">RNN State Machines</h3>
+<section id="tape-sm-ot-memory-and-otd2-compute" class="level4">
+<h4 class="anchored" data-anchor-id="tape-sm-ot-memory-and-otd2-compute">Tape SM: <span class="math inline">\(O(t)\)</span> memory and <span class="math inline">\(O(td^2)\)</span> compute</h4>
+</section>
+<section id="efficient-sm-od-memory-and-od2-compute" class="level4">
+<h4 class="anchored" data-anchor-id="efficient-sm-od-memory-and-od2-compute">Efficient SM: <span class="math inline">\(O(d)\)</span> memory and <span class="math inline">\(O(d^2)\)</span> compute</h4>
+</section>
+</section>
+<section id="self-attention-state-machines" class="level3">
+<h3 class="anchored" data-anchor-id="self-attention-state-machines">Self Attention State Machines</h3>
+<section id="tape-sm-ot-memory-and-ot2d-compute" class="level4">
+<h4 class="anchored" data-anchor-id="tape-sm-ot-memory-and-ot2d-compute">Tape SM: <span class="math inline">\(O(t)\)</span> memory and <span class="math inline">\(O(t^2d)\)</span> compute</h4>
+</section>
+<section id="kv-cache-sm-otd-memory-and-otd-compute" class="level4">
+<h4 class="anchored" data-anchor-id="kv-cache-sm-otd-memory-and-otd-compute">KV cache SM: <span class="math inline">\(O(td)\)</span> memory and <span class="math inline">\(O(td)\)</span> compute</h4>
+<p>Funnily enough, this imporvement #### Efficient SM: <span class="math inline">\(O(d^2)\)</span> memory and <span class="math inline">\(O(d^2)\)</span> compute Does it exist for the transformer? Yes under the assumption that…</p>
+</section>
+</section>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">3.5) Summary</h2>
+<p>Ok, we’ve seen a lot of changes of perspectives. The following diagram sumamrizes what is the relationship between the objects we’ve been using, and what each perspective is useful for.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://hackmd.io/_uploads/By-KTapIT.jpg" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">File (1)</figcaption>
+</figure>
+</div>
+<p>Our objective now is to construct good architectures with both, an efficient causal sequence transformation and state machine implementations. We will see how causal transformers can be seen as examples of causal sequence transformations, and then we will present our star architecture a small modification that we call linear self attention that retains all the advantages of the transformers but gives a big improvement on the causal sequence implementation</p>
+<p>But it’s going to be easier to introduce the key ideas that allow for these optimizations in the simpler setting of sequence transformations.</p>
+<p>Transformers are amazing for two general reasons * generalize very well (better than RNNs?) * run very fast on our GPUs (way better than RNNs)</p>
+<p>but suffer from some disadvantages: * Cost <span class="math inline">\(O(t^2)\)</span> on train on datasets of length <span class="math inline">\(t\)</span> as opposed to <span class="math inline">\(O(t)\)</span> for RNNs * Sampling a sequence of length <span class="math inline">\(t\)</span> has cost <span class="math inline">\(O(t^2)\)</span> vs <span class="math inline">\(O(t)\)</span> for RNNs</p>
+<p>Our empirical results will be focused on an architecture we implemented that we call Self Attention RNN (SARNN) / Self Attention State Machine / We think its a very succseful architecture at combining the best of both worlds because it has the properties: * generalize very well * run very fast on our GPUs * Cost <span class="math inline">\(O(t)\)</span> to train on datasets of length <span class="math inline">\(t\)</span> * Sampling a sequence of length <span class="math inline">\(t\)</span> has cost <span class="math inline">\(O(t)\)</span></p>
+</section>
+</section>
+<section id="linear-transformer" class="level1">
+<h1>4) Linear Transformer</h1>
+<!--
+
+
+# 2) Linear Self Attention Transformer
+$$\newcommand{\Aij}{ A_{[i,j]}}$$
+
+Turns out that three sets of equations that look quite different, are all mathematically equivalent:
+1. $Y_{i} = S_i Q_i$ with $S_i = S_{i-1} + V_i K_i^T$ with $S_0 = 0 \in \R^{d\times d}$
+2. $Y_i = \sum_{j=0}^i V_j A_{[i,j]}$ with $A_{[i,j]} = K_j^T Q_i$
+3. $Y = AV$ the attention matrix is defined as $A = M \circ (K^T Q)$
+4. $Y_i = S_{i-k} Q_i + \sum_{j=i-k}^i V_j A_{[i,j]}$ a hybrid of 1 and 1 with $A_{[i,j]} = K_j^T Q_i$ and assuming $S_i = 0$ for all $i\le 0$.
+
+Before showing that they are indeed equivalent, let's look at the computational properties of each.
+1. Computing $Y$ costs $O(td^2)$. To see why this is the cost lets see what it woull take to compute the entire length $t$ sequence $Y_1, Y_2, \cdots Y_t$. Each step of the recurrent equation first requires $V_i K_i^T$ with cost $O(d^2)$, then a sum of two $d \times d$ matrices, also with cost $O(d^2)$ and finally a matrix vector product with the same cost. Since we need to do $t$ of those steps, the cost is indeed $O(td^2)$.
+2. Computing $Y$ costs $O(t^2d)$. To implement 1 we would first compute $\Aij$, which requires doing an inner product with cost $O(d)$, then for each of the $i$ elements of the loop we would do $\Aij V_j$ which is a vector scalar multiplication with cost $O(d)$. Thus, computing $Y_i$ would be $O(id)$ and computing the entire sequence $Y$ would be $O(t^d)$. For very large sequence length $t^2$ will dominate and it would seem like option 1 would be preferable but the function might be faster in cases where the inner dimension of the model $d$ is much larger than the sequence length $t$, although that is pretty much never the case for real world applications.
+3. Computing $Y$ costs $O(t^2d)$. This is because computing $A$ is just the cost of computing all $t^2$ combinations of $K_j^T Q_i$, which takes $O(t^2d)$. Then to apply the mask we need $O(t^2)$ and finally to do $AV$ that is $O(t^2d)$. Clearly 2 and 3 are related, they are two different implementations of the same mathematical function that have the same cost. But 3 has a very useful features. Computing it requires only the invokation of 3 primitives on matrices: matrix multiplication, transpose and element multiplication. Which are all highly parallelizable and run very efficiently on GPUs.
+
+In our initial experiments we were using $d=64$ and $t=1024$. The mathematically savy reader will realize $1024$ is larger than $64, and so $t^2= 1024^2 \simeq 1000000$ is much larger than $d^2 \simeq 4000$. Yet, compre at the times it takes for 1 and 3 to compute $Y$ H100 GPU:
+
+SHOW DATA
+
+Method 3 requires on the order of 250x more floating operations than 1 and yet it completely obvliterates it. This is how insanely powerful GPUs can be for parallelizable computations. But GPUs only have so many cores and at some point operations start to be scheduled sequentially. Then, we are guaranteed that for a large enough $t$, the quadratic cost $O(t^2d)$ will dominate $O(td^2)$ and method 1 will be faster. This is indeed the case, but is not a domain where people train models.
+
+SHOW EXPERIMENT we keep increasing the size of the context until we see 1 win over 3. Perhaps at around 16 or 32k
+
+
+
+
+
+
+----------------
+
+
+# 2) Linear Self Attention
+Mathematically, SARNN is a tiny modification on a transformer self attention layer. But it's much better behaved computationally, mainly, it has $O(t)$ cost as opposed to $O(t^2)$.
+
+The basic idea that makes this possible is very simple, and can be found in the literature from years ago. But that paper went wrong in how they propsed computing this different type of architecture.
+
+## As a Sequence to Sequence Model
+
+SARNN vs LSA (Linear self attention)
+
+First we do a simplification of the transformer attention layer:
+$$
+f(Q,K,V) = Y_i =  \sum_{j=1}^i e^{K_j^T Q_i} V_j
+$$
+
+The normalization doesn't matter for the issues at hand. In section 2.X will revisit the issue of normalizations.
+
+**Linear Self Attention** 
+
+$$
+[h(K,V,Q)]_i = Y_i =  \sum_{j=1}^i K_j^T Q_i V_j
+$$
+
+Simply removing the exponential produces all the mathematical advantages. Better context scaling, better sampling.
+
+**The attention vectors:**
+
+There is also a sequence of $t$ attention vectors $A_1, \cdots, A_t \in \R^t$, but their equation is just
+$$
+A_i[j] = 1_{j\le i} K_j^TQ_i
+$$
+We also have a mask $M_i$ s.t. $M_i[j] = 1_{i\le j}$ which we use in the equation that summarizes wha tthe eintire attention vector is:
+$$A_i = \left(K^T)Q_i \right) \circ M_i$$
+
+**The output vector sequence:**
+Once we have the attention vectors $A_i$, we can compute $Y_i$, the output vector at timestep $i$.
+$$
+Y_i =  \sum_{j=1}^i A_i[j] V_j
+$$
+or equivalently,
+$$Y_i = VA_i$$
+
+It would seem 
+```python!
+def sequential_linear_self_attn(K,V,Q):
+    t = K.shape[1]
+    Y = []
+    for i in range(t):
+        T_i = K.T @ Q
+        A_i = T_i * LienarMaskVec(i)
+        Y.append(V@A_i)
+    return Y
+```
+
+## As a Recurrent Sequence Model
+**Key result** The recurrent sequence model defined by the equations:
+* $S_0=0 \in \R^{d\times d}$
+* $S_i = S_{i-1} + V_i K_i^T$
+
+Now that we have the sequence of states, we define the output sequence to be $S_i Q_i$ (the multiplication of a matrix and a vector).
+
+Then this recurrent model is equivalent to the linear self attention layer. In other words:
+$$Y_i=S_i Q_i$$
+
+
+**Proof** Clearly
+$$
+S_i = \sum_{j=1}^i V_i^T K_i
+$$
+
+And so the output sequence $S_i Q_i$ is
+$$
+S_i = \sum_{j=1}^i V_i^T K_i
+$$
+
+And so the output sequence $S_i Q_i$ is
+\begin{align}
+S_i Q_i &= \left( \sum_{j=1}^i V_i K_i^T \right) Q_i
+= \sum_{j=1}^i (V_i K_i^T) Q_i 
+= \sum_{j=1}^i  (K_i^T Q_i) V_i \\
+&= Y_i
+\end{align}
+
+QED
+
+**A better sequential program** This recurrency result give us a big improvement on the previous sequential implementation of the linear self attention.
+
+
+```python!
+def step(s, k, v, q):
+    sp = s + v@v.T
+    y = s@q
+    return sp, y
+    
+def self_atten_layer_recurrent(K, V, Q):
+    d, t = K.shape
+    s = zeros([d,d])
+    Y = []
+    for i in range(t):
+        k, v, q = K[:,i], V[:,i], Q[:,i]
+        s, Y_i = step(s, k, v, q)
+        Y.append(Y_i)
+    return Y
+```
+Even though this program is sequential (and thus not very well suited for GPUs) it is wayy better than the last one. Mainly because each of the $t$ steps only uses individual vectors $k,q,v$ as opposed to entire sequence $K,Q,V$.
+
+Also, as we will see in a later section. The RNN formulation is much better behave
+
+-->
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>Sequence transformations form a category.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">© 2024 Manifest AI</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+</body></html>
