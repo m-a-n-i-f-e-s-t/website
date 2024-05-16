@@ -5,5 +5,11 @@
       "/blogposts/faster-after-all/index.html",
       "/blogposts/mission/index.html"
     ]
+  },
+  {
+    "listing": "/drafts/research.html",
+    "items": [
+      "/drafts/research/index.html"
+    ]
   }
 ]
