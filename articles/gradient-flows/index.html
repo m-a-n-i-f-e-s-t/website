@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Carles Gelada">
+<meta name="dcterms.date" content="2024-07-05">
+
+<title>Manifest AI - Why Gradient Descent Minimizes the Loss</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-V0D26E23Q3"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Manifest AI - Why Gradient Descent Minimizes the Loss">
+<meta property="og:description" content="">
+<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:site-name" content="Manifest AI">
+<meta name="citation_title" content="Why Gradient Descent Minimizes the Loss">
+<meta name="citation_author" content="Carles Gelada">
+<meta name="citation_publication_date" content="2024-07-05">
+<meta name="citation_cover_date" content="2024-07-05">
+<meta name="citation_year" content="2024">
+<meta name="citation_online_date" content="2024-07-05">
+<meta name="citation_language" content="en">
+<meta name="citation_publisher" content="Manifest AI">
+</head>
+
+<body class="floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
+    </a>
+  </div>
+          <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/manifest__ai" rel="" target=""><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+   
+  <ul>
+  <li><a href="#notation-and-concepts" id="toc-notation-and-concepts" class="nav-link active" data-scroll-target="#notation-and-concepts">0) Notation and Concepts</a></li>
+  <li><a href="#learning-with-gradient-flows" id="toc-learning-with-gradient-flows" class="nav-link" data-scroll-target="#learning-with-gradient-flows">1) Learning with Gradient Flows</a></li>
+  <li><a href="#a-replacement-for-convexity" id="toc-a-replacement-for-convexity" class="nav-link" data-scroll-target="#a-replacement-for-convexity">2) A Replacement for Convexity</a></li>
+  <li><a href="#the-simplest-neural-network" id="toc-the-simplest-neural-network" class="nav-link" data-scroll-target="#the-simplest-neural-network">3) The Simplest Neural Network</a></li>
+  <li><a href="#appendix-a" id="toc-appendix-a" class="nav-link" data-scroll-target="#appendix-a">Appendix A:</a></li>
+  <li><a href="#appendix-b" id="toc-appendix-b" class="nav-link" data-scroll-target="#appendix-b">Appendix B:</a>
+  <ul class="collapse">
+  <li><a href="#gradients" id="toc-gradients" class="nav-link" data-scroll-target="#gradients">Gradients</a></li>
+  <li><a href="#activations-at-initialization" id="toc-activations-at-initialization" class="nav-link" data-scroll-target="#activations-at-initialization">Activations at Initialization</a></li>
+  <li><a href="#activation-and-gradient-bounds" id="toc-activation-and-gradient-bounds" class="nav-link" data-scroll-target="#activation-and-gradient-bounds">Activation and Gradient Bounds</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Why Gradient Descent Minimizes the Loss</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Carles Gelada </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 5, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<p><span class="math display">\[
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\der}{\partial}
+\newcommand{\dldt}{\frac{\der l}{\der t}}
+\newcommand{\len}{\text{length}}
+\newcommand{\en}{\text{energy}}
+\newcommand{\dim}{\text{dim}}
+\newcommand{\tr}{\text{trace}}
+\newcommand{\lin}{\text{Lin}}
+\newcommand{\rnk}{\text{rank}}
+\newcommand{\ht}{\widehat}
+\newcommand{\dwdt}{\frac{\der w}{\der t}}
+\newcommand{\l}{\mathscr{l}}
+\newcommand{\E}{\mathbb E}
+\]</span></p>
+<p>It’s commonly stated that neural networks are difficult to study because they are not convex, making it hard to say much about the behavior of gradient descent. But for the past few months I’ve been looking at ways to prove convergence guarantees to low loss without the assumption of convexity. Surprisingly, just with elementary concepts of calculus, it is possible to study simple neural networks like a two-layer MLP and show that learning will minimize the training loss.</p>
+<p>This article follos a very geometrical perspective. Here we think of the parameters of the neural network as a vector in a vector space, and the process of learning as a continuous curve through that space. This geometric perspective emerges out of taking the limit where the learning rate goes to <span class="math inline">\(0\)</span>. When the parameterers follow a differentiable path through time, we can invoke concepts like the energy of and length the path, which turn out to have profound interpretations within the context of a learning problem.</p>
+<p>Naturally, to show that the training loss is minimized, we need a “repalcement for convexity”. An assumption that provides similar guarantees, but which neural networks actually satisfy. What this alternative should be is perhaps the most important idea in the article. It can be summarized as: “the gradient must be large when the loss is large”. With some caveats, this property seems to hold for the neural networks that are used in practice and thus, we can guarantee that learning will minimize the loss.</p>
+<p>This article is stil work in progress. Apologies for any writing or math errors. The proofs are semi-rigorous at best, and a lot important questions remain unnanswered. I plan to keep workig and updating the article to generalize the results to architectures other than 2 layer MLPs. Also, I’m uncertain about the novelty of these ideas. Please let me know if you are aware of related work.</p>
+<section id="notation-and-concepts" class="level2">
+<h2 class="anchored" data-anchor-id="notation-and-concepts">0) Notation and Concepts</h2>
+<p>Much of the theory on this article is thinks of the space of parameters as a vector space equipped with an inner product. The parameters of a neural network tend to either be elements of <span class="math inline">\(\R^{n}\)</span> or matrices in <span class="math inline">\(\R^{n\times m}\)</span>. So we need to define suitable inner products for these two types of vectors.</p>
+<p><strong>Definition 0.1: Inner Product</strong> For two vectors <span class="math inline">\(x,y \in \R^n\)</span> we take the inner product to be <span class="math inline">\(&lt;x, y&gt; = x^T y\)</span>. For two matrices <span class="math inline">\(M,N\in \R^{n\times m}\)</span> we use <span class="math inline">\(&lt;M, N&gt; = \tr(M^T N)\)</span>. Remember that any inner product induces a norm <span class="math inline">\(|\cdot|\)</span> via <span class="math inline">\(|v| = \sqrt{&lt;v,v&gt;}\)</span>. And you can verify that, in the <span class="math inline">\(\R^n\)</span> and <span class="math inline">\(M,N\in \R^{n\times m}\)</span> cases, this induced norm takes the following forms: <span class="math display">\[\begin{align}
+|x| = \sqrt{\sum_i x_i^2} \quad\quad |M| = \sqrt{\sum_{ij} M_{ij}^2}
+\end{align}\]</span></p>
+<p>Which are also known as the L2 norms of the respective vector spaces. <span class="math inline">\(\blacksquare\)</span></p>
+<p><strong>Definition 0.2: Derivative</strong> Let <span class="math inline">\(f: V \to W\)</span> be a function between two vector spaces. The derivative at a point <span class="math inline">\(v\in V\)</span> is a linear function <span class="math inline">\(\der f(v): V\to W\)</span>. It tells us how changing the input <span class="math inline">\(v \to v + u\)</span> will affect the output (if the change <span class="math inline">\(u\in V\)</span> is small). Concretely, <span class="math display">\[
+\der f(v)(u) \simeq f(v + u) - f(v)
+\]</span></p>
+<p>Some people would call <span class="math inline">\(\der f(v)(u)\)</span> the directional derivative of <span class="math inline">\(f\)</span> along <span class="math inline">\(u\)</span> at a point <span class="math inline">\(v\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+<p><strong>Definition 0.3: Path Derivative</strong> A specially important case is when we are taking the derivative of a funciton <span class="math inline">\(h:\R \to V\)</span> (a path through <span class="math inline">\(V\)</span>). Here, using the notation <span class="math inline">\(\der h(x): \R \to V\)</span> is a little bit heavy handed. Any linear map <span class="math inline">\(M: \R \to V\)</span> can instead be represented by the vector <span class="math inline">\(v = M(1)\)</span> together with scalar vector multiplication. Just see that <span class="math inline">\(M(r) = r \; v\)</span> for all <span class="math inline">\(r\in \R\)</span>. Effectively, Newton’s notation <span class="math inline">\(h'\)</span> applies this idea to path derivatives by defining <span class="math inline">\(h'(t) = \der h(t)(1)\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+<p>One important use of the derivative of a path is to define the length and energy of the path.</p>
+<p><strong>Definition 0.4: length and energy of a path</strong> Given a normed vector space <span class="math inline">\(V\)</span> and a differentiable path <span class="math inline">\(h: [0, t] \to V\)</span>, the length and energy of the path are defined as <span class="math display">\[\begin{align}
+\len(h) &amp;= \int_0^t |h'(s)| ds \\
+\en(h) &amp;= \int_0^t |h'(s)|^2 ds
+\end{align}\]</span></p>
+<p><span class="math inline">\(\blacksquare\)</span></p>
+<p>The length and energy are related by the following inequality, which will be key in proving the central results of the article.</p>
+<p><strong>Result 0.5:</strong> If <span class="math inline">\(h: [0, t] \to W\)</span> is a differentiable path, then <span class="math display">\[
+\len(h)^2 \le t\;  \en(h)
+\]</span></p>
+<p><strong>Proof</strong> Just note that <span class="math display">\[\begin{align}
+\len(h) &amp;=  \int_0^t |h'(s)| ds  \\
+&amp;\le  \sqrt{\int_0^t  1^2 ds } \sqrt{\int_0^t | h'(s)|^2 ds } \;\;\;\;\;\; \text{(by Cauchy Schwarz)} \\
+&amp;\le\sqrt{ t \; \en(h)} \\
+\end{align}\]</span></p>
+<p>And, since <span class="math inline">\(\len(h)\)</span> is positive and squaring positive numbers is a monotone function, the result follows. <span class="math inline">\(\blacksquare\)</span></p>
+<p><strong>Definition 0.6: Gradient</strong> The gradient of a differentiable function <span class="math inline">\(f: V \to \R\)</span>, denoted <span class="math inline">\(\nabla f\)</span>, is a map <span class="math inline">\(\nabla f: V\to V\)</span> defined so that <span class="math inline">\(\nabla f(v)\in V\)</span> is the unique vector satisfying <span class="math display">\[
+\der f(v)(u) = &lt;\nabla f(v), u&gt;
+\]</span></p>
+<p>for all <span class="math inline">\(u\in V\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+<p><em>Note: You might be used to a different definition of the gradient. The one you know turns out to be equivalent to the one I’m using here. If you find this confusing you should take a look at this great <a href="https://charlesfrye.github.io/math/2018/03/06/frechet-derivative-introduction.html">article</a>.</em></p>
+<p>Sometimes it is completely clearn from the context which funciton <span class="math inline">\(f\)</span> we are taking the gradient of. In those cases I sometimes use the shorthand <span class="math inline">\(\hat v = \nabla f(v)\)</span>.</p>
+</section>
+<section id="learning-with-gradient-flows" class="level2">
+<h2 class="anchored" data-anchor-id="learning-with-gradient-flows">1) Learning with Gradient Flows</h2>
+<p><strong>Definition 1.1: Learning Problem:</strong> The learning problem setup consists of a tuple <span class="math inline">\((W, w_0, f)\)</span> where:</p>
+<ul>
+<li><p><span class="math inline">\(W\)</span> is a vector spcae equiped with an inner product <span class="math inline">\(&lt;\cdot, \cdot&gt;\)</span>. You can think of <span class="math inline">\(W\)</span> as the parameter space which controls the behavior of the model.</p></li>
+<li><p><span class="math inline">\(w_0\in W\)</span> is the initial point from which the learning will proceed.</p></li>
+<li><p><span class="math inline">\(f: W \to \R^+\)</span> is the loss function that tells us how good the parameters are (presumably at fitting some dataset). A loss function must be lower bounded so it’s nice to assume wlog that <span class="math inline">\(\inf_{w} f(w) = 0\)</span>.</p></li>
+</ul>
+<p>Out of <span class="math inline">\(f, W\)</span> and <span class="math inline">\(w_0\)</span>, the following objects emerge:</p>
+<ul>
+<li><p>A path <span class="math inline">\(\gamma: [0, \infty) \to W\)</span> given by the learning algorithm. In this document, we take <span class="math inline">\(\gamma\)</span> to be a gradient flow (defined below) of the loss funciton <span class="math inline">\(f\)</span>.</p></li>
+<li><p>A loss curve <span class="math inline">\(l:\R \to \R\)</span> defined as <span class="math inline">\(l(t) = f\circ \gamma(t)\)</span>.</p></li>
+<li><p><span class="math inline">\(L = l(0) = f(w_0)\)</span>. Since <span class="math inline">\(\inf_{w} f(w) = 0\)</span> we can think of <span class="math inline">\(L\)</span> as the amount of “work” that the learning algorithm will need to do to solve the problem.</p></li>
+</ul>
+<p><span class="math inline">\(\blacksquare\)</span></p>
+<p>The most fundamtenal learning algorithm is gradinet descent. It starts starts with the initial parameters <span class="math inline">\(w_0\in W\)</span> and slowly moves them in a direction that minimizes the loss by applying the update rule <span class="math inline">\(w_{t+1} = w_t - \delta \nabla f(w_t)\)</span> for some learning rate hyperparameter <span class="math inline">\(\delta \in \R^+\)</span>. We would like to understand why this algorithm works so well when training neural networks, but the discreteness of the steps complicates the analysis. It will be very useful to study the learning behaviour in the limit <span class="math inline">\(\delta \to 0\)</span>. In this case the weights follow a continuous curve <span class="math inline">\(\gamma:\R \to W\)</span> which is called the gradient flow of <span class="math inline">\(\nabla f\)</span>.</p>
+<p><strong>Definition 1.2: Gradient Flow:</strong> Let <span class="math inline">\(W\)</span> be a vector space with an inner product. Given a differentiable, lower bounded function <span class="math inline">\(f: W\to \R\)</span>. The gradient flow starting at <span class="math inline">\(w_0\in W\)</span> is defined as the path <span class="math inline">\(\gamma: [0, \infty) \to V\)</span> satisfying <span class="math display">\[
+\gamma(0) = w_0  \quad\text{and}\quad \gamma'(t) = - \nabla f\circ \gamma(t)
+\]</span></p>
+<p>The existance of such a path follows from the existance and uniqueness of PDEs. TODO: Explain why the flow <span class="math inline">\(\gamma\)</span> doesn’t “diverge to infinity”, that the flow isn’t just a curve <span class="math inline">\(\gamma:[0, \epsilon) \to W\)</span>, but a map with domain <span class="math inline">\([0, \infty)\)</span>. This uses the assumption that <span class="math inline">\(f\)</span> is lower bouded. <span class="math inline">\(\blacksquare\)</span></p>
+<p>It is evident that gradient descent and gradient flows are deeply connected, but the distinction between them deserves careful consideration. For any concrete learning problem <span class="math inline">\((W, w_0, f)\)</span>, if we succeed in showing that the gradient flow will minimize the loss, then we will also know that gradient descent with a small enough learning rate is bound to also minimize the loss. But understnading how small the learning rate needs to be is of profound importance. It will determine the computational cost of solving the problem.</p>
+<p>Another very important thing that this document currently omits are the ideas of stochastic gradient descnet. Modern deep learning is always based on computing gradients on a small subset of the dataset. Using these gradients results in slighly worse updates, but much cheaper ones. A tradeoff worth making because, for the same amount of compute, it allows us to make many more updates, resulting in more learning overall.</p>
+<p>Ultimately, the questions that really matter are all centered around the computational cost of solving a learning problem. And studying the behavior of gradient flows will always fall short of that obvjective. Yet, I believe that studying gradient flows will prove to be a useful intermediate step. The rest of this section goes over some of the most important mathematical properties of gradient flows that make them so well suited to study learning.</p>
+<p><strong>Result 1.3</strong> The derivative of the loss curve is the magnitude of the gradient: <span class="math display">\[l'(t) = - | \nabla f\circ \gamma(t)| ^2\]</span></p>
+<p><strong>Proof</strong> <span class="math display">\[\begin{align}
+l'(t) &amp;= \der f(w)( \small\dwdt)
+\quad &amp;\text{(chain rule)} \\
+&amp;= &lt; \nabla f(w), \small\dwdt&gt;
+\quad &amp;\text{(gradient def.)} \\
+&amp;= -&lt; \nabla f(w), \nabla f(w)&gt;
+\quad &amp;\text{(grad flow def.)} \\
+&amp;= - | \nabla f\circ \gamma(t)| ^2
+\end{align}\]</span></p>
+<p><span class="math inline">\(\blacksquare\)</span></p>
+<p>So the magnitude of the gradient is the rate of change of the loss. Large gradient means fast learning. A consequence of this result is that <span class="math inline">\(\en(\gamma)\)</span> measures how much the path <span class="math inline">\(\gamma\)</span> has managed to reduced the loss.</p>
+<p><strong>Result 1.4:</strong> If <span class="math inline">\(\gamma:[0, t] \to W\)</span> is a gradient flow of <span class="math inline">\(f:W \to \R\)</span>, then:</p>
+<p><span class="math display">\[
+\en(\gamma) = L - l(t)
+\]</span></p>
+<p>Also, the energy is bounded by the initial loss: <span class="math inline">\(\en(\gamma) \le L\)</span>.</p>
+<p><strong>Proof</strong> <span class="math display">\[\begin{align}
+\en(\gamma) &amp;= \int_0^t |\gamma'(s)|^2 ds \\
+&amp;= \int_0^t |\nabla f \circ \gamma(s)|^2 ds
+= \int_0^t  l'(s) ds \\
+&amp;= l(0) - l(t)
+\end{align}\]</span></p>
+<p>The last step is to notice that <span class="math inline">\(l(t)\ge 0\)</span> and <span class="math inline">\(l(0)=L\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+<p>This is a very interesting shift in perspective. We can reformulate questions about the loss curve <span class="math inline">\(l: \R\to\R^+\)</span> into questions about <span class="math inline">\(\en(\gamma)\)</span>. But it also has another very important application. To prove our results about neural networks, we will need to ensure that they satisfy that nice condition of having large gradient on points with high loss. We will see that, at initializatio <span class="math inline">\(w_0\)</span>, the networks do indeed satisfy this property. But that is not the case for all <span class="math inline">\(w\in W\)</span>, only for <span class="math inline">\(w_0\)</span> and points nearby. So we’ll need a way to guarantee that <span class="math inline">\(\gamma\)</span> won’t move the parameters too far away from <span class="math inline">\(w_0\)</span>, at least not too quickly. The following result does just that.</p>
+<p><strong>Result 1.5</strong> If <span class="math inline">\(f\)</span> is a loss funciton, <span class="math inline">\(w_0\)</span> the initial parameters, <span class="math inline">\(L=f(w_0)\)</span> and <span class="math inline">\(\gamma\)</span> a gradient flow of <span class="math inline">\(f\)</span> starting at <span class="math inline">\(w_0\)</span>, then <span class="math display">\[
+|\gamma(t) - w_0| \le \sqrt{t\;L}
+\]</span></p>
+<p><strong>Proof</strong> <span class="math display">\[\begin{align}
+|\gamma(t) - \gamma(0)|
+&amp;= \left |\int_0^t  \gamma'(s) ds \right| \\
+&amp;\le \int_0^t  \left | \gamma'(s) \right| ds \quad &amp;\text{(result A.2)} \\
+&amp;= \len(\gamma) \\
+&amp;\le \sqrt{t \; \en(\gamma)} \quad &amp;\text{(result 0.5)}
+\end{align}\]</span></p>
+<p>The last step is using result 1.4, which tells us that <span class="math inline">\(\en(\gamma) \le L\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+</section>
+<section id="a-replacement-for-convexity" class="level2">
+<h2 class="anchored" data-anchor-id="a-replacement-for-convexity">2) A Replacement for Convexity</h2>
+<p>We are trying to show that neural networks trained via gradient descent will (approximately) reach 0 loss. One way to get such type of guarantees is to assume the loss funciton <span class="math inline">\(f\)</span> is convex. But that is simply not the case for NNs. We need to find a replacement for convexity that is applicable to NNs. I believe this property is that the gradient <span class="math inline">\(\nabla f(w)\)</span> must be large at all points <span class="math inline">\(w\)</span> where the loss <span class="math inline">\(f(w)\)</span> is large. Concretely, for some <span class="math inline">\(\alpha \in \R^+\)</span> we need that</p>
+<p><span class="math display">\[
+\frac{|\nabla f(w)|^2}{f(w)}  \ge \alpha
+\]</span></p>
+<p>This is another way to guarantee no local minima exist. Think about it. The definition of a local minima is a point <span class="math inline">\(w\)</span> with no gradient but high loss, the existance of which is ruled out by the condition.</p>
+<p>But the following result tells us something much stronger. If the property holds, the loss is guaranteed to decay to <span class="math inline">\(0\)</span> exponentially fast with time.</p>
+<p><strong>Result 2.1</strong> If <span class="math inline">\(f: W\to \R^+\)</span> satisfyies <span class="math inline">\(\frac{|\nabla f(w)|^2}{f(w)} \ge \alpha\)</span> for some <span class="math inline">\(\alpha \in \R^+\)</span>, then <span class="math display">\[
+l(t) \le L \; e^{-\alpha t}
+\]</span></p>
+<p><strong>Proof</strong> <span class="math display">\[\begin{align}
+\frac{\der \ln l(t)}{\der t} &amp;= \frac{l'(t)}{l(t)}
+= -\frac{|\nabla f \circ \gamma(t)|^2}{f\circ \gamma(t)}
+\le  -\alpha \\
+\end{align}\]</span></p>
+<p>so <span class="math display">\[
+\ln l(t) - \ln l(0) = \int_0^t \frac{\der \ln l(s)}{\der s}  ds \le - \int_0^t \alpha ds = - \alpha t
+\]</span> And then <span class="math inline">\(\ln l(t) \le \ln L - \alpha t\)</span>. To conclude just use the fact that exponential is a monotone function and <span class="math display">\[
+l(t) = e^{\ln l(t)} \le  e^{\ln L - \alpha t} = L e^{ - \alpha t}
+\]</span></p>
+<p>as desired. <span class="math inline">\(\blacksquare\)</span></p>
+<p>The next question we should ask is obvious: Do Neural Networks Satisfy property 3.1? The short answer is <strong>No!</strong> To see that, just consider an MLP with “degenerate” parameters where all the weight matrices are <span class="math inline">\(0\)</span>. The MLP will have 0 gradient even when it has high loss.</p>
+<p>But the long answer is more interesting. Turns out that the standard initialization techniques of NNs guarantee that, at initialization, the property hods for some large <span class="math inline">\(\alpha\)</span>. And even better, the property remains true for all points near <span class="math inline">\(w_0\)</span>. We will look into the particular guarantees for a 2 layer MLP in the next section, but for now just assume that we are looking at a learning problem satisfying</p>
+<p><span class="math display">\[
+\frac{|\nabla f(w)|^2}{f(w)}  \ge \alpha \quad\forall w\in W \text{ s.t. } |w-w_0| \le \epsilon
+\]</span></p>
+<p>This is where the work from the last section is going to pay off. We learned that <span class="math inline">\(|\gamma(t) - w_0| \le \sqrt{t\;L}\)</span> so the parameters cannot move very far in a short period of time. Then, as long as <span class="math inline">\(\sqrt{t L} \le \epsilon\)</span> we can be sure that the assumptions of result 3.1 hold. And so the bound</p>
+<p><span class="math display">\[
+l(t) = L e^{ - \alpha t}
+\]</span></p>
+<p>Will be true for all <span class="math inline">\(t \le \frac {\epsilon^2} L\)</span>. Thus, <span class="math display">\[
+\l_\infty \le l(\frac {\epsilon^2} L) \le L \exp({-\frac {\alpha \epsilon^2} L })
+\]</span></p>
+<p>This is the simplest way we can put together all the important ideas, but not the most elegant one. Instead of assuming that the gradient <span class="math inline">\(\frac{|\nabla f(w)|^2}{f(w)} \ge \alpha\)</span> for all <span class="math inline">\(w\)</span> within a ball of <span class="math inline">\(w_0\)</span>, we will be able to prove for a 2 layer MLP that <span class="math inline">\(\frac{|\nabla f(w)|^2}{f(w)} \ge \alpha - \beta \; |w-w_0|\)</span> for all <span class="math inline">\(w\in W\)</span>. This results in a more elegant bound.</p>
+<p><strong>Result 2.2</strong> If <span class="math inline">\(f\)</span> and <span class="math inline">\(w_0\)</span> satisfy <span class="math inline">\(\frac{|\nabla f(w)|^2}{f(w)} \ge \alpha - \beta \; |w-w_0|\)</span> for all <span class="math inline">\(w\in W\)</span>, then <span class="math display">\[
+l(\infty) \le L \; \exp({-\frac {\alpha^3}{3 \beta^2 L} })
+\]</span></p>
+<p><strong>Proof</strong> See appendinx <span class="math inline">\(\blacksquare\)</span></p>
+<p>Now it’s time to look at a simple neural network and show that the properties of result 3.2 hold.</p>
+</section>
+<section id="the-simplest-neural-network" class="level2">
+<h2 class="anchored" data-anchor-id="the-simplest-neural-network">3) The Simplest Neural Network</h2>
+<p>The objective of this section is very simple. Take the absolute simplest neural network, and show that the conditions of result 2.2 are satisfied. We’ll look at a 2 layer MLP with ReLU nonlinearity. It has two parameter matrices <span class="math inline">\(M\in \R^{k\times m}\)</span> and <span class="math inline">\(N\in \R^{n\times k}\)</span>. The ReLU is denoted by <span class="math inline">\(\sigma\)</span>. Given an input <span class="math inline">\(x \in \R^m\)</span> the MLP produces the output <span class="math display">\[
+y = N \sigma(M x)
+\]</span></p>
+<p>It’s convinient to break down the computation into steps to define intermediate variables. First we apply a matrix to the input <span class="math inline">\(a = Mx\)</span> then the nonlineary to get <span class="math inline">\(b=\sigma(a)\)</span> and finally we produce the output <span class="math inline">\(y=Nb\)</span>. The variables/activations <span class="math inline">\(a,b,y\)</span> are dependant on the parameters <span class="math inline">\(M,N\)</span> so, when we consider changing the parameters with time, these activations will change too.</p>
+<p><strong>Parameter space</strong> The weight vectors are pairs of matrices <span class="math inline">\(w = (N, M)\)</span> and so the parameter space is <span class="math display">\[W= \R^{n\times k} \oplus \R^{k\times m}\]</span></p>
+<p><strong>The loss function</strong> Keeping in with the philosophy of studying the simplest example, we’ll take the loss function to be the L2 error on a single input-target pair <span class="math inline">\((x, q)\in \R^n \oplus \R^m\)</span>. <span class="math display">\[
+f(w) = \frac 1 2 |y - q|^2
+\]</span></p>
+<p>We will need <span class="math inline">\(x\)</span> to be normalized, so we just assume that <span class="math inline">\(|x|^2 = m\)</span>. It’s also useful to define the loss variable <span class="math inline">\(\l = f(w)\)</span>.</p>
+<p><strong>Initialization</strong> The standard way to initialize neural networks is to sample independently all the entries in the weight matrices form some distribution. In our case we use <span class="math display">\[
+M_{ij} \sim \mathcal N (0, {\small \frac 2 m} ) \quad\quad N_{ij} \sim \mathcal N (0, {\small \frac 2 k})
+\]</span></p>
+<p>This is the commonly used <a href="https://arxiv.org/abs/1502.01852">He init</a>, which works well for networks with ReLU nonlinearities.</p>
+<p><strong>Learning Guarantees</strong> Appendix B is dediacted to showing that this choice of architecture, loss function and initialization satisfies (with high probability):</p>
+<p><span class="math display">\[
+\frac{|\nabla f(w)|^2}{f(w)} \ge 2k - 4 \sqrt {kn} |w_0 - w|\\
+\]</span></p>
+<p>So by setting <span class="math inline">\(\alpha = 2k\)</span> and <span class="math inline">\(\beta = 4 \sqrt {kn}\)</span>, the application of result 2.2 gives <span class="math display">\[
+l(\infty) \le L \; \text{exp}({-\frac {k^2}{6 n L} })
+\]</span></p>
+<p>From looking at the above equation, it is apparent that the scale of the MLP helps it learn. By growing <span class="math inline">\(k\)</span> we can very quickly lower the loss to any acceptable value.</p>
+</section>
+<section id="appendix-a" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-a">Appendix A:</h2>
+<p><strong>Definition A.1: Operator Norm</strong> If <span class="math inline">\(M: V \to W\)</span> is a linear map between two vector spaces equipped with inner products, the the operator norm <span class="math inline">\(|| \cdot ||\)</span> is defined as <span class="math display">\[
+||M|| = \max_{v\in V} \frac{|Mv|}{|v|}
+\]</span></p>
+<p>Where the numerator uses the norm of <span class="math inline">\(W\)</span> and the denominator the one of <span class="math inline">\(V\)</span>. When the two norms on <span class="math inline">\(V\)</span> and <span class="math inline">\(W\)</span> arise from inner products, then <span class="math inline">\(||M||\)</span> is the largest singular value of <span class="math inline">\(M\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
+<p><strong>Result A.2: triangle inequality for integrals</strong> If <span class="math inline">\(V\)</span> is a normed vector space, <span class="math inline">\(a,b\in \R\)</span> and <span class="math inline">\(h: [a, b] \to V\)</span> is a differentiable path, then the following inequality holds: <span class="math display">\[
+\left|\int_a^b h(s) ds \right| \le \int_a^b |h(s)| \: ds
+\]</span></p>
+<p><strong>Proof</strong> The proof is a simple application of the definition of the integral (as the limit of a sum) combined with the triangle inequality of the inner product. <span class="math inline">\(\blacksquare\)</span></p>
+<p><strong>Result A.3</strong> Let <span class="math inline">\(A\in \R^{n\times m}\)</span> and recall that <span class="math inline">\(|\cdot|\)</span> and <span class="math inline">\(||\cdot||\)</span> denote the Frobenious and Operator norms respectively. Then <span class="math display">\[||  A || \le { \sqrt {\text{rank}(A) } } \; |A|\]</span></p>
+<p><strong>Proof</strong> TODO <span class="math inline">\(\blacksquare\)</span></p>
+<p><strong>Result A.4</strong> If <span class="math inline">\(\gamma: \R \to \R^{n\times m}\)</span> is a differentiable path and the derivative satisfies <span class="math inline">\(\text{rank}( \gamma'(t) ) \le r\)</span> for all <span class="math inline">\(t\)</span>, then <span class="math display">\[
+||M - M_0||  \le  \sqrt r \; \len(\gamma)
+\]</span></p>
+<p><strong>Proof</strong> First we use the triangle inequality of the operator norm <span class="math display">\[||M - M_0|| = || \int_0^t \gamma'(s) ds || \le \int_0^t || \gamma'(s) || ds
+\]</span></p>
+<p>Then, result A.3 tells us that <span class="math inline">\(|| A || \le \sqrt{\rnk(A)} \; |A|\)</span> and so <span class="math display">\[
+||M - M_0||
+\le \int_0^t \sqrt r \;| \gamma'(s) | ds
+= \sqrt r \;\len(\gamma)
+\]</span></p>
+<p><span class="math inline">\(\blacksquare\)</span></p>
+<p><strong>Result 2.2</strong> If <span class="math inline">\(f\)</span> and <span class="math inline">\(w_0\)</span> satisfy <span class="math display">\[
+\frac{|\nabla f(w)|^2}{f(w)}  \ge \alpha - \beta \; |w-w_0|
+\]</span> for all <span class="math inline">\(w\in W\)</span>, then <span class="math display">\[
+l(\infty) \le L \; \exp({-\frac {\alpha^3}{3 \beta^2 L} })
+\]</span></p>
+<p><strong>Proof</strong> The proof follows a very similar argument to 3.1,</p>
+<p><span class="math display">\[\begin{align}
+\frac{\der \ln l(t)}{\der t} &amp;= -\frac{|\nabla f(w)|^2}{f(w)} \quad &amp;\text{(result 1.3)} \\
+&amp;\le - \alpha + \beta \;  |w - w_0| \\
+&amp;\le - \alpha + \beta \sqrt {L t} \quad &amp;\text{(result 1.5)} \\
+\end{align}\]</span></p>
+<p>Integrating both sides from <span class="math inline">\(0\)</span> to <span class="math inline">\(t\)</span> we get <span class="math display">\[
+\ln l(t) - \ln L \le - \alpha t + \frac{2}{3}  \beta \sqrt L \; t^{3/2}
+\]</span></p>
+<p>which implies <span class="math display">\[
+l(t) \le L \exp(- \alpha t + \frac{2}{3}  \beta \sqrt L \; t^{3/2})
+\]</span></p>
+<p>Now solve for the value of <span class="math inline">\(t\)</span> that minimizes the term in the expoential. By setting the derivative to <span class="math inline">\(0\)</span> you can easily verity that it is <span class="math inline">\(t^* = \frac {\alpha^2} {\beta^2 L}\)</span>. At this particular time, the bound is minimized. It tells us that: <span class="math display">\[
+l(t^*) \le L \exp({-\frac{\alpha^3}{3\beta^2 L}})
+\]</span></p>
+<p>So <span class="math inline">\(l(\infty) \le l(t^*) \le L\exp({-\frac{\alpha^3}{3\beta^2 L}})\)</span> proving the result. <span class="math inline">\(\blacksquare\)</span></p>
+</section>
+<section id="appendix-b" class="level2">
+<h2 class="anchored" data-anchor-id="appendix-b">Appendix B:</h2>
+<p>An analysis of the gradients, activations at initializations, and bounds on how much the activations and gradients can move for the 2 layer MLP descrived in section 3.</p>
+<section id="gradients" class="level3">
+<h3 class="anchored" data-anchor-id="gradients">Gradients</h3>
+<p>The gradients of the loss <span class="math inline">\(\l\)</span> wrt all the intermediate variables and weights are: <span class="math display">\[
+\ht y = y -q, \quad
+\ht b = N^T \ht y, \quad
+\ht a =\der \sigma(a)^T \ht b, \quad
+\ht M = \ht a x^T, \quad
+\ht N = \ht y b^T, \quad
+\]</span></p>
+<p>Note that <span class="math inline">\(|\hat y |^2 = 2 \l\)</span> so, when the loss is large, the gradient of <span class="math inline">\(\l\)</span> wrt <span class="math inline">\(y\)</span> is large too. Ultimately are trying to show something similar, but about gradients of <span class="math inline">\(\l\)</span> wrt <span class="math inline">\(M\)</span> to then apply result 2.2.</p>
+<p>Below I’ve writen a short derivation of all these gradient formulas, but it uses some unconventional notation and techniques. If you find them confusing, just work out the gradients in your own way and confirm you get the same answers.</p>
+<p>Starting with <span class="math inline">\(\ht y\)</span>, the gradient of <span class="math inline">\(\l\)</span> wrt <span class="math inline">\(y\)</span>. Let <span class="math inline">\(\dot y \in \R^n\)</span> denote an arbitrary change to <span class="math inline">\(y\)</span>. Then <span class="math display">\[\begin{align}
+&lt;\ht y, \dot y&gt; =\frac {\der \l} {\der y} (\dot y)
+&amp;\simeq \frac 1 2 |y +\dot y - q|^2 - \frac 1 2 |y - q|^2 \\
+&amp;= \frac 1 2 ( &lt;\dot y, y-q&gt; + &lt;\dot y, \dot y&gt; + &lt;y-q, \dot y&gt; ) \\
+&amp;\simeq &lt;y-q, \dot y&gt; \quad \text{(dropping the lower order term)} \\
+\end{align}\]</span></p>
+<p>Now let’s see how a change in <span class="math inline">\(b\)</span> affects <span class="math inline">\(y\)</span>. Like before, let <span class="math inline">\(\dot b\)</span> denote a change to <span class="math inline">\(b\)</span>. The derivative <span class="math inline">\(\frac {\der y}{\der b}(\dot b) \simeq N(b+ \dot b) - M b = \dot M b\)</span>. So, the gradient of <span class="math inline">\(\l\)</span> wrt <span class="math inline">\(b\)</span> satisfies <span class="math display">\[
+&lt;\ht b, \dot b&gt;
+= {\frac {\der \l}{\der b}(\dot b)}
+= {\frac {\der \l}{\der y}} \left(  {\frac {\der y}{\der b}}(\dot b) \right)
+=  &lt;\ht y,  {\frac {\der y}{\der b}} (\dot b)&gt;
+= &lt;\hat y, M \dot b&gt; = &lt;M^T \ht y, \dot b&gt;
+\]</span></p>
+<p>Now let’s look at <span class="math inline">\(N\)</span>. The derivative <span class="math inline">\(\frac {\der y}{\der N}(\dot N) \simeq (N+\dot N) b - N b = \dot N b\)</span>. And the gradient <span class="math display">\[
+&lt;\ht N, \dot N&gt;  = &lt;\ht y, \dot N b&gt; = &lt;\ht y b^T, \dot N&gt;
+\]</span></p>
+<p>Recall that, since we are taking the inner product of two matrices, we are using the trace under the hood. To see why the last step is true just use the cyclic property of the trace. Finally, gradients of <span class="math inline">\(a\)</span> and <span class="math inline">\(M\)</span>. <span class="math display">\[\begin{gather}
+&lt;\hat a, \dot a&gt;
+= &lt;\hat b, \der \sigma(a)(\dot a)&gt;
+= &lt;\der \sigma(a)^T \ht b, \dot a&gt;  \\
+&lt;\ht M, \dot M&gt;
+= &lt;\ht a, \dot M x&gt; = &lt;\ht a x^T, \dot M&gt;
+\end{gather}\]</span></p>
+</section>
+<section id="activations-at-initialization" class="level3">
+<h3 class="anchored" data-anchor-id="activations-at-initialization">Activations at Initialization</h3>
+<p>Remember that we are sampling the initial weight matrices via <span class="math display">\[
+M_{ij} \sim \mathcal N (0, {\small \frac 2 m} ) \quad\quad N_{ij} \sim \mathcal N (0, {\small \frac 2 k})
+\]</span></p>
+<p>Since <span class="math inline">\(M,N\)</span> are random variables, so are <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>. This initialization used carefuly chosen variances to ensure that the entries of the initial activations <span class="math inline">\(a = M x\)</span> and <span class="math inline">\(b = \sigma(a)\)</span> are within some reasonable range. In particular, we want the entries of <span class="math inline">\(b_i\)</span> to have <span class="math inline">\(0\)</span> mean and variance <span class="math inline">\(1\)</span>. And since all the entries are independent, that will mean that <span class="math inline">\(|b|^2 \simeq k\)</span> and so <span class="math inline">\(b\)</span> will be close to the sphere of radius <span class="math inline">\(\sqrt k\)</span> with high probability. But this is only the case if the input vector is also normalized. That is why we needed the assumption that <span class="math inline">\(|x|^2 = m\)</span>. This section is dedicated to proving these statements.</p>
+<p>First we want to understand <span class="math inline">\(\E[a_i^2]\)</span> <span class="math display">\[\begin{align}
+\E[a_i^2]
+&amp;= \E[ ({\small \sum_j M_{ij} x_j})^2] \\
+&amp;= \E[ {\small \sum_j M_{ij}^2 x_j^2 + \sum_{k\neq j} M_{ij} x_j M_{ik} x_k } ] \\
+&amp;= \sum_j \E[M_{ij}^2 x_j^2] \\
+&amp;= \frac 2 m |x|^2= 2
+\end{align}\]</span></p>
+<p>where we used the independence of different entries of <span class="math inline">\(M\)</span> and the fact that <span class="math inline">\(\E[M_{ij}]=0\)</span>. Then <span class="math display">\[
+\E[|a|^2] = \sum_i \E[a_i^2] = 2k
+\]</span></p>
+<p>Let <span class="math inline">\(p_M\)</span> denote the pdf’s of the entries of <span class="math inline">\(M_{ij}\)</span> (all entries have the same pdf because they are iid). The pdf of <span class="math inline">\(a_i\)</span> will be the nested integral of <span class="math inline">\(\delta(a_i - M_i^T x)\)</span> as <span class="math inline">\(M_{i1},\cdots,M_{im}\)</span> range from <span class="math inline">\(-\infty \to \infty\)</span>, where <span class="math inline">\(\delta\)</span> denote the Dirac delta function. <span class="math display">\[
+p_{a}(z) = \int_{-\infty}^\infty \cdots \int_{-\infty}^\infty p_M(M_{i1}) \cdots p_M(M_{im}) \; \delta (z - M_i^T x)\; d M_{i1} \cdots d M_{im}
+\]</span></p>
+<p>Recall that a distribution is symmetric if <span class="math inline">\(p(z) = p(-z)\)</span>. Since <span class="math inline">\(p_M\)</span> is a gaussian it is symmetric. The next thing we need to prove is that <span class="math inline">\(p_a\)</span> is symmetric too.</p>
+<p><span class="math display">\[\begin{align}
+p_{a}(z) &amp;= \int_{-\infty}^\infty \cdots \int_{-\infty}^\infty p_M(M_{i1}) \cdots p_M(M_{im}) \; \delta (z - M_i^T x)\; d M_{i1} \cdots d M_{im} \\
+&amp;=  \int_{-\infty}^\infty \cdots \int_{-\infty}^\infty p_M(-M_{i1}) \cdots p_M(-M_{im}) \; \delta (z + M_i^T x)\; d M_{i1} \cdots d M_{im} \\
+&amp;=  \int_{-\infty}^\infty \cdots \int_{-\infty}^\infty p_M(M_{i1}) \cdots p_M(M_{im}) \; \delta (-z - M_i^T x)\; d M_{i1} \cdots d M_{im} \\
+&amp;= p_a(-z)
+\end{align}\]</span></p>
+<p>The first step uses the change of variable <span class="math inline">\(M_{ij}\to -M_{ij}\)</span> and the second one exploits the symmetry of <span class="math inline">\(p_M\)</span> and <span class="math inline">\(\delta\)</span>. Finally, this allows us to compute the term we care about <span class="math display">\[\begin{align}
+\E[b_i^2] &amp;= \int_{-\infty}^\infty p_a(a_i) \sigma(a_i)^2 da_i \\
+&amp;= \int_{-\infty}^0 p_a(a_i) \:0\: da_i + \int_0^\infty p_a(a_i) a_i^2 da_i \\
+&amp;= \frac 1 2 \int_{-\infty}^\infty p_a(a_i) a_i^2 da_i \quad \text{(using symmetry)}\\
+&amp;= \frac 1 2 \E[a_i^2] \\
+&amp;= k
+\end{align}\]</span></p>
+<p>We have only been working out <span class="math inline">\(\E[|b|^2] = k\)</span> but we wanted to make claims about the particular samples themselves being approximately <span class="math inline">\(|b|^2\simeq k\)</span>. Of course, the rigorous way to go about it is to prove statements like <span class="math inline">\(\Pr( k - \epsilon \le |b|^2 \le k+\epsilon) \le \alpha\)</span>. But this type of argument is very tedious and adds very little insight about the ideas this document is exploring. So to conclude the proof in an elegant way, I’ll just assume that <span class="math inline">\(|b|^2 = k\)</span>. When the dimension <span class="math inline">\(k\)</span> is large, this approximation will be very accurate.</p>
+</section>
+<section id="activation-and-gradient-bounds" class="level3">
+<h3 class="anchored" data-anchor-id="activation-and-gradient-bounds">Activation and Gradient Bounds</h3>
+<p>Denote by <span class="math inline">\(a_0=M_0 x, b_0=\sigma(a_0)\)</span> and <span class="math inline">\(y_0=N_0 b_0\)</span> the activaions at initialization <span class="math inline">\(w_0 = (M_0, N_0)\)</span>. In the last section we were showing that these activations started in some reasonable range, but that isn’t enough. We need to ensure they remain stable during learning. Concretely, we want to derive upper bounds on <span class="math inline">\(|a - a_0|\)</span> and <span class="math inline">\(|y - y_0|\)</span> based on on <span class="math inline">\(|w-w_0|\)</span>. First <span class="math display">\[\begin{align*}
+|a_0 - a| &amp;\le |M_0 x - Mx| \\
+          &amp; = ||M_0 - M|| \; |x|\quad \text{(operator norm def.)} \\
+          &amp; = \sqrt m |M_0 - M| \quad \text{(using result A.3)} \\
+          &amp; \le \sqrt m \; |w-w_0|
+\end{align*}\]</span></p>
+<p>To bound <span class="math inline">\(|b_0 - b |\)</span> we need to use the fact that the ReLU <span class="math inline">\(\sigma\)</span> is 1-Lipschitz. So <span class="math display">\[
+|b_0 - b| = |\sigma(a) - \sigma(a_0) | \le |a_0 - a | \le \sqrt n \; |w-w_0|
+\]</span></p>
+<p>To apply result 2.2. we need to find <span class="math inline">\(\alpha, \beta \in \R^+\)</span> such that <span class="math inline">\(|\nabla f(w)|^2 \ge f(w)( \alpha - \beta \; |w-w_0|)\)</span>. The first step is to lower bound the gradient magnitude of <span class="math inline">\(N\)</span>. <span class="math display">\[\begin{align}
+| \ht{N} |^2 &amp;= |\ht y b^T|^2 = \text{trace}(b y^T y b^T)
+              = |\ht{y}|^2 |b|^2
+              = 2 \l |b|^2 \\
+              &amp;\ge \l (|b_0|  - |b_0 - b|)^2
+              = 2 \l ( \sqrt k - |b_0 - b| )^2 \\
+              &amp;= 2 \l ( k - 2 \sqrt k |b_0 - b| +  |b_0 - b| ^2 ) \\
+              &amp;\ge 2 \l ( k - 2 \sqrt k |b_0 - b| ) \\
+              &amp;\ge 2 \l ( k - 2 \sqrt {kn} |w_0 - w| ) \\
+\end{align}\]</span></p>
+<p>We could also attempt to derive a lower bound for <span class="math inline">\(|\hat M|^2\)</span> but it’s not really necessary. We already have enough to apply 2.2. <span class="math display">\[\begin{align}
+\frac{|\nabla f(w)|^2}{f(w)} &amp;= \frac{|\hat M|^2 + |\hat N|^2}{f(w)} \\
+&amp;\ge \frac{|\hat N|^2}{f(w)} \\
+&amp;\ge \frac{2 \l ( k - 2 \sqrt {kn}|w_0 - w|)}{f(w)} \\
+&amp;\ge 2k - 4 \sqrt {kn} |w_0 - w|\\
+\end{align}\]</span></p>
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@misc{gelada2024,
+  author = {Gelada, Carles},
+  publisher = {Manifest AI},
+  title = {Why {Gradient} {Descent} {Minimizes} the {Loss}},
+  date = {2024-07-05},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-gelada2024" class="csl-entry quarto-appendix-citeas" role="listitem">
+<div class="">C.
+Gelada, <span>“Why Gradient Descent Minimizes the Loss.”</span> Manifest
+AI, Jul. 05, 2024.</div>
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">© 2024 Manifest AI</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+</body></html>
