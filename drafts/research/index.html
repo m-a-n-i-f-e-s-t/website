@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.450">
+<meta name="generator" content="quarto-1.5.54">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -10,7 +10,7 @@
 <meta name="author" content="Carles Gelada">
 <meta name="dcterms.date" content="2023-12-27">
 
-<title>Manifest AI - An Architecture For Neural Language Modeling</title>
+<title>An Architecture For Neural Language Modeling – Manifest AI</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -48,6 +48,7 @@ ul.task-list li input[type="checkbox"] {
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -63,32 +64,59 @@ gtag('js', new Date());
 gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 </script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Manifest AI - An Architecture For Neural Language Modeling">
+<meta property="og:title" content="An Architecture For Neural Language Modeling – Manifest AI">
 <meta property="og:description" content="">
 <meta property="og:image" content="https://manifestai.com/favicon.png">
-<meta property="og:site-name" content="Manifest AI">
+<meta property="og:site_name" content="Manifest AI">
 </head>
 
 <body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand navbar-dark ">
+    <nav class="navbar navbar-expand " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
-      <div class="navbar-brand-container">
+      <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
     <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
     </a>
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
-    <a class="nav-link" href="https://twitter.com/manifest__ai" rel="" target=""><i class="bi bi-twitter" role="img">
+    <a class="nav-link" href="https://twitter.com/manifest__ai"> <i class="bi bi-twitter" role="img">
 </i> 
- <span class="menu-text"></span></a>
+<span class="menu-text"></span></a>
   </li>  
 </ul>
           <div class="quarto-navbar-tools">
@@ -167,7 +195,9 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
   </div>
   
 
+
 </header>
+
 
 <p><span class="math display">\[
 \newcommand{\R}{\mathbb{R}}
@@ -198,7 +228,6 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 <p>Much of the content of this document will already be familiar to anyone who has thought deeply about language modeling. There is nothing particularly groundbreaking here. But we found a lot of value in explicitly formalizing the concepts, e.g.&nbsp;how think of Transformers and RNNs as members the same family; as well as grounding all of these ideas in rigorous mathematics. Also, in order to properly understand our specific setting, we often find that it is helpful to describe more general objects of which neural language modeling is a specific case. Where applicable and insightful, we provide such results in their full generality; and as such, this document contains many ideas that may be of independent interest to researchers in related areas.</p>
 <p>It’s not about minimizing floating point operations. It’s about optimizing tokens per second on our hardware. GPUs perform well with tasks that hare highly <strong>parallelizable</strong>. RNNs, the more “clasical” architectures for sequences, are not very well suited for these types of tasks.</p>
 <p>important feature of the transformer architecture is that it can compute We find that it’s important to think about sequences, and maps between sequences as the core objects.</p>
-
 <!-- 
 During the course of this reasearch we've converged to a framework that helps us think about what makes an architecture suitable for efficient language modeling. We refer to the key property that enables efficient training as **causal sequence transformations**. Surprizingly, efficient sampling turs out to be a consequence of a totally independent property, one that has to do with **state machines**. This helps us to draw the connection between the classic KV caching optimization for transformer sampling and the recurrence property that makes RNNs so well suited for sampling. A funny side effect of understanding how to do things efficiently is that you also learn how to do them inneficinetly. We will see how there is a very straightforward way to turn any generic architecture (like an MLP) into an autoregressive language model. Albeit one that is very inneficient for both, training and sampling.
 -->
@@ -219,7 +248,7 @@ During the course of this reasearch we've converged to a framework that helps us
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://hackmd.io/_uploads/HJLq0zp7a.jpg" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">387588502_1063711931451275_6779269320171301447_n.jpeg</figcaption>
+<figcaption>387588502_1063711931451275_6779269320171301447_n.jpeg</figcaption>
 </figure>
 </div>
 <p>The first step one must take when doing language modeling is to go into the wild and collect a dataset of them <span class="math inline">\(D \in \Seq_n \Seq_t Z\)</span>.</p>
@@ -365,7 +394,7 @@ s_{i+1} = \sigma(W s_i) + x_i  \;\;\;\;\;\;\;\;\;\; y_i = U s_i
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://hackmd.io/_uploads/r1HhkCfup.jpg" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">File (12)</figcaption>
+<figcaption>File (12)</figcaption>
 </figure>
 </div>
 <p>It’s like we try to avoid the recurrent formulation of a deep RNN and instead prefer to see it as a stack of sequence transformations. But why? Ofc they are mathematicaully equivalent, but there is a difference in practical performance in hardware: cache hits EXPAND FURTHER. We start to see how thinking about sequence transforms seems to have some computational advantages.</p>
@@ -414,7 +443,7 @@ f(\text{"I li"}) \\
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://hackmd.io/_uploads/BySruQpX6.jpg" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">385505895_353915030504501_2594593902089499332_n.jpeg</figcaption>
+<figcaption>385505895_353915030504501_2594593902089499332_n.jpeg</figcaption>
 </figure>
 </div>
 <p>So, for every sequence <span class="math inline">\(x_1 \cdots x_t \in D\)</span>, to compute the loss we need to call our model on <span class="math inline">\(t\)</span> different inputs.</p>
@@ -455,7 +484,7 @@ h(x_1 \cdots x_t) &amp;= \left([h(x_1 \cdots x_t)]_1, [h(x_1 \cdots x_t)]_2, \cd
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://hackmd.io/_uploads/B1hwM0TLp.jpg" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">File (6)</figcaption>
+<figcaption>File (6)</figcaption>
 </figure>
 </div>
 <p>When we are trying to construct our distribution over length <span class="math inline">\(t\)</span> sequences we loose no expresivety if we start with an <span class="math inline">\(h\in \CSeqT(X, \Dist X)\)</span> and we apply <span class="math inline">\(A_t\circ L: \CSeqT(X, \Dist X) \to \Dist \Seq_t X\)</span>. For any <span class="math inline">\(f\in \Dist \Seq_t X\)</span> there will be an <span class="math inline">\(h\in \CSeqT(X, \Dist X)\)</span> s.t. <span class="math inline">\(f = A_t \circ L (h)\)</span>. So mathematically it really doesn’t matter if our base architecture is <span class="math inline">\(g\in \Fn(\Seq X, \Dist X)\)</span> or <span class="math inline">\(h\in \CSeqT(X, \Dist X)\)</span>, but computationally it makes a massive differene!</p>
@@ -526,7 +555,7 @@ U(m)(x_1 \cdots x_t) = [y_1 \cdots y_t] \;\;\;\; \text{where} \;\;\;\;  (s_t, y_
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://hackmd.io/_uploads/BJ3601kva.jpg" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">File (10)</figcaption>
+<figcaption>File (10)</figcaption>
 </figure>
 </div>
 <p>Note how <span class="math inline">\(P\circ L\)</span> behaves similarly to an inverse of <span class="math inline">\(U\)</span> because <span class="math inline">\(U \circ P \circ L = \text{id} : \Fn(X,Y) \to \Fn(X,Y)\)</span>. But the other direction is not necessarily true. For example if we start with a classic RNN <span class="math inline">\((\R^d, 0, r)\)</span> and we <span class="math inline">\(P \circ L \circ U\)</span> we end up with tape state machine that is different from the RNN.</p>
@@ -557,7 +586,7 @@ U(m)(x_1 \cdots x_t) = [y_1 \cdots y_t] \;\;\;\; \text{where} \;\;\;\;  (s_t, y_
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://hackmd.io/_uploads/By-KTapIT.jpg" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">File (1)</figcaption>
+<figcaption>File (1)</figcaption>
 </figure>
 </div>
 <p>Our objective now is to construct good architectures with both, an efficient causal sequence transformation and state machine implementations. We will see how causal transformers can be seen as examples of causal sequence transformations, and then we will present our star architecture a small modification that we call linear self attention that retains all the advantages of the transformers but gives a big improvement on the causal sequence implementation</p>
@@ -756,18 +785,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
     return false;
   }
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    text: function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-    }
-  });
-  clipboard.on('success', function(e) {
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -799,11 +817,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -813,8 +870,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -826,7 +892,130 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -870,6 +1059,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -895,6 +1085,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -954,18 +1170,25 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
+<script src="https://giscus.app/client.js" data-repo="m-a-n-i-f-e-s-t/website" data-repo-id="R_kgDOLA6vSg" data-category="Announcements" data-category-id="DIC_kwDOLA6vSs4Cgv3x" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" data-loading="lazy" async="">
+</script>
+<input type="hidden" id="giscus-base-theme" value="light">
+<input type="hidden" id="giscus-alt-theme" value="dark">
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
     <div class="nav-footer-left">
       &nbsp;
     </div>   
-    <div class="nav-footer-center">© 2024 Manifest AI</div>
+    <div class="nav-footer-center">
+<p>© 2024 Manifest AI</p>
+</div>
     <div class="nav-footer-right">
       &nbsp;
     </div>
   </div>
 </footer>
+
 
 
 
