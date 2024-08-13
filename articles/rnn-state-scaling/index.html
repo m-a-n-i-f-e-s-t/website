@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.54">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jacob Buckman">
+<meta name="author" content="Carles Gelada">
+<meta name="author" content="Sean Zhang">
+<meta name="dcterms.date" content="2024-07-25">
+
+<title>RNN State Scaling – Manifest AI</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-V0D26E23Q3"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="RNN State Scaling – Manifest AI">
+<meta property="og:description" content="">
+<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:site_name" content="Manifest AI">
+<meta name="citation_title" content="RNN State Scaling">
+<meta name="citation_author" content="Jacob Buckman">
+<meta name="citation_author" content="Carles Gelada">
+<meta name="citation_author" content="Sean Zhang">
+<meta name="citation_publication_date" content="2024-07-25">
+<meta name="citation_cover_date" content="2024-07-25">
+<meta name="citation_year" content="2024">
+<meta name="citation_online_date" content="2024-07-25">
+<meta name="citation_language" content="en">
+<meta name="citation_publisher" content="Manifest AI">
+<meta name="citation_reference" content="citation_title=Scaling language models: Methods, analysis &amp;amp;amp; insights from training gopher;,citation_author=Jack W. Rae;,citation_author=Sebastian Borgeaud;,citation_author=Trevor Cai;,citation_author=Katie Millican;,citation_author=Jordan Hoffmann;,citation_author=H. Francis Song;,citation_author=John Aslanides;,citation_author=Sarah Henderson;,citation_author=Roman Ring;,citation_author=Susannah Young;,citation_author=Eliza Rutherford;,citation_author=Tom Hennigan;,citation_author=Jacob Menick;,citation_author=Albin Cassirer;,citation_author=Richard Powell;,citation_author=George Driessche;,citation_author=Lisa Anne Hendricks;,citation_author=Maribeth Rauh;,citation_author=Po-Sen Huang;,citation_author=Amelia Glaese;,citation_author=Johannes Welbl;,citation_author=Sumanth Dathathri;,citation_author=Saffron Huang;,citation_author=Jonathan Uesato;,citation_author=John Mellor;,citation_author=Irina Higgins;,citation_author=Antonia Creswell;,citation_author=Nat McAleese;,citation_author=Amy Wu;,citation_author=Erich Elsen;,citation_author=Siddhant M. Jayakumar;,citation_author=Elena Buchatskaya;,citation_author=David Budden;,citation_author=Esme Sutherland;,citation_author=Karen Simonyan;,citation_author=Michela Paganini;,citation_author=Laurent Sifre;,citation_author=Lena Martens;,citation_author=Xiang Lorraine Li;,citation_author=Adhiguna Kuncoro;,citation_author=Aida Nematzadeh;,citation_author=Elena Gribovskaya;,citation_author=Domenic Donato;,citation_author=Angeliki Lazaridou;,citation_author=Arthur Mensch;,citation_author=Jean-Baptiste Lespiau;,citation_author=Maria Tsimpoukelli;,citation_author=Nikolai Grigorev;,citation_author=Doug Fritz;,citation_author=Thibault Sottiaux;,citation_author=Mantas Pajarskas;,citation_author=Toby Pohlen;,citation_author=Zhitao Gong;,citation_author=Daniel Toyama;,citation_author=Cyprien Masson d’Autume;,citation_author=Yujia Li;,citation_author=Tayfun Terzi;,citation_author=Vladimir Mikulik;,citation_author=Igor Babuschkin;,citation_author=Aidan Clark;,citation_author=Diego Las Casas;,citation_author=Aurelia Guy;,citation_author=Chris Jones;,citation_author=James Bradbury;,citation_author=Matthew J. Johnson;,citation_author=Blake A. Hechtman;,citation_author=Laura Weidinger;,citation_author=Iason Gabriel;,citation_author=William Isaac;,citation_author=Edward Lockhart;,citation_author=Simon Osindero;,citation_author=Laura Rimell;,citation_author=Chris Dyer;,citation_author=Oriol Vinyals;,citation_author=Kareem Ayoub;,citation_author=Jeff Stanway;,citation_author=Lorrayne Bennett;,citation_author=Demis Hassabis;,citation_author=Koray Kavukcuoglu;,citation_author=Geoffrey Irving;,citation_publication_date=2021;,citation_cover_date=2021;,citation_year=2021;,citation_fulltext_html_url=https://arxiv.org/abs/2112.11446;,citation_volume=abs/2112.11446;,citation_journal_title=CoRR;">
+<meta name="citation_reference" content="citation_title=RoFormer: Enhanced transformer with rotary position embedding;,citation_author=Jianlin Su;,citation_author=Yu Lu;,citation_author=Shengfeng Pan;,citation_author=Ahmed Murtadha;,citation_author=Bo Wen;,citation_author=Yunfeng Liu;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_fulltext_html_url=https://arxiv.org/abs/2104.09864;">
+<meta name="citation_reference" content="citation_title=Gemini: A family of highly capable multimodal models;,citation_author=Gemini Team;,citation_author=Rohan Anil;,citation_author=Sebastian Borgeaud;,citation_author=Jean-Baptiste Alayrac;,citation_author=Jiahui Yu;,citation_author=Radu Soricut;,citation_author=Johan Schalkwyk;,citation_author=Andrew M. Dai;,citation_author=Anja Hauth;,citation_author=Katie Millican;,citation_author=David Silver;,citation_author=Melvin Johnson;,citation_author=Ioannis Antonoglou;,citation_author=Julian Schrittwieser;,citation_author=Amelia Glaese;,citation_author=Jilin Chen;,citation_author=Emily Pitler;,citation_author=Timothy Lillicrap;,citation_author=Angeliki Lazaridou;,citation_author=Orhan Firat;,citation_author=James Molloy;,citation_author=Michael Isard;,citation_author=Paul R. Barham;,citation_author=Tom Hennigan;,citation_author=Benjamin Lee;,citation_author=Fabio Viola;,citation_author=Malcolm Reynolds;,citation_author=Yuanzhong Xu;,citation_author=Ryan Doherty;,citation_author=Eli Collins;,citation_author=Clemens Meyer;,citation_author=Eliza Rutherford;,citation_author=Erica Moreira;,citation_author=Kareem Ayoub;,citation_author=Megha Goel;,citation_author=Jack Krawczyk;,citation_author=Cosmo Du;,citation_author=Ed Chi;,citation_author=Heng-Tze Cheng;,citation_author=Eric Ni;,citation_author=Purvi Shah;,citation_author=Patrick Kane;,citation_author=Betty Chan;,citation_author=Manaal Faruqui;,citation_author=Aliaksei Severyn;,citation_author=Hanzhao Lin;,citation_author=YaGuang Li;,citation_author=Yong Cheng;,citation_author=Abe Ittycheriah;,citation_author=Mahdis Mahdieh;,citation_author=Mia Chen;,citation_author=Pei Sun;,citation_author=Dustin Tran;,citation_author=Sumit Bagri;,citation_author=Balaji Lakshminarayanan;,citation_author=Jeremiah Liu;,citation_author=Andras Orban;,citation_author=Fabian Güra;,citation_author=Hao Zhou;,citation_author=Xinying Song;,citation_author=Aurelien Boffy;,citation_author=Harish Ganapathy;,citation_author=Steven Zheng;,citation_author=HyunJeong Choe;,citation_author=Ágoston Weisz;,citation_author=Tao Zhu;,citation_author=Yifeng Lu;,citation_author=Siddharth Gopal;,citation_author=Jarrod Kahn;,citation_author=Maciej Kula;,citation_author=Jeff Pitman;,citation_author=Rushin Shah;,citation_author=Emanuel Taropa;,citation_author=Majd Al Merey;,citation_author=Martin Baeuml;,citation_author=Zhifeng Chen;,citation_author=Laurent El Shafey;,citation_author=Yujing Zhang;,citation_author=Olcan Sercinoglu;,citation_author=George Tucker;,citation_author=Enrique Piqueras;,citation_author=Maxim Krikun;,citation_author=Iain Barr;,citation_author=Nikolay Savinov;,citation_author=Ivo Danihelka;,citation_author=Becca Roelofs;,citation_author=Anaïs White;,citation_author=Anders Andreassen;,citation_author=Tamara Glehn;,citation_author=Lakshman Yagati;,citation_author=Mehran Kazemi;,citation_author=Lucas Gonzalez;,citation_author=Misha Khalman;,citation_author=Jakub Sygnowski;,citation_author=Alexandre Frechette;,citation_author=Charlotte Smith;,citation_author=Laura Culp;,citation_author=Lev Proleev;,citation_author=Yi Luan;,citation_author=Xi Chen;,citation_author=James Lottes;,citation_author=Nathan Schucher;,citation_author=Federico Lebron;,citation_author=Alban Rrustemi;,citation_author=Natalie Clay;,citation_author=Phil Crone;,citation_author=Tomas Kocisky;,citation_author=Jeffrey Zhao;,citation_author=Bartek Perz;,citation_author=Dian Yu;,citation_author=Heidi Howard;,citation_author=Adam Bloniarz;,citation_author=Jack W. Rae;,citation_author=Han Lu;,citation_author=Laurent Sifre;,citation_author=Marcello Maggioni;,citation_author=Fred Alcober;,citation_author=Dan Garrette;,citation_author=Megan Barnes;,citation_author=Shantanu Thakoor;,citation_author=Jacob Austin;,citation_author=Gabriel Barth-Maron;,citation_author=William Wong;,citation_author=Rishabh Joshi;,citation_author=Rahma Chaabouni;,citation_author=Deeni Fatiha;,citation_author=Arun Ahuja;,citation_author=Gaurav Singh Tomar;,citation_author=Evan Senter;,citation_author=Martin Chadwick;,citation_author=Ilya Kornakov;,citation_author=Nithya Attaluri;,citation_author=Iñaki Iturrate;,citation_author=Ruibo Liu;,citation_author=Yunxuan Li;,citation_author=Sarah Cogan;,citation_author=Jeremy Chen;,citation_author=Chao Jia;,citation_author=Chenjie Gu;,citation_author=Qiao Zhang;,citation_author=Jordan Grimstad;,citation_author=Ale Jakse Hartman;,citation_author=Xavier Garcia;,citation_author=Thanumalayan Sankaranarayana Pillai;,citation_author=Jacob Devlin;,citation_author=Michael Laskin;,citation_author=Diego Las Casas;,citation_author=Dasha Valter;,citation_author=Connie Tao;,citation_author=Lorenzo Blanco;,citation_author=Adrià Puigdomènech Badia;,citation_author=David Reitter;,citation_author=Mianna Chen;,citation_author=Jenny Brennan;,citation_author=Clara Rivera;,citation_author=Sergey Brin;,citation_author=Shariq Iqbal;,citation_author=Gabriela Surita;,citation_author=Jane Labanowski;,citation_author=Abhi Rao;,citation_author=Stephanie Winkler;,citation_author=Emilio Parisotto;,citation_author=Yiming Gu;,citation_author=Kate Olszewska;,citation_author=Ravi Addanki;,citation_author=Antoine Miech;,citation_author=Annie Louis;,citation_author=Denis Teplyashin;,citation_author=Geoff Brown;,citation_author=Elliot Catt;,citation_author=Jan Balaguer;,citation_author=Jackie Xiang;,citation_author=Pidong Wang;,citation_author=Zoe Ashwood;,citation_author=Anton Briukhov;,citation_author=Albert Webson;,citation_author=Sanjay Ganapathy;,citation_author=Smit Sanghavi;,citation_author=Ajay Kannan;,citation_author=Ming-Wei Chang;,citation_author=Axel Stjerngren;,citation_author=Josip Djolonga;,citation_author=Yuting Sun;,citation_author=Ankur Bapna;,citation_author=Matthew Aitchison;,citation_author=Pedram Pejman;,citation_author=Henryk Michalewski;,citation_author=Tianhe Yu;,citation_author=Cindy Wang;,citation_author=Juliette Love;,citation_author=Junwhan Ahn;,citation_author=Dawn Bloxwich;,citation_author=Kehang Han;,citation_author=Peter Humphreys;,citation_author=Thibault Sellam;,citation_author=James Bradbury;,citation_author=Varun Godbole;,citation_author=Sina Samangooei;,citation_author=Bogdan Damoc;,citation_author=Alex Kaskasoli;,citation_author=Sébastien M. R. Arnold;,citation_author=Vijay Vasudevan;,citation_author=Shubham Agrawal;,citation_author=Jason Riesa;,citation_author=Dmitry Lepikhin;,citation_author=Richard Tanburn;,citation_author=Srivatsan Srinivasan;,citation_author=Hyeontaek Lim;,citation_author=Sarah Hodkinson;,citation_author=Pranav Shyam;,citation_author=Johan Ferret;,citation_author=Steven Hand;,citation_author=Ankush Garg;,citation_author=Tom Le Paine;,citation_author=Jian Li;,citation_author=Yujia Li;,citation_author=Minh Giang;,citation_author=Alexander Neitz;,citation_author=Zaheer Abbas;,citation_author=Sarah York;,citation_author=Machel Reid;,citation_author=Elizabeth Cole;,citation_author=Aakanksha Chowdhery;,citation_author=Dipanjan Das;,citation_author=Dominika Rogozińska;,citation_author=Vitaliy Nikolaev;,citation_author=Pablo Sprechmann;,citation_author=Zachary Nado;,citation_author=Lukas Zilka;,citation_author=Flavien Prost;,citation_author=Luheng He;,citation_author=Marianne Monteiro;,citation_author=Gaurav Mishra;,citation_author=Chris Welty;,citation_author=Josh Newlan;,citation_author=Dawei Jia;,citation_author=Miltiadis Allamanis;,citation_author=Clara Huiyi Hu;,citation_author=Raoul Liedekerke;,citation_author=Justin Gilmer;,citation_author=Carl Saroufim;,citation_author=Shruti Rijhwani;,citation_author=Shaobo Hou;,citation_author=Disha Shrivastava;,citation_author=Anirudh Baddepudi;,citation_author=Alex Goldin;,citation_author=Adnan Ozturel;,citation_author=Albin Cassirer;,citation_author=Yunhan Xu;,citation_author=Daniel Sohn;,citation_author=Devendra Sachan;,citation_author=Reinald Kim Amplayo;,citation_author=Craig Swanson;,citation_author=Dessie Petrova;,citation_author=Shashi Narayan;,citation_author=Arthur Guez;,citation_author=Siddhartha Brahma;,citation_author=Jessica Landon;,citation_author=Miteyan Patel;,citation_author=Ruizhe Zhao;,citation_author=Kevin Villela;,citation_author=Luyu Wang;,citation_author=Wenhao Jia;,citation_author=Matthew Rahtz;,citation_author=Mai Giménez;,citation_author=Legg Yeung;,citation_author=James Keeling;,citation_author=Petko Georgiev;,citation_author=Diana Mincu;,citation_author=Boxi Wu;,citation_author=Salem Haykal;,citation_author=Rachel Saputro;,citation_author=Kiran Vodrahalli;,citation_author=James Qin;,citation_author=Zeynep Cankara;,citation_author=Abhanshu Sharma;,citation_author=Nick Fernando;,citation_author=Will Hawkins;,citation_author=Behnam Neyshabur;,citation_author=Solomon Kim;,citation_author=Adrian Hutter;,citation_author=Priyanka Agrawal;,citation_author=Alex Castro-Ros;,citation_author=George Driessche;,citation_author=Tao Wang;,citation_author=Fan Yang;,citation_author=Shuo-yiin Chang;,citation_author=Paul Komarek;,citation_author=Ross McIlroy;,citation_author=Mario Lučić;,citation_author=Guodong Zhang;,citation_author=Wael Farhan;,citation_author=Michael Sharman;,citation_author=Paul Natsev;,citation_author=Paul Michel;,citation_author=Yamini Bansal;,citation_author=Siyuan Qiao;,citation_author=Kris Cao;,citation_author=Siamak Shakeri;,citation_author=Christina Butterfield;,citation_author=Justin Chung;,citation_author=Paul Kishan Rubenstein;,citation_author=Shivani Agrawal;,citation_author=Arthur Mensch;,citation_author=Kedar Soparkar;,citation_author=Karel Lenc;,citation_author=Timothy Chung;,citation_author=Aedan Pope;,citation_author=Loren Maggiore;,citation_author=Jackie Kay;,citation_author=Priya Jhakra;,citation_author=Shibo Wang;,citation_author=Joshua Maynez;,citation_author=Mary Phuong;,citation_author=Taylor Tobin;,citation_author=Andrea Tacchetti;,citation_author=Maja Trebacz;,citation_author=Kevin Robinson;,citation_author=Yash Katariya;,citation_author=Sebastian Riedel;,citation_author=Paige Bailey;,citation_author=Kefan Xiao;,citation_author=Nimesh Ghelani;,citation_author=Lora Aroyo;,citation_author=Ambrose Slone;,citation_author=Neil Houlsby;,citation_author=Xuehan Xiong;,citation_author=Zhen Yang;,citation_author=Elena Gribovskaya;,citation_author=Jonas Adler;,citation_author=Mateo Wirth;,citation_author=Lisa Lee;,citation_author=Music Li;,citation_author=Thais Kagohara;,citation_author=Jay Pavagadhi;,citation_author=Sophie Bridgers;,citation_author=Anna Bortsova;,citation_author=Sanjay Ghemawat;,citation_author=Zafarali Ahmed;,citation_author=Tianqi Liu;,citation_author=Richard Powell;,citation_author=Vijay Bolina;,citation_author=Mariko Iinuma;,citation_author=Polina Zablotskaia;,citation_author=James Besley;,citation_author=Da-Woon Chung;,citation_author=Timothy Dozat;,citation_author=Ramona Comanescu;,citation_author=Xiance Si;,citation_author=Jeremy Greer;,citation_author=Guolong Su;,citation_author=Martin Polacek;,citation_author=Raphaël Lopez Kaufman;,citation_author=Simon Tokumine;,citation_author=Hexiang Hu;,citation_author=Elena Buchatskaya;,citation_author=Yingjie Miao;,citation_author=Mohamed Elhawaty;,citation_author=Aditya Siddhant;,citation_author=Nenad Tomasev;,citation_author=Jinwei Xing;,citation_author=Christina Greer;,citation_author=Helen Miller;,citation_author=Shereen Ashraf;,citation_author=Aurko Roy;,citation_author=Zizhao Zhang;,citation_author=Ada Ma;,citation_author=Angelos Filos;,citation_author=Milos Besta;,citation_author=Rory Blevins;,citation_author=Ted Klimenko;,citation_author=Chih-Kuan Yeh;,citation_author=Soravit Changpinyo;,citation_author=Jiaqi Mu;,citation_author=Oscar Chang;,citation_author=Mantas Pajarskas;,citation_author=Carrie Muir;,citation_author=Vered Cohen;,citation_author=Charline Le Lan;,citation_author=Krishna Haridasan;,citation_author=Amit Marathe;,citation_author=Steven Hansen;,citation_author=Sholto Douglas;,citation_author=Rajkumar Samuel;,citation_author=Mingqiu Wang;,citation_author=Sophia Austin;,citation_author=Chang Lan;,citation_author=Jiepu Jiang;,citation_author=Justin Chiu;,citation_author=Jaime Alonso Lorenzo;,citation_author=Lars Lowe Sjösund;,citation_author=Sébastien Cevey;,citation_author=Zach Gleicher;,citation_author=Thi Avrahami;,citation_author=Anudhyan Boral;,citation_author=Hansa Srinivasan;,citation_author=Vittorio Selo;,citation_author=Rhys May;,citation_author=Konstantinos Aisopos;,citation_author=Léonard Hussenot;,citation_author=Livio Baldini Soares;,citation_author=Kate Baumli;,citation_author=Michael B. Chang;,citation_author=Adrià Recasens;,citation_author=Ben Caine;,citation_author=Alexander Pritzel;,citation_author=Filip Pavetic;,citation_author=Fabio Pardo;,citation_author=Anita Gergely;,citation_author=Justin Frye;,citation_author=Vinay Ramasesh;,citation_author=Dan Horgan;,citation_author=Kartikeya Badola;,citation_author=Nora Kassner;,citation_author=Subhrajit Roy;,citation_author=Ethan Dyer;,citation_author=Víctor Campos Campos;,citation_author=Alex Tomala;,citation_author=Yunhao Tang;,citation_author=Dalia El Badawy;,citation_author=Elspeth White;,citation_author=Basil Mustafa;,citation_author=Oran Lang;,citation_author=Abhishek Jindal;,citation_author=Sharad Vikram;,citation_author=Zhitao Gong;,citation_author=Sergi Caelles;,citation_author=Ross Hemsley;,citation_author=Gregory Thornton;,citation_author=Fangxiaoyu Feng;,citation_author=Wojciech Stokowiec;,citation_author=Ce Zheng;,citation_author=Phoebe Thacker;,citation_author=Çağlar Ünlü;,citation_author=Zhishuai Zhang;,citation_author=Mohammad Saleh;,citation_author=James Svensson;,citation_author=Max Bileschi;,citation_author=Piyush Patil;,citation_author=Ankesh Anand;,citation_author=Roman Ring;,citation_author=Katerina Tsihlas;,citation_author=Arpi Vezer;,citation_author=Marco Selvi;,citation_author=Toby Shevlane;,citation_author=Mikel Rodriguez;,citation_author=Tom Kwiatkowski;,citation_author=Samira Daruki;,citation_author=Keran Rong;,citation_author=Allan Dafoe;,citation_author=Nicholas FitzGerald;,citation_author=Keren Gu-Lemberg;,citation_author=Mina Khan;,citation_author=Lisa Anne Hendricks;,citation_author=Marie Pellat;,citation_author=Vladimir Feinberg;,citation_author=James Cobon-Kerr;,citation_author=Tara Sainath;,citation_author=Maribeth Rauh;,citation_author=Sayed Hadi Hashemi;,citation_author=Richard Ives;,citation_author=Yana Hasson;,citation_author=Eric Noland;,citation_author=Yuan Cao;,citation_author=Nathan Byrd;,citation_author=Le Hou;,citation_author=Qingze Wang;,citation_author=Thibault Sottiaux;,citation_author=Michela Paganini;,citation_author=Jean-Baptiste Lespiau;,citation_author=Alexandre Moufarek;,citation_author=Samer Hassan;,citation_author=Kaushik Shivakumar;,citation_author=Joost Amersfoort;,citation_author=Amol Mandhane;,citation_author=Pratik Joshi;,citation_author=Anirudh Goyal;,citation_author=Matthew Tung;,citation_author=Andrew Brock;,citation_author=Hannah Sheahan;,citation_author=Vedant Misra;,citation_author=Cheng Li;,citation_author=Nemanja Rakićević;,citation_author=Mostafa Dehghani;,citation_author=Fangyu Liu;,citation_author=Sid Mittal;,citation_author=Junhyuk Oh;,citation_author=Seb Noury;,citation_author=Eren Sezener;,citation_author=Fantine Huot;,citation_author=Matthew Lamm;,citation_author=Nicola De Cao;,citation_author=Charlie Chen;,citation_author=Sidharth Mudgal;,citation_author=Romina Stella;,citation_author=Kevin Brooks;,citation_author=Gautam Vasudevan;,citation_author=Chenxi Liu;,citation_author=Mainak Chain;,citation_author=Nivedita Melinkeri;,citation_author=Aaron Cohen;,citation_author=Venus Wang;,citation_author=Kristie Seymore;,citation_author=Sergey Zubkov;,citation_author=Rahul Goel;,citation_author=Summer Yue;,citation_author=Sai Krishnakumaran;,citation_author=Brian Albert;,citation_author=Nate Hurley;,citation_author=Motoki Sano;,citation_author=Anhad Mohananey;,citation_author=Jonah Joughin;,citation_author=Egor Filonov;,citation_author=Tomasz Kępa;,citation_author=Yomna Eldawy;,citation_author=Jiawern Lim;,citation_author=Rahul Rishi;,citation_author=Shirin Badiezadegan;,citation_author=Taylor Bos;,citation_author=Jerry Chang;,citation_author=Sanil Jain;,citation_author=Sri Gayatri Sundara Padmanabhan;,citation_author=Subha Puttagunta;,citation_author=Kalpesh Krishna;,citation_author=Leslie Baker;,citation_author=Norbert Kalb;,citation_author=Vamsi Bedapudi;,citation_author=Adam Kurzrok;,citation_author=Shuntong Lei;,citation_author=Anthony Yu;,citation_author=Oren Litvin;,citation_author=Xiang Zhou;,citation_author=Zhichun Wu;,citation_author=Sam Sobell;,citation_author=Andrea Siciliano;,citation_author=Alan Papir;,citation_author=Robby Neale;,citation_author=Jonas Bragagnolo;,citation_author=Tej Toor;,citation_author=Tina Chen;,citation_author=Valentin Anklin;,citation_author=Feiran Wang;,citation_author=Richie Feng;,citation_author=Milad Gholami;,citation_author=Kevin Ling;,citation_author=Lijuan Liu;,citation_author=Jules Walter;,citation_author=Hamid Moghaddam;,citation_author=Arun Kishore;,citation_author=Jakub Adamek;,citation_author=Tyler Mercado;,citation_author=Jonathan Mallinson;,citation_author=Siddhinita Wandekar;,citation_author=Stephen Cagle;,citation_author=Eran Ofek;,citation_author=Guillermo Garrido;,citation_author=Clemens Lombriser;,citation_author=Maksim Mukha;,citation_author=Botu Sun;,citation_author=Hafeezul Rahman Mohammad;,citation_author=Josip Matak;,citation_author=Yadi Qian;,citation_author=Vikas Peswani;,citation_author=Pawel Janus;,citation_author=Quan Yuan;,citation_author=Leif Schelin;,citation_author=Oana David;,citation_author=Ankur Garg;,citation_author=Yifan He;,citation_author=Oleksii Duzhyi;,citation_author=Anton Älgmyr;,citation_author=Timothée Lottaz;,citation_author=Qi Li;,citation_author=Vikas Yadav;,citation_author=Luyao Xu;,citation_author=Alex Chinien;,citation_author=Rakesh Shivanna;,citation_author=Aleksandr Chuklin;,citation_author=Josie Li;,citation_author=Carrie Spadine;,citation_author=Travis Wolfe;,citation_author=Kareem Mohamed;,citation_author=Subhabrata Das;,citation_author=Zihang Dai;,citation_author=Kyle He;,citation_author=Daniel Dincklage;,citation_author=Shyam Upadhyay;,citation_author=Akanksha Maurya;,citation_author=Luyan Chi;,citation_author=Sebastian Krause;,citation_author=Khalid Salama;,citation_author=Pam G Rabinovitch;,citation_author=Pavan Kumar Reddy M;,citation_author=Aarush Selvan;,citation_author=Mikhail Dektiarev;,citation_author=Golnaz Ghiasi;,citation_author=Erdem Guven;,citation_author=Himanshu Gupta;,citation_author=Boyi Liu;,citation_author=Deepak Sharma;,citation_author=Idan Heimlich Shtacher;,citation_author=Shachi Paul;,citation_author=Oscar Akerlund;,citation_author=François-Xavier Aubet;,citation_author=Terry Huang;,citation_author=Chen Zhu;,citation_author=Eric Zhu;,citation_author=Elico Teixeira;,citation_author=Matthew Fritze;,citation_author=Francesco Bertolini;,citation_author=Liana-Eleonora Marinescu;,citation_author=Martin Bölle;,citation_author=Dominik Paulus;,citation_author=Khyatti Gupta;,citation_author=Tejasi Latkar;,citation_author=Max Chang;,citation_author=Jason Sanders;,citation_author=Roopa Wilson;,citation_author=Xuewei Wu;,citation_author=Yi-Xuan Tan;,citation_author=Lam Nguyen Thiet;,citation_author=Tulsee Doshi;,citation_author=Sid Lall;,citation_author=Swaroop Mishra;,citation_author=Wanming Chen;,citation_author=Thang Luong;,citation_author=Seth Benjamin;,citation_author=Jasmine Lee;,citation_author=Ewa Andrejczuk;,citation_author=Dominik Rabiej;,citation_author=Vipul Ranjan;,citation_author=Krzysztof Styrc;,citation_author=Pengcheng Yin;,citation_author=Jon Simon;,citation_author=Malcolm Rose Harriott;,citation_author=Mudit Bansal;,citation_author=Alexei Robsky;,citation_author=Geoff Bacon;,citation_author=David Greene;,citation_author=Daniil Mirylenka;,citation_author=Chen Zhou;,citation_author=Obaid Sarvana;,citation_author=Abhimanyu Goyal;,citation_author=Samuel Andermatt;,citation_author=Patrick Siegler;,citation_author=Ben Horn;,citation_author=Assaf Israel;,citation_author=Francesco Pongetti;,citation_author=Chih-Wei Chen;,citation_author=Marco Selvatici;,citation_author=Pedro Silva;,citation_author=Kathie Wang;,citation_author=Jackson Tolins;,citation_author=Kelvin Guu;,citation_author=Roey Yogev;,citation_author=Xiaochen Cai;,citation_author=Alessandro Agostini;,citation_author=Maulik Shah;,citation_author=Hung Nguyen;,citation_author=Noah Ó Donnaile;,citation_author=Sébastien Pereira;,citation_author=Linda Friso;,citation_author=Adam Stambler;,citation_author=Adam Kurzrok;,citation_author=Chenkai Kuang;,citation_author=Yan Romanikhin;,citation_author=Mark Geller;,citation_author=ZJ Yan;,citation_author=Kane Jang;,citation_author=Cheng-Chun Lee;,citation_author=Wojciech Fica;,citation_author=Eric Malmi;,citation_author=Qijun Tan;,citation_author=Dan Banica;,citation_author=Daniel Balle;,citation_author=Ryan Pham;,citation_author=Yanping Huang;,citation_author=Diana Avram;,citation_author=Hongzhi Shi;,citation_author=Jasjot Singh;,citation_author=Chris Hidey;,citation_author=Niharika Ahuja;,citation_author=Pranab Saxena;,citation_author=Dan Dooley;,citation_author=Srividya Pranavi Potharaju;,citation_author=Eileen O’Neill;,citation_author=Anand Gokulchandran;,citation_author=Ryan Foley;,citation_author=Kai Zhao;,citation_author=Mike Dusenberry;,citation_author=Yuan Liu;,citation_author=Pulkit Mehta;,citation_author=Ragha Kotikalapudi;,citation_author=Chalence Safranek-Shrader;,citation_author=Andrew Goodman;,citation_author=Joshua Kessinger;,citation_author=Eran Globen;,citation_author=Prateek Kolhar;,citation_author=Chris Gorgolewski;,citation_author=Ali Ibrahim;,citation_author=Yang Song;,citation_author=Ali Eichenbaum;,citation_author=Thomas Brovelli;,citation_author=Sahitya Potluri;,citation_author=Preethi Lahoti;,citation_author=Cip Baetu;,citation_author=Ali Ghorbani;,citation_author=Charles Chen;,citation_author=Andy Crawford;,citation_author=Shalini Pal;,citation_author=Mukund Sridhar;,citation_author=Petru Gurita;,citation_author=Asier Mujika;,citation_author=Igor Petrovski;,citation_author=Pierre-Louis Cedoz;,citation_author=Chenmei Li;,citation_author=Shiyuan Chen;,citation_author=Niccolò Dal Santo;,citation_author=Siddharth Goyal;,citation_author=Jitesh Punjabi;,citation_author=Karthik Kappaganthu;,citation_author=Chester Kwak;,citation_author=Pallavi LV;,citation_author=Sarmishta Velury;,citation_author=Himadri Choudhury;,citation_author=Jamie Hall;,citation_author=Premal Shah;,citation_author=Ricardo Figueira;,citation_author=Matt Thomas;,citation_author=Minjie Lu;,citation_author=Ting Zhou;,citation_author=Chintu Kumar;,citation_author=Thomas Jurdi;,citation_author=Sharat Chikkerur;,citation_author=Yenai Ma;,citation_author=Adams Yu;,citation_author=Soo Kwak;,citation_author=Victor Ähdel;,citation_author=Sujeevan Rajayogam;,citation_author=Travis Choma;,citation_author=Fei Liu;,citation_author=Aditya Barua;,citation_author=Colin Ji;,citation_author=Ji Ho Park;,citation_author=Vincent Hellendoorn;,citation_author=Alex Bailey;,citation_author=Taylan Bilal;,citation_author=Huanjie Zhou;,citation_author=Mehrdad Khatir;,citation_author=Charles Sutton;,citation_author=Wojciech Rzadkowski;,citation_author=Fiona Macintosh;,citation_author=Konstantin Shagin;,citation_author=Paul Medina;,citation_author=Chen Liang;,citation_author=Jinjing Zhou;,citation_author=Pararth Shah;,citation_author=Yingying Bi;,citation_author=Attila Dankovics;,citation_author=Shipra Banga;,citation_author=Sabine Lehmann;,citation_author=Marissa Bredesen;,citation_author=Zifan Lin;,citation_author=John Eric Hoffmann;,citation_author=Jonathan Lai;,citation_author=Raynald Chung;,citation_author=Kai Yang;,citation_author=Nihal Balani;,citation_author=Arthur Bražinskas;,citation_author=Andrei Sozanschi;,citation_author=Matthew Hayes;,citation_author=Héctor Fernández Alcalde;,citation_author=Peter Makarov;,citation_author=Will Chen;,citation_author=Antonio Stella;,citation_author=Liselotte Snijders;,citation_author=Michael Mandl;,citation_author=Ante Kärrman;,citation_author=Paweł Nowak;,citation_author=Xinyi Wu;,citation_author=Alex Dyck;,citation_author=Krishnan Vaidyanathan;,citation_author=Raghavender R;,citation_author=Jessica Mallet;,citation_author=Mitch Rudominer;,citation_author=Eric Johnston;,citation_author=Sushil Mittal;,citation_author=Akhil Udathu;,citation_author=Janara Christensen;,citation_author=Vishal Verma;,citation_author=Zach Irving;,citation_author=Andreas Santucci;,citation_author=Gamaleldin Elsayed;,citation_author=Elnaz Davoodi;,citation_author=Marin Georgiev;,citation_author=Ian Tenney;,citation_author=Nan Hua;,citation_author=Geoffrey Cideron;,citation_author=Edouard Leurent;,citation_author=Mahmoud Alnahlawi;,citation_author=Ionut Georgescu;,citation_author=Nan Wei;,citation_author=Ivy Zheng;,citation_author=Dylan Scandinaro;,citation_author=Heinrich Jiang;,citation_author=Jasper Snoek;,citation_author=Mukund Sundararajan;,citation_author=Xuezhi Wang;,citation_author=Zack Ontiveros;,citation_author=Itay Karo;,citation_author=Jeremy Cole;,citation_author=Vinu Rajashekhar;,citation_author=Lara Tumeh;,citation_author=Eyal Ben-David;,citation_author=Rishub Jain;,citation_author=Jonathan Uesato;,citation_author=Romina Datta;,citation_author=Oskar Bunyan;,citation_author=Shimu Wu;,citation_author=John Zhang;,citation_author=Piotr Stanczyk;,citation_author=Ye Zhang;,citation_author=David Steiner;,citation_author=Subhajit Naskar;,citation_author=Michael Azzam;,citation_author=Matthew Johnson;,citation_author=Adam Paszke;,citation_author=Chung-Cheng Chiu;,citation_author=Jaume Sanchez Elias;,citation_author=Afroz Mohiuddin;,citation_author=Faizan Muhammad;,citation_author=Jin Miao;,citation_author=Andrew Lee;,citation_author=Nino Vieillard;,citation_author=Jane Park;,citation_author=Jiageng Zhang;,citation_author=Jeff Stanway;,citation_author=Drew Garmon;,citation_author=Abhijit Karmarkar;,citation_author=Zhe Dong;,citation_author=Jong Lee;,citation_author=Aviral Kumar;,citation_author=Luowei Zhou;,citation_author=Jonathan Evens;,citation_author=William Isaac;,citation_author=Geoffrey Irving;,citation_author=Edward Loper;,citation_author=Michael Fink;,citation_author=Isha Arkatkar;,citation_author=Nanxin Chen;,citation_author=Izhak Shafran;,citation_author=Ivan Petrychenko;,citation_author=Zhe Chen;,citation_author=Johnson Jia;,citation_author=Anselm Levskaya;,citation_author=Zhenkai Zhu;,citation_author=Peter Grabowski;,citation_author=Yu Mao;,citation_author=Alberto Magni;,citation_author=Kaisheng Yao;,citation_author=Javier Snaider;,citation_author=Norman Casagrande;,citation_author=Evan Palmer;,citation_author=Paul Suganthan;,citation_author=Alfonso Castaño;,citation_author=Irene Giannoumis;,citation_author=Wooyeol Kim;,citation_author=Mikołaj Rybiński;,citation_author=Ashwin Sreevatsa;,citation_author=Jennifer Prendki;,citation_author=David Soergel;,citation_author=Adrian Goedeckemeyer;,citation_author=Willi Gierke;,citation_author=Mohsen Jafari;,citation_author=Meenu Gaba;,citation_author=Jeremy Wiesner;,citation_author=Diana Gage Wright;,citation_author=Yawen Wei;,citation_author=Harsha Vashisht;,citation_author=Yana Kulizhskaya;,citation_author=Jay Hoover;,citation_author=Maigo Le;,citation_author=Lu Li;,citation_author=Chimezie Iwuanyanwu;,citation_author=Lu Liu;,citation_author=Kevin Ramirez;,citation_author=Andrey Khorlin;,citation_author=Albert Cui;,citation_author=Tian LIN;,citation_author=Marcus Wu;,citation_author=Ricardo Aguilar;,citation_author=Keith Pallo;,citation_author=Abhishek Chakladar;,citation_author=Ginger Perng;,citation_author=Elena Allica Abellan;,citation_author=Mingyang Zhang;,citation_author=Ishita Dasgupta;,citation_author=Nate Kushman;,citation_author=Ivo Penchev;,citation_author=Alena Repina;,citation_author=Xihui Wu;,citation_author=Tom Weide;,citation_author=Priya Ponnapalli;,citation_author=Caroline Kaplan;,citation_author=Jiri Simsa;,citation_author=Shuangfeng Li;,citation_author=Olivier Dousse;,citation_author=Fan Yang;,citation_author=Jeff Piper;,citation_author=Nathan Ie;,citation_author=Rama Pasumarthi;,citation_author=Nathan Lintz;,citation_author=Anitha Vijayakumar;,citation_author=Daniel Andor;,citation_author=Pedro Valenzuela;,citation_author=Minnie Lui;,citation_author=Cosmin Paduraru;,citation_author=Daiyi Peng;,citation_author=Katherine Lee;,citation_author=Shuyuan Zhang;,citation_author=Somer Greene;,citation_author=Duc Dung Nguyen;,citation_author=Paula Kurylowicz;,citation_author=Cassidy Hardin;,citation_author=Lucas Dixon;,citation_author=Lili Janzer;,citation_author=Kiam Choo;,citation_author=Ziqiang Feng;,citation_author=Biao Zhang;,citation_author=Achintya Singhal;,citation_author=Dayou Du;,citation_author=Dan McKinnon;,citation_author=Natasha Antropova;,citation_author=Tolga Bolukbasi;,citation_author=Orgad Keller;,citation_author=David Reid;,citation_author=Daniel Finchelstein;,citation_author=Maria Abi Raad;,citation_author=Remi Crocker;,citation_author=Peter Hawkins;,citation_author=Robert Dadashi;,citation_author=Colin Gaffney;,citation_author=Ken Franko;,citation_author=Anna Bulanova;,citation_author=Rémi Leblond;,citation_author=Shirley Chung;,citation_author=Harry Askham;,citation_author=Luis C. Cobo;,citation_author=Kelvin Xu;,citation_author=Felix Fischer;,citation_author=Jun Xu;,citation_author=Christina Sorokin;,citation_author=Chris Alberti;,citation_author=Chu-Cheng Lin;,citation_author=Colin Evans;,citation_author=Alek Dimitriev;,citation_author=Hannah Forbes;,citation_author=Dylan Banarse;,citation_author=Zora Tung;,citation_author=Mark Omernick;,citation_author=Colton Bishop;,citation_author=Rachel Sterneck;,citation_author=Rohan Jain;,citation_author=Jiawei Xia;,citation_author=Ehsan Amid;,citation_author=Francesco Piccinno;,citation_author=Xingyu Wang;,citation_author=Praseem Banzal;,citation_author=Daniel J. Mankowitz;,citation_author=Alex Polozov;,citation_author=Victoria Krakovna;,citation_author=Sasha Brown;,citation_author=MohammadHossein Bateni;,citation_author=Dennis Duan;,citation_author=Vlad Firoiu;,citation_author=Meghana Thotakuri;,citation_author=Tom Natan;,citation_author=Matthieu Geist;,citation_author=Ser Girgin;,citation_author=Hui Li;,citation_author=Jiayu Ye;,citation_author=Ofir Roval;,citation_author=Reiko Tojo;,citation_author=Michael Kwong;,citation_author=James Lee-Thorp;,citation_author=Christopher Yew;,citation_author=Danila Sinopalnikov;,citation_author=Sabela Ramos;,citation_author=John Mellor;,citation_author=Abhishek Sharma;,citation_author=Kathy Wu;,citation_author=David Miller;,citation_author=Nicolas Sonnerat;,citation_author=Denis Vnukov;,citation_author=Rory Greig;,citation_author=Jennifer Beattie;,citation_author=Emily Caveness;,citation_author=Libin Bai;,citation_author=Julian Eisenschlos;,citation_author=Alex Korchemniy;,citation_author=Tomy Tsai;,citation_author=Mimi Jasarevic;,citation_author=Weize Kong;,citation_author=Phuong Dao;,citation_author=Zeyu Zheng;,citation_author=Frederick Liu;,citation_author=Fan Yang;,citation_author=Rui Zhu;,citation_author=Tian Huey Teh;,citation_author=Jason Sanmiya;,citation_author=Evgeny Gladchenko;,citation_author=Nejc Trdin;,citation_author=Daniel Toyama;,citation_author=Evan Rosen;,citation_author=Sasan Tavakkol;,citation_author=Linting Xue;,citation_author=Chen Elkind;,citation_author=Oliver Woodman;,citation_author=John Carpenter;,citation_author=George Papamakarios;,citation_author=Rupert Kemp;,citation_author=Sushant Kafle;,citation_author=Tanya Grunina;,citation_author=Rishika Sinha;,citation_author=Alice Talbert;,citation_author=Diane Wu;,citation_author=Denese Owusu-Afriyie;,citation_author=Cosmo Du;,citation_author=Chloe Thornton;,citation_author=Jordi Pont-Tuset;,citation_author=Pradyumna Narayana;,citation_author=Jing Li;,citation_author=Saaber Fatehi;,citation_author=John Wieting;,citation_author=Omar Ajmeri;,citation_author=Benigno Uria;,citation_author=Yeongil Ko;,citation_author=Laura Knight;,citation_author=Amélie Héliou;,citation_author=Ning Niu;,citation_author=Shane Gu;,citation_author=Chenxi Pang;,citation_author=Yeqing Li;,citation_author=Nir Levine;,citation_author=Ariel Stolovich;,citation_author=Rebeca Santamaria-Fernandez;,citation_author=Sonam Goenka;,citation_author=Wenny Yustalim;,citation_author=Robin Strudel;,citation_author=Ali Elqursh;,citation_author=Charlie Deck;,citation_author=Hyo Lee;,citation_author=Zonglin Li;,citation_author=Kyle Levin;,citation_author=Raphael Hoffmann;,citation_author=Dan Holtmann-Rice;,citation_author=Olivier Bachem;,citation_author=Sho Arora;,citation_author=Christy Koh;,citation_author=Soheil Hassas Yeganeh;,citation_author=Siim Põder;,citation_author=Mukarram Tariq;,citation_author=Yanhua Sun;,citation_author=Lucian Ionita;,citation_author=Mojtaba Seyedhosseini;,citation_author=Pouya Tafti;,citation_author=Zhiyu Liu;,citation_author=Anmol Gulati;,citation_author=Jasmine Liu;,citation_author=Xinyu Ye;,citation_author=Bart Chrzaszcz;,citation_author=Lily Wang;,citation_author=Nikhil Sethi;,citation_author=Tianrun Li;,citation_author=Ben Brown;,citation_author=Shreya Singh;,citation_author=Wei Fan;,citation_author=Aaron Parisi;,citation_author=Joe Stanton;,citation_author=Vinod Koverkathu;,citation_author=Christopher A. Choquette-Choo;,citation_author=Yunjie Li;,citation_author=TJ Lu;,citation_author=Abe Ittycheriah;,citation_author=Prakash Shroff;,citation_author=Mani Varadarajan;,citation_author=Sanaz Bahargam;,citation_author=Rob Willoughby;,citation_author=David Gaddy;,citation_author=Guillaume Desjardins;,citation_author=Marco Cornero;,citation_author=Brona Robenek;,citation_author=Bhavishya Mittal;,citation_author=Ben Albrecht;,citation_author=Ashish Shenoy;,citation_author=Fedor Moiseev;,citation_author=Henrik Jacobsson;,citation_author=Alireza Ghaffarkhah;,citation_author=Morgane Rivière;,citation_author=Alanna Walton;,citation_author=Clément Crepy;,citation_author=Alicia Parrish;,citation_author=Zongwei Zhou;,citation_author=Clement Farabet;,citation_author=Carey Radebaugh;,citation_author=Praveen Srinivasan;,citation_author=Claudia Salm;,citation_author=Andreas Fidjeland;,citation_author=Salvatore Scellato;,citation_author=Eri Latorre-Chimoto;,citation_author=Hanna Klimczak-Plucińska;,citation_author=David Bridson;,citation_author=Dario Cesare;,citation_author=Tom Hudson;,citation_author=Piermaria Mendolicchio;,citation_author=Lexi Walker;,citation_author=Alex Morris;,citation_author=Matthew Mauger;,citation_author=Alexey Guseynov;,citation_author=Alison Reid;,citation_author=Seth Odoom;,citation_author=Lucia Loher;,citation_author=Victor Cotruta;,citation_author=Madhavi Yenugula;,citation_author=Dominik Grewe;,citation_author=Anastasia Petrushkina;,citation_author=Tom Duerig;,citation_author=Antonio Sanchez;,citation_author=Steve Yadlowsky;,citation_author=Amy Shen;,citation_author=Amir Globerson;,citation_author=Lynette Webb;,citation_author=Sahil Dua;,citation_author=Dong Li;,citation_author=Surya Bhupatiraju;,citation_author=Dan Hurt;,citation_author=Haroon Qureshi;,citation_author=Ananth Agarwal;,citation_author=Tomer Shani;,citation_author=Matan Eyal;,citation_author=Anuj Khare;,citation_author=Shreyas Rammohan Belle;,citation_author=Lei Wang;,citation_author=Chetan Tekur;,citation_author=Mihir Sanjay Kale;,citation_author=Jinliang Wei;,citation_author=Ruoxin Sang;,citation_author=Brennan Saeta;,citation_author=Tyler Liechty;,citation_author=Yi Sun;,citation_author=Yao Zhao;,citation_author=Stephan Lee;,citation_author=Pandu Nayak;,citation_author=Doug Fritz;,citation_author=Manish Reddy Vuyyuru;,citation_author=John Aslanides;,citation_author=Nidhi Vyas;,citation_author=Martin Wicke;,citation_author=Xiao Ma;,citation_author=Evgenii Eltyshev;,citation_author=Nina Martin;,citation_author=Hardie Cate;,citation_author=James Manyika;,citation_author=Keyvan Amiri;,citation_author=Yelin Kim;,citation_author=Xi Xiong;,citation_author=Kai Kang;,citation_author=Florian Luisier;,citation_author=Nilesh Tripuraneni;,citation_author=David Madras;,citation_author=Mandy Guo;,citation_author=Austin Waters;,citation_author=Oliver Wang;,citation_author=Joshua Ainslie;,citation_author=Jason Baldridge;,citation_author=Han Zhang;,citation_author=Garima Pruthi;,citation_author=Jakob Bauer;,citation_author=Feng Yang;,citation_author=Riham Mansour;,citation_author=Jason Gelman;,citation_author=Yang Xu;,citation_author=George Polovets;,citation_author=Ji Liu;,citation_author=Honglong Cai;,citation_author=Warren Chen;,citation_author=XiangHai Sheng;,citation_author=Emily Xue;,citation_author=Sherjil Ozair;,citation_author=Christof Angermueller;,citation_author=Xiaowei Li;,citation_author=Anoop Sinha;,citation_author=Weiren Wang;,citation_author=Julia Wiesinger;,citation_author=Emmanouil Koukoumidis;,citation_author=Yuan Tian;,citation_author=Anand Iyer;,citation_author=Madhu Gurumurthy;,citation_author=Mark Goldenson;,citation_author=Parashar Shah;,citation_author=MK Blake;,citation_author=Hongkun Yu;,citation_author=Anthony Urbanowicz;,citation_author=Jennimaria Palomaki;,citation_author=Chrisantha Fernando;,citation_author=Ken Durden;,citation_author=Harsh Mehta;,citation_author=Nikola Momchev;,citation_author=Elahe Rahimtoroghi;,citation_author=Maria Georgaki;,citation_author=Amit Raul;,citation_author=Sebastian Ruder;,citation_author=Morgan Redshaw;,citation_author=Jinhyuk Lee;,citation_author=Denny Zhou;,citation_author=Komal Jalan;,citation_author=Dinghua Li;,citation_author=Blake Hechtman;,citation_author=Parker Schuh;,citation_author=Milad Nasr;,citation_author=Kieran Milan;,citation_author=Vladimir Mikulik;,citation_author=Juliana Franco;,citation_author=Tim Green;,citation_author=Nam Nguyen;,citation_author=Joe Kelley;,citation_author=Aroma Mahendru;,citation_author=Andrea Hu;,citation_author=Joshua Howland;,citation_author=Ben Vargas;,citation_author=Jeffrey Hui;,citation_author=Kshitij Bansal;,citation_author=Vikram Rao;,citation_author=Rakesh Ghiya;,citation_author=Emma Wang;,citation_author=Ke Ye;,citation_author=Jean Michel Sarr;,citation_author=Melanie Moranski Preston;,citation_author=Madeleine Elish;,citation_author=Steve Li;,citation_author=Aakash Kaku;,citation_author=Jigar Gupta;,citation_author=Ice Pasupat;,citation_author=Da-Cheng Juan;,citation_author=Milan Someswar;,citation_author=Tejvi M.;,citation_author=Xinyun Chen;,citation_author=Aida Amini;,citation_author=Alex Fabrikant;,citation_author=Eric Chu;,citation_author=Xuanyi Dong;,citation_author=Amruta Muthal;,citation_author=Senaka Buthpitiya;,citation_author=Sarthak Jauhari;,citation_author=Nan Hua;,citation_author=Urvashi Khandelwal;,citation_author=Ayal Hitron;,citation_author=Jie Ren;,citation_author=Larissa Rinaldi;,citation_author=Shahar Drath;,citation_author=Avigail Dabush;,citation_author=Nan-Jiang Jiang;,citation_author=Harshal Godhia;,citation_author=Uli Sachs;,citation_author=Anthony Chen;,citation_author=Yicheng Fan;,citation_author=Hagai Taitelbaum;,citation_author=Hila Noga;,citation_author=Zhuyun Dai;,citation_author=James Wang;,citation_author=Chen Liang;,citation_author=Jenny Hamer;,citation_author=Chun-Sung Ferng;,citation_author=Chenel Elkind;,citation_author=Aviel Atias;,citation_author=Paulina Lee;,citation_author=Vít Listík;,citation_author=Mathias Carlen;,citation_author=Jan Kerkhof;,citation_author=Marcin Pikus;,citation_author=Krunoslav Zaher;,citation_author=Paul Müller;,citation_author=Sasha Zykova;,citation_author=Richard Stefanec;,citation_author=Vitaly Gatsko;,citation_author=Christoph Hirnschall;,citation_author=Ashwin Sethi;,citation_author=Xingyu Federico Xu;,citation_author=Chetan Ahuja;,citation_author=Beth Tsai;,citation_author=Anca Stefanoiu;,citation_author=Bo Feng;,citation_author=Keshav Dhandhania;,citation_author=Manish Katyal;,citation_author=Akshay Gupta;,citation_author=Atharva Parulekar;,citation_author=Divya Pitta;,citation_author=Jing Zhao;,citation_author=Vivaan Bhatia;,citation_author=Yashodha Bhavnani;,citation_author=Omar Alhadlaq;,citation_author=Xiaolin Li;,citation_author=Peter Danenberg;,citation_author=Dennis Tu;,citation_author=Alex Pine;,citation_author=Vera Filippova;,citation_author=Abhipso Ghosh;,citation_author=Ben Limonchik;,citation_author=Bhargava Urala;,citation_author=Chaitanya Krishna Lanka;,citation_author=Derik Clive;,citation_author=Yi Sun;,citation_author=Edward Li;,citation_author=Hao Wu;,citation_author=Kevin Hongtongsak;,citation_author=Ianna Li;,citation_author=Kalind Thakkar;,citation_author=Kuanysh Omarov;,citation_author=Kushal Majmundar;,citation_author=Michael Alverson;,citation_author=Michael Kucharski;,citation_author=Mohak Patel;,citation_author=Mudit Jain;,citation_author=Maksim Zabelin;,citation_author=Paolo Pelagatti;,citation_author=Rohan Kohli;,citation_author=Saurabh Kumar;,citation_author=Joseph Kim;,citation_author=Swetha Sankar;,citation_author=Vineet Shah;,citation_author=Lakshmi Ramachandruni;,citation_author=Xiangkai Zeng;,citation_author=Ben Bariach;,citation_author=Laura Weidinger;,citation_author=Amar Subramanya;,citation_author=Sissie Hsiao;,citation_author=Demis Hassabis;,citation_author=Koray Kavukcuoglu;,citation_author=Adam Sadovsky;,citation_author=Quoc Le;,citation_author=Trevor Strohman;,citation_author=Yonghui Wu;,citation_author=Slav Petrov;,citation_author=Jeffrey Dean;,citation_author=Oriol Vinyals;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_fulltext_html_url=https://arxiv.org/abs/2312.11805;">
+<meta name="citation_reference" content="citation_title=Scaling laws for neural language models;,citation_author=Jared Kaplan;,citation_author=Sam McCandlish;,citation_author=Tom Henighan;,citation_author=Tom B. Brown;,citation_author=Benjamin Chess;,citation_author=Rewon Child;,citation_author=Scott Gray;,citation_author=Alec Radford;,citation_author=Jeffrey Wu;,citation_author=Dario Amodei;,citation_publication_date=2020;,citation_cover_date=2020;,citation_year=2020;,citation_fulltext_html_url=https://arxiv.org/abs/2001.08361;">
+<meta name="citation_reference" content="citation_title=Training compute-optimal large language models;,citation_author=Jordan Hoffmann;,citation_author=Sebastian Borgeaud;,citation_author=Arthur Mensch;,citation_author=Elena Buchatskaya;,citation_author=Trevor Cai;,citation_author=Eliza Rutherford;,citation_author=Diego Las Casas;,citation_author=Lisa Anne Hendricks;,citation_author=Johannes Welbl;,citation_author=Aidan Clark;,citation_author=Tom Hennigan;,citation_author=Eric Noland;,citation_author=Katie Millican;,citation_author=George Driessche;,citation_author=Bogdan Damoc;,citation_author=Aurelia Guy;,citation_author=Simon Osindero;,citation_author=Karen Simonyan;,citation_author=Erich Elsen;,citation_author=Jack W. Rae;,citation_author=Oriol Vinyals;,citation_author=Laurent Sifre;,citation_publication_date=2022;,citation_cover_date=2022;,citation_year=2022;,citation_fulltext_html_url=https://arxiv.org/abs/2203.15556;">
+<meta name="citation_reference" content="citation_title=Length generalization in arithmetic transformers;,citation_author=Samy Jelassi;,citation_author=Stéphane Ascoli;,citation_author=Carles Domingo-Enrich;,citation_author=Yuhuai Wu;,citation_author=Yuanzhi Li;,citation_author=François Charton;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2306.15400;">
+<meta name="citation_reference" content="citation_title=Randomized positional encodings boost length generalization of transformers;,citation_author=Anian Ruoss;,citation_author=Grégoire Delétang;,citation_author=Tim Genewein;,citation_author=Jordi Grau-Moya;,citation_author=Róbert Csordás;,citation_author=Mehdi Bennani;,citation_author=Shane Legg;,citation_author=Joel Veness;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2305.16843;">
+<meta name="citation_reference" content="citation_title=Exploring length generalization in large language models;,citation_author=Cem Anil;,citation_author=Yuhuai Wu;,citation_author=Anders Andreassen;,citation_author=Aitor Lewkowycz;,citation_author=Vedant Misra;,citation_author=Vinay Ramasesh;,citation_author=Ambrose Slone;,citation_author=Guy Gur-Ari;,citation_author=Ethan Dyer;,citation_author=Behnam Neyshabur;,citation_publication_date=2022;,citation_cover_date=2022;,citation_year=2022;,citation_volume=35;,citation_journal_title=Advances in Neural Information Processing Systems;">
+<meta name="citation_reference" content="citation_title=Flash attention: Fast and memory-efficient exact attention with io-awareness;,citation_author=Tri Dao;,citation_author=Dan Fu;,citation_author=Stefano Ermon;,citation_author=Atri Rudra;,citation_author=Christopher Ré;,citation_publication_date=2022;,citation_cover_date=2022;,citation_year=2022;,citation_volume=35;,citation_journal_title=Advances in Neural Information Processing Systems;">
+</head>
+
+<body class="floating nav-fixed slimcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
+    </a>
+  </div>
+          <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/manifest__ai"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+   
+  <ul>
+  <li><a href="#background" id="toc-background" class="nav-link active" data-scroll-target="#background">1. Background</a></li>
+  <li><a href="#state-scaling-of-rnns" id="toc-state-scaling-of-rnns" class="nav-link" data-scroll-target="#state-scaling-of-rnns">2. State Scaling Of RNNs</a>
+  <ul class="collapse">
+  <li><a href="#feedforward-rnn" id="toc-feedforward-rnn" class="nav-link" data-scroll-target="#feedforward-rnn">2.1. Feedforward RNN</a></li>
+  <li><a href="#windowed-transformer" id="toc-windowed-transformer" class="nav-link" data-scroll-target="#windowed-transformer">2.2. Windowed Transformer</a></li>
+  <li><a href="#split-product-transformer" id="toc-split-product-transformer" class="nav-link" data-scroll-target="#split-product-transformer">2.3. Split-Product Transformer</a></li>
+  <li><a href="#symmetric-power-transformer" id="toc-symmetric-power-transformer" class="nav-link" data-scroll-target="#symmetric-power-transformer">2.4. Symmetric Power Transformer</a></li>
+  <li><a href="#transformer-taylors-version" id="toc-transformer-taylors-version" class="nav-link" data-scroll-target="#transformer-taylors-version">2.5. Transformer (Taylor’s Version)</a></li>
+  </ul></li>
+  <li><a href="#comparing-state-scaling-curves" id="toc-comparing-state-scaling-curves" class="nav-link" data-scroll-target="#comparing-state-scaling-curves">3. Comparing State Scaling Curves</a>
+  <ul class="collapse">
+  <li><a href="#why-state-scaling" id="toc-why-state-scaling" class="nav-link" data-scroll-target="#why-state-scaling">3.1. Why State Scaling?</a></li>
+  <li><a href="#empirical-results" id="toc-empirical-results" class="nav-link" data-scroll-target="#empirical-results">3.2. Empirical Results</a></li>
+  <li><a href="#data-dependence" id="toc-data-dependence" class="nav-link" data-scroll-target="#data-dependence">3.3. Data Dependence</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">4. Conclusion</a>
+  <ul class="collapse">
+  
+  
+  
+  
+  
+  </ul></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">RNN State Scaling</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jacob Buckman </p>
+             <p>Carles Gelada </p>
+             <p>Sean Zhang </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 25, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>TODO write intro</p>
+<p>In this post we go over how to think about RNN state size. We find an architecture, symmetric power, that looks very promising.</p>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">1. Background</h2>
+<p>We begin by introducing some conceptual scaffolding to connect important ideas around transformers and RNNs.</p>
+<p>All auto-regressive sequence models can be thought of as <em>state machines</em> (SMs). A state machine is a generic abstract model for any system that takes in an input and a state, and gives an output and updated state. In the case of neural language modeling, the inputs are typically tokens, the outputs are typically next-token distribution predictions, and the states are typically arrays of floating-point numbers.</p>
+<p>Let <span class="math inline">\(\mathcal{X}, \mathcal{Y}, \mathcal{S}\)</span> denote the <em>input space</em>, <em>output space</em>, and <em>state space</em>, respectively. A state machine is a triplet <span class="math inline">\((S_0, \delta, \rho)\)</span>, where <span class="math inline">\(S_0 \in \mathcal{S}\)</span> denotes the initial state, <span class="math inline">\(\delta \in (\mathcal{S} \times \mathcal{X}) \to \mathcal{S}\)</span> denotes the state transition function, <span class="math inline">\(\rho \in (\mathcal{S} \times \mathcal{X}) \to \mathcal{Y}\)</span> denotes the output function, and <span class="math display">\[
+\begin{aligned}
+S_t &amp;:= \delta(S_{t-1}, X_t)\\
+Y_t &amp;:= \rho(S_{t}, X_t)\\
+\end{aligned}
+\]</span> where <span class="math inline">\(X_t\)</span> and <span class="math inline">\(Y_t\)</span> denote the input and output at time <span class="math inline">\(t\)</span>, respectively.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> This simple but powerful abstraction encapsulates every modern language model, including models based on the standard softmax-based transformer, RNNs (e.g.&nbsp;LSTMs, GRUs, linear transformers), and state-space models like Mamba. At first glance, it may be surprising that transformers are included in this list; transformer language models are not typically presented as state machines. See Appendix A.1. for a constructive proof.</p>
+<p>We are further interested in a more specific concept: a <em>finite state machine</em> (FSM). We use <span class="math inline">\(\operatorname{size}\)</span> to denote the function which returns the dimensionality of an object. In the context of this article, we define a finite state machine as a state machine with the property that there exists <span class="math inline">\(\varsigma \in \mathbb{N}\)</span> such that <span class="math inline">\(\operatorname{size}(S) \leq \varsigma\)</span> for all <span class="math inline">\(S \in \mathcal{S}\)</span>. We call <span class="math inline">\(\varsigma\)</span> the <em>state size</em>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
+<p>It is easy to see that the prototypical RNN is a finite state machine: each state <span class="math inline">\(S \in \mathcal{S}\)</span> is a fixed-and-finite-dimensional array.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> Furthermore, it can be shown that transformers are <em>not</em> finite state machines (see Appendix A.2). Intuitively, this is because the state size of a transformer grows with the length of its input history, so no fixed <span class="math inline">\(\varsigma\)</span> is larger than every possible states.</p>
+<p>This paints a clear picture of the relationship between transformers and RNNs. The two approaches can be unified under the umbrella of state machines, but the crucial distinction between them is that transformers do not have a finite-sized state. From this perspective, it becomes clear that increasing the state size of an RNN will make it more similar to a transformer (and in fact, in Sections 2.2 and 2.5 we give families of RNNs that converge exactly to the transformer in the limit of increasing state size). Noting the performance gap between transformers and RNNs motivates a research question: <em>can the performance of an RNN be improved by increasing its state size?</em></p>
+<p>The remaining sections of article will answer that question in the affirmative, showing that the performance of RNNs with large states matches, and sometimes surpasses, that of transformers.</p>
+</section>
+<section id="state-scaling-of-rnns" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="state-scaling-of-rnns">2. State Scaling Of RNNs</h2>
+<p>Let’s take a look at some sequence modeling architectures through the lens of state size scaling. The table below gives an overview of what we will discover.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 21%">
+<col style="width: 24%">
+<col style="width: 17%">
+<col style="width: 17%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>RNN Architecture</th>
+<th>Adjustable State-Weight Ratio</th>
+<th>Unlimited Effective Context Window</th>
+<th>Converges To Transformer</th>
+<th>State-Weight Ratio</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Feedforward RNN</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td><span class="math inline">\(\frac{1}{2d}\)</span></td>
+</tr>
+<tr class="even">
+<td>Windowed Transformer</td>
+<td>✓</td>
+<td>✗</td>
+<td>✓</td>
+<td><span class="math inline">\(\frac{w}{6d + 1}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Linear Transformer</td>
+<td>✗</td>
+<td>✓</td>
+<td>✗</td>
+<td><span class="math inline">\(\frac{d/head}{12d + 2}\)</span></td>
+</tr>
+<tr class="even">
+<td>Split-Product Transformer</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td><span class="math inline">\(\frac{(d/(head\cdot s))^s}{12d + 2}\)</span></td>
+</tr>
+<tr class="odd">
+<td>Taylor Transformer</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td><span class="math inline">\(\frac{\sum_{i=0}^{D}\binom{\frac{d}{head} + i - 1}{i}}{12d + 2}\)</span></td>
+</tr>
+<tr class="even">
+<td>Symmetric Power Transformer</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+<td><span class="math inline">\(\frac{\binom{\frac{d}{head} + D - 1}{D}}{12d + 2}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>All architectures we discuss in this article have the same high-level structure. Letting <span class="math inline">\(d \in \mathbb{N}\)</span> denote the width of a network and <span class="math inline">\(\ell \in \mathbb{N}\)</span> to denote the depth, each architecture has an embedding layer mapping tokens to <span class="math inline">\(\mathbb{R}^d\)</span>, followed by <span class="math inline">\(\ell\)</span> copies of an RNN with <span class="math inline">\(\mathcal{X} = \mathcal{Y} = \mathbb{R}^d\)</span>, and finally an outbedding layer mapping <span class="math inline">\(\mathbb{R}^d\)</span> to next-token distributions. Since this structure is shared, the section studying each article focuses only on the inner RNN, where we use <span class="math inline">\(s\)</span> to denote the number of splits in Split-Product Transformer, and use <span class="math inline">\(D\)</span> to denote the degrees of power in Taylor Transformer and Symmetric Power Transformer.</p>
+<section id="feedforward-rnn" class="level3">
+<h3 class="anchored" data-anchor-id="feedforward-rnn">2.1. Feedforward RNN</h3>
+<p>A natural place to begin is with the classic feedforward RNN layer, defined as:</p>
+<p><span class="math display">\[
+\begin{aligned}
+S_0 &amp;:= \textbf{0} \in \mathbb{R}^d\\
+\delta(S_{t-1}, X_t) &amp;:= \sigma(W_{\delta}(S_{t-1} + X_t))\\
+\rho(S_{t}, X_{t}) &amp;:= W_{\rho}S_t
+\end{aligned}
+\]</span></p>
+<p>where weights <span class="math inline">\(W_{\delta}, W_{\rho} \in \mathbb{R}^{d \times d}\)</span> and <span class="math inline">\(\sigma\)</span> denotes a nonlinearity like ReLU.</p>
+<p>Since <span class="math inline">\(S \in \mathbb{R}^d\)</span> for all <span class="math inline">\(S \in \mathcal{S}\)</span>, the state size of each layer of this network is <span class="math inline">\(d\)</span>. The overall state size is therefore <span class="math inline">\(d\ell\)</span>. If we want to increase the state size, we need to increase the width <span class="math inline">\(d\)</span> or the depth <span class="math inline">\(\ell\)</span>. But notice that, since the parameter count is <span class="math inline">\(2d^2\ell\)</span>, increasing the width or depth also increases the number of parameters. This is problematic for two reasons, one scientific and one practical.</p>
+<p>Scientifially, we were hoping to answer the question of <em>does increasing the state size improve performance?</em> This motivates an experimental design where we increase the state size and measure the change in performance. But if, when we increase state size, we <em>also</em> increase parameter count, our experiment becomes unable to disentagle the impact of increasing the size of the state from the familiar performance boost that comes with increasing the model scale.</p>
+<p>On the practical side, the concern is best illustrated by highlighting a quantity we call the <em>state-weight ratio</em>. For the classic RNN, this is <span class="math inline">\(\frac{d\ell}{2d^2\ell} = \frac{1}{2d}\)</span>. This ratio is small and we have no way of increasing it. As we increase the state size by increasing <span class="math inline">\(d\)</span>, this architecture will actually spend a <em>smaller</em> fraction of its memory on its state. In order to design an RNN to have a similar parameter scaling law to that of a transformer, we need it to have not only large states, but a large state-weight ratio.</p>
+</section>
+<section id="windowed-transformer" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="windowed-transformer">2.2. Windowed Transformer</h3>
+<p>In the this section, we study an RNN architecture that allows us to freely adjust the state-weight ratio. The formula for a transformer layer is:</p>
+<p><span class="math display">\[
+Y^\text{Transformer}_t = \sum_{i=1}^t e^{Q^T_t K_i} V_i
+\]</span></p>
+<p>In Appendix A.1, we construct an equivalent state machine with <span class="math inline">\(S_t = (K_{i=1}^t, V_{i=1}^t)\)</span>. This means that <span class="math inline">\(\operatorname{size}(S_t) = 2td\ell\)</span>, which, being dependent on <span class="math inline">\(t\)</span>, has no upper bound.</p>
+<p>However, simply truncating the state beyond a certain size straightforwardly leads to a transformer-like RNN, which we call a <em>windowed transformer</em>. The truncation is given by a <em>window size</em> hyperparameter, which we denote <span class="math inline">\(w \in \mathbb{N}\)</span>. Its formula is:</p>
+<p><span class="math display">\[
+Y^\text{WindowedTransformer}_t = \sum_{i=t-w}^t e^{Q^T_t K_i} V_i
+\]</span></p>
+<p>It is easy to see that this is a state machine with <span class="math inline">\(S_t = (K_{i=t-w}^t, V_{i=t-w}^t)\)</span>, and is therefore a finite state machine with state size <span class="math inline">\(2wd\ell\)</span>. The implementation is almost exactly the same as for a regular transformer, but in addition to a causal mask, it also includes an “ancient history mask”.</p>
+<p>[Visualization]</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>It is interesting to note that a <em>naive</em> implementation of windowed transformer attention (one which materializes the entire attention matrix) has cost <span class="math inline">\(O(T^2)\)</span> to process a sequence of length <span class="math inline">\(T\)</span> – just like a regular transformer. Running this architecture in <span class="math inline">\(O(T)\)</span> requires an efficient fused implementation which avoids materializing (or even computing) segments of the attention matrix that are entirely masked out.</p>
+</div></div><p>By adjusting <span class="math inline">\(w\)</span>, we can control the state size without affecting the parameter count. Using a GPT-2-style architecture, the (non-embedding) parameter count for a transformer is <span class="math inline">\((2d + 12d^2)\ell\)</span> (see Appendix A.3 for a breakdown). The state-weight ratio is therefore <span class="math inline">\(\frac{2wd\ell}{(2d + 12d^2)\ell} = \frac{w}{6d + 1}\)</span>. Any desired state-weight ratio can be achieved.</p>
+<p>This gives us the ability to empirically observe the <em>state scaling</em> behavior of the windowed transformer. All experiments in this article were performed using a 124M parameter GPT-2 architecture, on LongCrawl64 with a context length of 4096.</p>
+<p>[PLOT]</p>
+<p>[JAX code]</p>
+<p>As expected, we see that state scaling improves performance.</p>
+<p>Since the documents in our training set have context length of 4096 tokens, setting <span class="math inline">\(w = 4096\)</span> causes a windowed transformer to exactly match the performance of the baseline transformer. Also, there is no value in increasing the state size beyond <span class="math inline">\(w &gt; 4096\)</span>. (On a longer-context dataset, there would be.)</p>
+<p>One important perspective on windowed transformers is that they are a family of RNNs that <em>converge to</em> the regular transformer, in the limit as <span class="math inline">\(w \to \infty\)</span>. In Section 2.5, we will see another such family, which approaches the regular transformer but in a very different way.</p>
+</section>
+<section id="split-product-transformer" class="level3">
+<h3 class="anchored" data-anchor-id="split-product-transformer">2.3. Split-Product Transformer</h3>
+<p>It is intuitively clear that a limitation of the windowed transformer architecture discussed in the previous section is that it has a limited <em>effective context window</em>, meaning that there are some tokens in the context which do not in any way impact the model’s prediction. A windowed transformer with <span class="math inline">\(\ell\)</span> layers and a window size <span class="math inline">\(w\)</span> takes into account only the most recent <span class="math inline">\(\ell(w - 1)\)</span> tokens. We will show empirically in Section 3.2 how this limitation can impact performance. This motivates us to continue exploring the space of architectures, to find one that has both an unlimited effective context window (as the feedforward RNN has) and an adjustable weight-state ratio (as the windowed transformer has).</p>
+<p>The linear transformer from our previous article is <em>not</em> that architecture, but it gives us a good starting point. The formula for the linear transformer is:</p>
+<p><span class="math display">\[
+Y_t^\text{LT} = \sum_{i=1}^t Q^T_t K_i V_i
+\]</span></p>
+<p>This can be generalized slightly by introducing <span class="math inline">\(\phi : \mathbb{R}^d \to \mathcal{Z}\)</span>, an embedding function which maps keys/queries into an inner product space <span class="math inline">\(\mathcal{Z}\)</span>. The nice properties of linear transformers that we demonstrated in our previous article (specifically, the existence of an <span class="math inline">\(O(t)\)</span> state algorithm) remain universally present for architectures in this more general family (i.e.&nbsp;for any choice of <span class="math inline">\(\phi\)</span>).</p>
+<p><span class="math display">\[
+Y_t^\text{GenericLT} = \sum_{i=1}^t \langle \phi(Q_t),  \phi(K_i) \rangle V_i \\
+Y_{t}^\text{GenericLT} = S_t \phi(Q_t) \qquad S_t = S_{t-1} + V_t  \phi(K_t)^T
+\]</span></p>
+<p>Of course, this reformulation is superficial.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> If we consider <span class="math inline">\(\phi(K_i)\)</span> to be part of the broader layer rather than the attention calculation, this reduces back to the original equations of the linear transformer. The advantage of thinking of <span class="math inline">\(\phi\)</span> as part of the transformer itself is that it allows us to study variants of <span class="math inline">\(\phi\)</span> while keeping the rest of the network exactly the same. In particular, we will be looking at choices of <span class="math inline">\(\phi\)</span> where <span class="math inline">\(z \gg d\)</span>, which we call <em>state expansions</em>. State expansions allow us to freely adjust the state-weight ratio, and we will see that larger state expansions generally improve performance.</p>
+<p>What state expansion should we pick? It’s wide open, and many things have been tried [TODO cite stuff]. In this article, we focus on state expansions that leverage the <em>tensor product</em>, an approach that we consider to be particularly mathematically elegant. Intuitively, the tensor product can be seen as a generalization of the outer product to higher-order objects. (See Appendex A.4 for a more complete introduction to the topic.)</p>
+<p>Here is a straightforward way to use the tensor product to define a state expansion. Given a vector-valued key (or, wlog, query), first <em>split</em> the key into <span class="math inline">\(p \in \mathbb{N}\)</span> evenly-sized pieces, and then take the <em>tensor product</em> of those pieces. Formally, we define the split-product <span class="math inline">\(\phi\)</span> as:</p>
+<p><span class="math display">\[
+\chi_i(K_t) = \text{softplus}(K_t)_{\left[\frac{(i-1)d}{p} : \frac{id}{p}\right]} \qquad \phi^\text{SplitProduct}(K_t) = \bigotimes_{i=1}^p \chi_i(K_t)
+\]</span></p>
+<p>With this embedding function, <span class="math inline">\(\phi^\text{SplitProduct}(K_t) \in \mathbb{R}^{\left(\frac{d}{p}\right)^p}\)</span>. There is no way to represent this besides representing each component of <span class="math inline">\(\phi^\text{SplitProduct}(K_t)\)</span> so the state size is <span class="math inline">\(\left(\frac{d}{p}\right)^p\)</span>. (PROOF!?!!) As we increase <span class="math inline">\(p\)</span>, we get exponential growth in state size.</p>
+<p>To implement the attention algorithm for <span class="math inline">\(\phi^\text{SplitProduct}\)</span>, there is no need to materialize the expanded state. Simply split both the key and the query, do a dot product on each piece, and then multiplying the results together. (PROOOF?)</p>
+<p><span class="math display">\[
+Y_t^\text{SplitProduct} = \sum_{i=1}^t \left( \prod_{i=1}^p \chi_i(Q_t)^T \chi_i(K_t) \right) V_t
+\]</span></p>
+<p>Let’s run some experiments to investigate the effect of the split-product state expansion on performance.</p>
+<p>[PLOT]</p>
+<p>[JAX code]</p>
+<p>As expected, we see that state scaling improves performance.</p>
+</section>
+<section id="symmetric-power-transformer" class="level3">
+<h3 class="anchored" data-anchor-id="symmetric-power-transformer">2.4. Symmetric Power Transformer</h3>
+<p>The split-product approach is a straightforward enough application of the tensor power, but in some ways it is a bit awkward: splitting up the keys means that <span class="math inline">\(p\)</span> is required to divide <span class="math inline">\(d\)</span> evenly, and the possibility of negative dot-products means we still need to use the softplus to push everything into the positive quadrant in order to normalize later.</p>
+<p>There is a somewhat nicer variation, which we call this the <em>symmetric power</em> expansion. In this approach, we simply tensor the key with itself an even number of times. This obviates the need for awkward splitting, and guarantees that each dot-product term will be positive even when keys are not projected into the positive quadrant. The symmetric power formula is:</p>
+<p><span class="math display">\[
+\phi^\text{SymmetricPower}(K_t) = \bigotimes_{i=1}^p K_t
+\]</span></p>
+<p>Naively, we might assume that the size of this state is <span class="math inline">\(d^p\)</span>. But actually, we can exploit symmetry: many terms are repeated. The real state size is <span class="math inline">\(\binom{d + p - 1}{p}\)</span>. (PROOF!!!!!)</p>
+<p>The attention algorithm for the symmetric power is pleasingly straightforward. Simply replace exponentiation operation with raising-to-<span class="math inline">\(p\)</span>:</p>
+<p><span class="math display">\[
+Y_t^\text{SymmetricPower} = \sum_{i=1}^t \left( \chi_i(Q_t)^T \chi_i(K_t)^p \right) V_t
+\]</span></p>
+<p>Let’s run some experiments to investigate the effect of the symmetric power state expansion on performance.</p>
+<p>[PLOT]</p>
+<p>[JAX code]</p>
+<p>As expected, we see that state scaling improves performance. Impressively, it matches the performance of the softmax baseline by <span class="math inline">\(p=4\)</span>, and surpasses it slightly at <span class="math inline">\(p=6\)</span>.</p>
+</section>
+<section id="transformer-taylors-version" class="level3">
+<h3 class="anchored" data-anchor-id="transformer-taylors-version">2.5. Transformer (Taylor’s Version)</h3>
+<p>The previous two approaches each have an adjustable state-weight ratio and no maximum effective context size. But both are still missing one cool aspect of the windowed transformer: the guarantee that, in the limit of large state, it approaches the transformer. This third property is not needed for good performance, so a purely-practical-minded person might not care. But it is deeply insightful to think about what such an architecture would look like.</p>
+<p>Start off with a linear transformer, and let <span class="math inline">\(\phi\)</span> equal the first <span class="math inline">\(n\)</span> terms of the Taylor series approximation of the exponential. This is the the sum of <span class="math inline">\(n\)</span> different symmetric powers, so the state size is <span class="math inline">\(\sum_{p=1}^{n} \binom{d + p - 1}{p}\)</span>. (PROOF!!!!)</p>
+<p>As we increase <span class="math inline">\(n\)</span>, the state size of the model grows, and we approach the original transformer.</p>
+<p>This gives a second perspective on the idea that a transformer is a state machine, but not a <em>finite</em> state machine. Rather than thinking about the transformers as having a growing state (as in the KV cache perspective), we can also think about transformers as having an <em>infinite-dimensional</em> state.</p>
+</section>
+</section>
+<section id="comparing-state-scaling-curves" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-state-scaling-curves">3. Comparing State Scaling Curves</h2>
+<p>We’ve gone on a wonderful journey though architecture land, looking at lots of qualitative differences between them. But now it is almost time to answer the question on everyone’s mind: which architecture is the best?</p>
+<p>Before diving in, let’s take one more moment to reflect on what we are looking for in an architecture.</p>
+<section id="why-state-scaling" class="level3">
+<h3 class="anchored" data-anchor-id="why-state-scaling">3.1. Why State Scaling?</h3>
+<p>Ultimately, the goal of any training run is to reach the best performance given training budget. The most relevant metric would therefore be to directly measure the impact of this increased cost by comparing models on the basis of their performance-per-GPU-hour. But this sort of comparison is difficult to get right. Firstly, performance-per-GPU-hour is highly implementation-dependent. Without an efficient fused kernel for the <a href="https://manifestai.com/articles/linear-transformers-are-faster/#learning-performance">chunked</a> algorithm, any RNN will inevitably fall far short of its potential; but it is challenging and time-consuming to implement these kernels. Secondly, compute-optimal performance relies on jointly choosing the state size with the model size, context length, etc., a process which requires an expensive sweep over various combinations.</p>
+<p>In light of these difficulties, it is convenient to have a simpler experimental design. As we have seen, increasing the state size improves performance per step of training. It also increases the cost, since a larger state means more computation per step. The computation per step is roughly proportional to the size of the state for most relevant architecutures, since each dimension of the state needs to be read, processed, and written at least once.<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a> State size is therefore a reasonable heuristic to use in place of wall-clock time, and so it makes sense to focus on architectures which have high growth in performance per dimension of state.</p>
+<p>Since the size of the state for any architecture can be computed in closed form, we do not even need to implement the state or chunked algorithms in order to assess quality on the basis of state size scaling laws. A simple attention implementation is all that is needed. This makes it easy to quickly iterate on architectural chocies, and only implement the difficult chunked algorithm for architectures that seem promising.</p>
+<p>To summarize: our goal in this section is to identify which architectures (if any) we want to spend our time implementing efficiently, by comparing their state scaliing laws.</p>
+</section>
+<section id="empirical-results" class="level3">
+<h3 class="anchored" data-anchor-id="empirical-results">3.2. Empirical Results</h3>
+<p>Below on the left you can see the state size scaling curves for all the architectures we described today. On the right, click the names of individual architectures to see their training curves.</p>
+<p>[PLOT]</p>
+<p>There are two clear winners here: the windowed transformer and the symmetric power transformer.</p>
+</section>
+<section id="data-dependence" class="level3">
+<h3 class="anchored" data-anchor-id="data-dependence">3.3. Data Dependence</h3>
+<p>An important consideration for these experiments is the choice of dataset. In <em>theory</em> this is always the case: for example, when Chinchilla computes its optimal model sizes, it’s doing so on the basis of scaling laws extrapolated for one particular dataset, and these may or may not hold on other datasets. Fortunately, for the vast majority of deep learning work, it really does not seem to matter. Evidence seems to indicate that the ordering of architectures is pretty consistent accross datasets (TODO CITE THIS), and it’s difficult to see how one might intentionally construct datasets that are more advantageous to one architecture vs another.</p>
+<p>When it comes to RNNs, this is not the case. There are some strong and easily visible data dependence effects. An obvious one in this case is the fact that the windowed transformer has a limited effective context length, whereas other architectures do not. When most of the information needed to make a prediction is local, the windowed transformer is great. But when the information is further away in the sequence, it does worse.</p>
+<p>It seems natural language is, for the most part, pretty local, and so the windowed transformer is mostly able to crush other architectures on LongCrawl64. But we can construct an aritificial dataset where this is not the case. Simply take LongCrawl64 and insert dummy characters between each pair of consecutive tokens (increasing the overall context length by the commensurate amount). Intuitively, this will preserve the information in the sequence, so no prediction is made more challenging for models with no limitation on maximum effective context size. But it <em>will</em> make the information less dense, meaning less information will be accessible within the effective context window of the windowed transformer.</p>
+<p>We can run this experiment to validate empirically. We train a windowed transformer and symmetric power transformer on a sequence of datasets transformed in this way.</p>
+<p>[PLOT]</p>
+<p>As expected, we see the windowed transformer get worse and worse, but the symmetric power transformer stays strong.</p>
+<p>The takeaway here is that you should be careful before generalizing a ranking of architectures across all datasets. Different RNNs can be more or less suitable for different datasets.</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">4. Conclusion</h2>
+<p>TODO write conclusion</p>
+<p>Thanks for reading idk we might not need this. Plz subscribe</p>
+<form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
+  <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
+  Subscribe to be notified of new posts:
+  </label>
+  <input style="width: 35%;" type="email" name="email" id="bd-email" placeholder="Email">
+  
+  <input style="width: 80px;" type="submit" value="Subscribe">
+</form>
+
+
+
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="acknowledgments" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">Acknowledgments</h2><div class="quarto-appendix-contents">
+
+<p>TODO</p>
+</div></section><section id="a.1.-transformers-are-state-machines" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">A.1. Transformers Are State Machines</h2><div class="quarto-appendix-contents">
+
+<p>We give a brief non-rigourous constructive proof. The formula for a transformer layer is:</p>
+<p><span class="math display">\[
+Y_t = \sum_{i=1}^t e^{Q^T_t K_i} V_i
+\]</span></p>
+<p>For simplicity, we ignore the normalizing term in the denominator and the multi-head attention variants, which do not meanignfully impact our analysis.</p>
+<p>Letting <span class="math inline">\(X_t = (Q_t, K_t, V_t)\)</span>, we can rewrite this more abstractly:</p>
+<p><span class="math display">\[
+Y_t = \text{Transformer} \left( X_{i=1}^t \right)
+\]</span></p>
+<p>Now, we define a state machine, giving initial state <span class="math inline">\(S_0\)</span>, transition function <span class="math inline">\(\delta\)</span>, and output function <span class="math inline">\(\rho\)</span>.</p>
+<p><span class="math display">\[
+\begin{aligned}
+S^Q_0 &amp;:= () \qquad S^K_0 := () \qquad S^V_0 := () \\
+S_0 &amp;:= (S^Q_0, S^K_0, S^V_0 )\\
+\delta(S_{t-1}, X_t) &amp;:= \begin{bmatrix} S_{t-1} \\ X_t \end{bmatrix} = (Q_{i=1}^t, K_{i=1}^t, V_{i=1}^t) \\
+\rho(S_{t}, X_{t}) &amp;:= \text{Transformer} \left( S_t \right)
+\end{aligned}
+\]</span></p>
+<p>It’s easy to verify that the outputs <span class="math inline">\(Y\)</span> of this state machine correspond exactly to the outputs of the transformer.</p>
+<p>Note that our construction is a bit wasteful, as we include <span class="math inline">\(Q_{i=1}^t\)</span> in the state despite only needing <span class="math inline">\(Q_t\)</span>, which is available via <span class="math inline">\(X_t\)</span>. Removing <span class="math inline">\(Q_{i=1}^t\)</span> from the state gives the well-known <em>KV cache</em> algorithm, familiar to anyone who has used transformer language models at inference time to generate text. This formulation has state <span class="math inline">\(S_t = (K_{i=1}^t, V_{i=1})\)</span>, and the definitions for <span class="math inline">\(S_0, \delta, \rho\)</span> follow straightforwardly.</p>
+</div></section><section id="a.2.-transformers-are-not-finite-state-machines" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">A.2. Transformers Are Not Finite State Machines</h2><div class="quarto-appendix-contents">
+
+<p>TODO</p>
+</div></section><section id="a.3.-transformer-parameter-count" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">A.3. Transformer Parameter Count</h2><div class="quarto-appendix-contents">
+
+<p>TODO</p>
+</div></section><section id="a.4.-tensor-product-tutorial" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">A.4. Tensor Product Tutorial</h2><div class="quarto-appendix-contents">
+
+<p>Tensor product appears on many differnet places. There are many different angles it can be constrcuted. It has been said that the quality of a mathematician can be measured by how many different constructions of the tensor product they know. The approach we take here is not the most insightful, or useful, but it is probably the most elemental requiring the least mathematical sofistication. It is enough for what we need, which is to be able to implement funtions <span class="math inline">\(\phi\)</span> based on it and to be able to count the dimension <span class="math inline">\(D\)</span>.</p>
+
+
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>All of our architectures grow in FLOPs linearly with state size. One could imagine RNN architectures that process each element of their state <span class="math inline">\(n^2\)</span> or more, in which case it might make more sense to modify the state scaling setup accordingly.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>The more typical definition, <span class="math inline">\(|\mathcal{S}| &lt; \infty\)</span>, follows directly from ours if it is assumed that all elements of each <span class="math inline">\(S \in \mathcal{S}\)</span> are themselves finite. Since we are only really interested in algorithms that we can implement on computers, and floating point values have finite precision, we are happy to make this simplifying assumption.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>RNN is a term that is widely used but rarely rigorously defined, and so there is not complete agreement on its definition. In some obscure parts of the literature people may have used the term “RNN” to describe an architecture that is not a finite state machine (as defined here). But we think that the definition we use here is the most widely understood. In any case, we aim only to describe a internally-consistent set of concepts, it is OK if we are not consistent with the whole of the external literature.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>In fact, a careful read of our previous article will reveal that we already used this more general form without explicitly commenting on it, by setting <span class="math inline">\(\phi(Q_i) = \text{softplus}(Q_i)\)</span>.<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>All of our architectures grow in FLOPs linearly with state size. One could imagine RNN architectures that process each element of their state <span class="math inline">\(n^2\)</span> or more, in which case it might make more sense to modify the state scaling setup accordingly.<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@misc{buckman2024,
+  author = {Buckman, Jacob and Gelada, Carles and Zhang, Sean},
+  publisher = {Manifest AI},
+  title = {RNN {State} {Scaling}},
+  date = {2024-07-25},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-buckman2024" class="csl-entry quarto-appendix-citeas" role="listitem">
+<div class="">J.
+Buckman, C. Gelada, and S. Zhang, <span>“RNN State Scaling.”</span>
+Manifest AI, Jul. 25, 2024.</div>
+</div></div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="m-a-n-i-f-e-s-t/website" data-repo-id="R_kgDOLA6vSg" data-category="Announcements" data-category-id="DIC_kwDOLA6vSs4Cgv3x" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" data-loading="lazy" async="">
+</script>
+<input type="hidden" id="giscus-base-theme" value="light">
+<input type="hidden" id="giscus-alt-theme" value="dark">
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>© 2024 Manifest AI</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

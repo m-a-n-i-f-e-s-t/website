@@ -210,13 +210,12 @@ window.Quarto = {
   <li><a href="#symmetric-power-transformers" id="toc-symmetric-power-transformers" class="nav-link" data-scroll-target="#symmetric-power-transformers">3. Symmetric Power Transformers</a>
   <ul class="collapse">
   <li><a href="#mathematical-background-1" id="toc-mathematical-background-1" class="nav-link" data-scroll-target="#mathematical-background-1">3.1. Mathematical Background</a></li>
-  <li><a href="#algorithm" id="toc-algorithm" class="nav-link" data-scroll-target="#algorithm">3.2. Algorithm</a></li>
+  <li><a href="#implementation" id="toc-implementation" class="nav-link" data-scroll-target="#implementation">3.2 Implementation</a></li>
   </ul></li>
   <li><a href="#conclusion-upcoming-work" id="toc-conclusion-upcoming-work" class="nav-link" data-scroll-target="#conclusion-upcoming-work">Conclusion &amp; Upcoming Work</a>
   <ul class="collapse">
   
   </ul></li>
-  
   
   
   </ul>
@@ -313,17 +312,12 @@ details[open] {
   padding: 8px; /* Padding inside the details for content alignment */
 }
 </style>
-<p>Linear transformers <span class="citation" data-cites="katharopoulos2020transformers"><a href="#ref-katharopoulos2020transformers" role="doc-biblioref">[1]</a></span> can be formulated as linear-cost RNNs, and so have better theoretical FLOP scaling than ordinary transformers. <a href="https://manifestai.com/articles/linear-transformers-are-faster/">In our previous article</a>, we presented an efficient chunked algorithm that turns this theoretical advantage into practical speedups when the context is long: 10x faster training for a 100k-token context. Unfortunately, we also found that vanilla linear transformers suffer from <a href="https://manifestai.com/articles/linear-transformers-are-faster/#learning-performance">degraded performance</a>, especially at long contexts, rendering any benefits from the speedup useless. This article advances our previous discussion by introducing a linear transformer variant that solves the degraded performance issue while still enabling an efficient linear-cost implementation.</p>
-<p>The central idea behind all the algorithms explored in this post is that for RNNs, the size of the model should be understood not just in terms of parameters, but also in terms of the size of the state. The state of an RNN encodes all the information in its context into a finite-dimensional list of numbers. If we look at the basic RNN equation,</p>
-<p><span class="math display">\[
-Y_t = f(S_t, X_t) \qquad S_{t+1} = g(S_t, X_t)
-\]</span></p>
+<p>Linear transformers <span class="citation" data-cites="katharopoulos2020transformers"><a href="#ref-katharopoulos2020transformers" role="doc-biblioref">[1]</a></span> can be formulated as linear-cost RNNs, and so have better theoretical FLOP scaling than ordinary transformers. <a href="https://manifestai.com/articles/linear-transformers-are-faster/">In our previous article</a>, we presented an efficient chunked algorithm that turns this theoretical advantage into practical speedups when the context is long: 10x faster training for a 64k-token context. Unfortunately, we also found that vanilla linear transformers suffer from <a href="https://manifestai.com/articles/linear-transformers-are-faster/#learning-performance">degraded performance</a>, especially at long contexts, rendering any benefits from the speedup useless. This article advances our previous discussion by introducing a linear transformer variant that solves the degraded performance issue while still enabling an efficient linear-cost implementation.</p>
+<p>Behind all the algorithms explored in this post there is a central idea. That for RNNs, thinking of the size of the model just in terms of the number of parameters misses something important. An RNN encodes all the information from the past inputs <span class="math inline">\(X_1,...,X_{t}\)</span> into a finite-dimensional vector <span class="math inline">\(S_t\)</span> called the state. If the states are too small, the model will struggle to store all the information it will later require. Could this be the cause of the poor performance of the GPT-2-style linear transformers we evaluated in our previous article? If we look at the state sizes, we notice they are many orders of magnitude smaller than the weights of the architecture:</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
-<p>In this equation, <span class="math inline">\(f\)</span> and <span class="math inline">\(g\)</span> denote arbitrary functions from states and inputs to outputs and states respectively, and <span class="math inline">\(S_0\)</span> is an arbitrary initial state.</p>
-</div></div><p>it is clear that the only path by which information about past input <span class="math inline">\(X_1,...,X_{t-1}\)</span> is propagated to prediction <span class="math inline">\(Y_{t}\)</span> is via the states <span class="math inline">\(S_1,...,S_t\)</span>. If the states are too small, the model might struggle to store all the information it will later require.</p>
-<p>With this in mind, when we look at the GPT-2-style linear transformers we evaluated in our previous article, we find a clue about a potential cause of their poor performance: the states are many orders of magnitude smaller than the weights.</p>
-<div style="width: 65%; margin: auto; text-align: center;">
+<p>A generic RNN equation would compute next states via <span class="math inline">\(S_t = g(S_{t-1}, X_t)\)</span> and produce outputs via <span class="math inline">\(Y_t = f(S_t, X_t)\)</span>.</p>
+</div></div><div style="width: 65%; margin: auto; text-align: center;">
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -364,7 +358,7 @@ Y_t = f(S_t, X_t) \qquad S_{t+1} = g(S_t, X_t)
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p>The formula for the state size of a vanilla linear transformer is <code>layer_n * head_count * key_size * value_size</code>.</p>
-</div></div><p>Fortunately, since the architecture is a linear transformer, this imbalance has a straightforward remedy. Since the state size includes a multiplicative factor of <code>key_size</code>, we can increase the state size by simply embedding the keys and queries in a higher-dimensional space. Previous work <span class="citation" data-cites="wang2020linformer schlag2021linear kacham2023polysketchformer zhang2024hedgehog"><a href="#ref-wang2020linformer" role="doc-biblioref">[2]</a>–<a href="#ref-zhang2024hedgehog" role="doc-biblioref">[5]</a></span> has already observed that this improves the performance of linear transformers, but the resulting architectures are still not competitive with standard transformers.</p>
+</div></div><p>Fortunately, since the architecture is a linear transformer, this imbalance has a straightforward remedy. The size of the state of a linear transformer can be controlled by simply embedding the keys and queries in a higher-dimensional space. (The larger the space in which we embed the key, the larger the state becomes). Previous work <span class="citation" data-cites="wang2020linformer schlag2021linear kacham2023polysketchformer zhang2024hedgehog"><a href="#ref-wang2020linformer" role="doc-biblioref">[2]</a>–<a href="#ref-zhang2024hedgehog" role="doc-biblioref">[5]</a></span> has already observed that this improves the performance of linear transformers, but the resulting architectures are still not competitive with standard transformers.</p>
 <p>Of crucial importance is the choice of embedding function. In this article we focus on embeddings based on the <em>tensor product</em> and also the closely related <em>symmetric power</em>. In each case, we have a hyper-parameter <span class="math inline">\(p\)</span> that controls the embedding dimension without affecting the weights of the model, allowing us to select the optimal state-weight ratio.</p>
 <p>Our central takeaway is that one family of architectures, <em>symmetric power transformers</em>, is a promising candidate for long-context modeling. For <span class="math inline">\(p=4\)</span> and above, it outperforms the transformer baseline, and at <span class="math inline">\(p=4\)</span> and below, it has a state size small enough to fit on a modern GPU.</p>
 
@@ -377,19 +371,35 @@ Y_t = f(S_t, X_t) \qquad S_{t+1} = g(S_t, X_t)
 <p>Note that in this article we run all the experiments with the quadratic-cost attention formulation, and so do not benefit from any speedup compared to the transformer baseline. This is because the goal of the research presented in this article is only to identify a promising candidate architecture. Implementing an efficient, linear-cost algorithm requires significant engineering effort, and so it is important to first be confident that the architecture will learn well. In a subsequent article, we will show how to combine the symmetric power embedding function with the efficient chunked algorithm.</p>
 <section id="linear-transformers-with-embeddings" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="linear-transformers-with-embeddings">1. Linear Transformers with Embeddings</h2>
-<p>We begin with a review of linear transformers. The inputs to a transformer layer are sequences of <span class="math inline">\(Q_i, K_i, V_i \in \R^d\)</span> of queries, keys, and values, where <span class="math inline">\(i\)</span> ranges from <span class="math inline">\(1\)</span> to the sequence length <span class="math inline">\(t\)</span>. The outputs are a sequence <span class="math inline">\(Y_i\in \R^d\)</span>. The formula for the output vectors is:</p>
-<p><span class="math display">\[
+<p>We begin with a review of linear transformers. The inputs to a transformer layer are sequences of <span class="math inline">\(Q_i, K_i, V_i \in \R^d\)</span> of queries, keys, and values, where <span class="math inline">\(i\)</span> ranges from <span class="math inline">\(1\)</span> to the sequence length <span class="math inline">\(t\)</span>. The outputs are a sequence <span class="math inline">\(Y_i\in \R^d\)</span>. The formula for the output vectors is: <span class="math display">\[
 Y_i = \sum_{j=1}^i A_{ij} V_j \qquad A_{ij}  = \frac{ \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \phi(Q_i)^T \phi(K_k) }
-\]</span></p>
+\]</span> where <span class="math inline">\(\phi : \R^d \to \R^D\)</span> is an embedding function that maps keys or queries into vectors of dimension <span class="math inline">\(D\)</span>. This formulation is what we call the <em>attention formulation</em> of a linear transformer, because it involves computing the the inner product between embedded keys and queries, akin to the self-attention operation in a standard transformer.</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p>This linear transformer is the same architecture as in <a href="ttps://manifestai.com/articles/linear-transformers-are-faster/">our previous article</a>, but here we present the complete formula in its full generality, including both the normalizing term and embedding function (previously suppressed for clarity).</p>
-</div></div><p>where <span class="math inline">\(\phi : \R^d \to \R^D\)</span> is an embedding function that maps keys or queries into vectors of dimension <span class="math inline">\(D\)</span>. This formulation is what we call the <em>attention formulation</em> of a linear transformer, because it involves computing the the inner product between embedded keys and queries, akin to the self-attention operation in a standard transformer.</p>
-<p>The exact same outputs can be computed via a <em>recurrent formulation</em> (see Appendix A for derivation):</p>
-<p><span class="math display">\[
+</div></div><p>The exact same outputs can be computed via a <em>recurrent formulation</em>: <span class="math display">\[
 Y_{i} = \frac{S_i \phi(Q_i)}{Z_i \phi(Q_i)} \qquad Z_i = Z_{i-1} + \phi(K_i)^T \qquad S_i = S_{i-1} + V_i \phi(K_i)^T
-\]</span></p>
-<p>where <span class="math inline">\(S_0 = Z_0 = \mathcal{0}\)</span>. Since <span class="math inline">\(S_i \in \R^{d \times D}\)</span> and <span class="math inline">\(Z_i \in \R^{D}\)</span>, the size of the state is <span class="math inline">\(D(d+1)\)</span>.</p>
+\]</span> where <span class="math inline">\(Z_0\)</span> and <span class="math inline">\(S_0\)</span> are <span class="math inline">\(\mathcal 0\)</span> vectors in their respective spaces. Since <span class="math inline">\(S_i \in \R^{d \times D}\)</span> and <span class="math inline">\(Z_i \in \R^{D}\)</span>, the size of the state is <span class="math inline">\(D(d+1)\)</span>.</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<div style="margin-top: 100px;">
+<p>Note that <span class="math inline">\(D(d+1)\)</span> gives the size of the state for any one linear transformer head. To compute the state size for an entire multi-head architecture, one must multiply by the number of layers and number of heads per layer.</p>
+</div>
+</div></div><details>
+<summary>
+Expand for a derivation of the recurrent formulation.
+</summary>
+If we expand the recurrent the definitions of <span class="math inline">\(S_i\)</span> and <span class="math inline">\(Z_i\)</span> we get that <span class="math display">\[
+Z_i = \sum_{j=1}^i \phi(K_j)^T \qquad S_i = \sum_{j=1}^i V_j \phi(K_j)^T
+\]</span> Then, starting with the attention formulation <span class="math display">\[
+\begin{aligned}
+Y_i &amp;= \sum_{j=1}^i \frac{ \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \phi(Q_i)^T \phi(K_k) } V_j \\
+    &amp;= \sum_{j=1}^i V_j \frac{ \phi(K_j)^T \phi(Q_i)}{\sum_{k=1}^i \phi(K_k)^T \phi(Q_i) } \\
+    &amp;= \frac{ \left( \sum_{j=1}^i V_j  \phi(K_j)^T \right) \phi(Q_i)}{ \left(\sum_{k=1}^i \phi(K_k)^T \right) \phi(Q_i) } \\
+    &amp;= \frac{S_i\phi(Q_i)}{Z_i\phi(Q_i)} \\
+\end{aligned}
+\]</span>
+</details>
 <p>How should we choose <span class="math inline">\(\phi\)</span>? Here are some attributes that we want:</p>
 <ul>
 <li><strong>Adjustable dimensionality.</strong> To balance the size of the state with the size of the weights, there should be some hyperparameter controlling the dimension <span class="math inline">\(D\)</span>.</li>
@@ -401,7 +411,7 @@ Y_{i} = \frac{S_i \phi(Q_i)}{Z_i \phi(Q_i)} \qquad Z_i = Z_{i-1} + \phi(K_i)^T \
 </section>
 <section id="tensor-product-transformers" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="tensor-product-transformers">2. Tensor Product Transformers</h2>
-<p>In this section, we explore architectures based on the <a href="https://en.wikipedia.org/wiki/Tensor_product">tensor product</a>, a deep and ubiquitous mathematical idea. We begin with a brief introduction to the core mathematics, and then describe two ways to use the tensor products to embed vectors. (A third approach is discussed in Appendix B.)</p>
+<p>In this section, we explore architectures based on the <a href="https://en.wikipedia.org/wiki/Tensor_product">tensor product</a>, a deep and ubiquitous mathematical idea. We begin with a brief introduction to the core mathematics, and then describe two ways to use the tensor products to embed vectors. (A third approach is discussed in Appendix A.)</p>
 <section id="mathematical-background" class="level3">
 <h3 class="anchored" data-anchor-id="mathematical-background">2.1. Mathematical Background</h3>
 <p>The tensor product of vectors generalizes the outer product and formalizes the concepts of multi-dimensional arrays. Given two vectors <span class="math inline">\(v\in \R^{d_1}\)</span> and <span class="math inline">\(w\in \R^{d_2}\)</span> one can think of their tensor product <span class="math inline">\(v\otimes w\)</span> as the matrix <span class="math inline">\(v w^T \in \R^{d_1\times d_2}\)</span>, <span class="math display">\[
@@ -413,37 +423,37 @@ v_2w_1 &amp; v_2w_2 &amp; \cdots &amp; v_2w_m \\
 v_nw_1 &amp; v_nw_2 &amp; \cdots &amp; v_nw_m \\
 \end{array}
 \right]
-\]</span> Similarly, <span class="math inline">\(v \otimes w \otimes u\)</span> would be a 3-dimensional table containing all possible entries of the sort <span class="math inline">\(v_i
+\]</span> Intuitively, <span class="math inline">\(v \otimes w \otimes u\)</span> would be a 3-dimensional table containing all possible entries of the sort <span class="math inline">\(v_i
 w_j u_k\)</span>. But let’s make the intuition of multi-dimensional tables more rigorous.</p>
 <p><strong>Multi-indices.</strong> A multi-index <span class="math inline">\(\alpha\)</span> specifies a location in a <span class="math inline">\(p\)</span> dimensional table with dimension sizes <span class="math inline">\(d_1,
-\cdots, d_p \in \N\)</span>. Let <span class="math inline">\(\N_d\)</span> denote the set <span class="math inline">\(\{1,2,\cdots,d\}\)</span>, then we can say that <span class="math inline">\(\alpha = [\alpha_1, \cdots, \alpha_p] \in \N_{d_1} \times \cdots \times \N_{d_p}\)</span>.</p>
+\cdots, d_p \in \N\)</span>. Let <span class="math inline">\(\N_d\)</span> denote the set <span class="math inline">\(\{1,2,\cdots,d\}\)</span>. Then, the space of multi-indices is <span class="math inline">\(N_{d_1} \times \cdots \times \N_{d_p}\)</span> and we refer to a generic multi-index as <span class="math inline">\(\alpha = [\alpha_1, \cdots, \alpha_p] \in \N_{d_1} \times \cdots \times \N_{d_p}\)</span>.</p>
 <p><strong>Tensors.</strong> A tensor <span class="math inline">\(T\in \R^{d_1 \times \cdots d_p}\)</span> corresponds to a high dimensional table where every location has a numerical value assigned to it. In other words, it is a map from multi-indices to the reals. <span class="math display">\[
 T: \N_{d_1} \times \cdots \times \N_{d_p} \to \R
-\]</span></p>
-<p>By convention, we use subscript notation <span class="math inline">\(T_\alpha\)</span> instead of functional notation <span class="math inline">\(T(\alpha)\)</span> to index tensors.</p>
+\]</span> By convention, we index tensors with subscript notation <span class="math inline">\(T_\alpha\)</span> instead of functional notation <span class="math inline">\(T(\alpha)\)</span>, but the meaning is the same.</p>
 <p><strong>Tensor product of vectors.</strong> Given a list of <span class="math inline">\(p\)</span> vectors <span class="math inline">\(v_i \in \R^{n_i}\)</span>, we denote by <span class="math inline">\(v_1 \otimes \cdots
 \otimes v_p\)</span> (or alternatively <span class="math inline">\(\bigotimes_{i=1}^p v_i\)</span>) as the tensor in <span class="math inline">\(\R^{n_1 \times \cdots \times n_p}\)</span> with entries given by the following formula: <span class="math display">\[
 \left[\bigotimes_{i=1}^p v_i\right]_\alpha = \prod_{i=1}^p v_{i, \alpha_i}
-\]</span></p>
-<p><strong>Flattening.</strong> We are going to use the tensor product to embed vectors into <span class="math inline">\(\R^{n_1\times \cdots n_p}\)</span> arrays. But once we’ve done that, we will no longer care about the array structure, and we will prefer to think of them as vectors in <span class="math inline">\(\R^D\)</span>, where <span class="math inline">\(D=\prod_{i=1}^p n_i\)</span>. The map <span class="math inline">\(\text{flat}: \R^{n_1\times \cdots n_p} \to \R^D\)</span> implements this transformation by writing every entry of the array into a flat vector.</p>
-<details>
-<summary>
-Expand for a precise definition of the flattening of tensors.
-</summary>
-<p>Given a vector space <span class="math inline">\(V\)</span> with an ordered basis <span class="math inline">\(b_1 \cdots b_n \in V\)</span>, we define <span class="math inline">\(\text{flat}: V \to \R^n\)</span> to map a generic vector <span class="math inline">\(a = \sum_i a_i b_i\)</span> to a column vector containing its coordinates. In other words, <span class="math display">\[
-\flat{\sum_i a_i b_i} =
-\begin{bmatrix}
-a_1 \\
-a_2 \\
-\vdots \\
-a_n
-\end{bmatrix}
-\]</span> A natural choice for the basis for <span class="math inline">\(\R^{n_1\times \cdots n_p}\)</span> are the 1-hot arrays. Given a multi-index <span class="math inline">\(\alpha=(\alpha_1,\cdots, \alpha_p)\)</span>, where <span class="math inline">\(\alpha_i \in [1, n_i] \cap \mathbb{Z}\)</span>, the 1-hot array is <span class="math display">\[E_\alpha = \bigotimes_{i=1}^p e^{n_i}_{\alpha_i}\]</span></p>
-where <span class="math inline">\(e^{n}_1, \cdots, e^{n}_{n} \in \R^{n}\)</span> denote the 1-hot vectors. We also need to pick an ordering. It is natural to start with <span class="math inline">\(\alpha = [1, \cdots, 1]\)</span> and increase the rightmost index carrying over the one next to it when the maximum value is reached. This is the same pattern used in <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order#:~:text=In%20row%2Dmajor%20order%2C%20the,column%20in%20column%2Dmajor%20order.">row major ordering</a>. For example, the indices of <span class="math inline">\(\R^{2\times 2\times 2}\)</span> would be <span class="math inline">\([1,1,1], [1,1,2], [1,2,1], [1,2,2], [2,1,1], \cdots\)</span>
-</details>
-<p>The dot product of flattened tensors satisfies an easy-to-check property: <span class="math display">\[
+\]</span> Where <span class="math inline">\(v_{i,j}\in \R\)</span> denotes the <span class="math inline">\(j\)</span>th entry of the <span class="math inline">\(i\)</span>th vector.</p>
+<p><strong>Flattening.</strong> To build embedding functions <span class="math inline">\(\phi\)</span>, we are going to use the tensor product to embed lists of vectors into <span class="math inline">\(\R^{d_1\times \cdots d_p}\)</span> tensors. But once we’ve done that, we will no longer care about the tensor structure and we will prefer to think of them as vectors in <span class="math inline">\(\R^D\)</span>, where <span class="math inline">\(D=\prod_{i=1}^p d_i\)</span>. The map <span class="math inline">\(\text{flat}: \R^{d_1\times \cdots d_p} \to \R^D\)</span> implements this transformation by writing every entry of the array into a flat vector. This can be done with any bijective function <span class="math inline">\(\sigma: D \to \N_{d_1} \times \cdots \times \N_{d_p}\)</span> which effectively imposes an (arbitrary) ordering on the multi-indices.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> The flattening is defined as: <span class="math display">\[
+\flat{T}_i = T_{\sigma(i)}
+\]</span> The dot product of flattened tensors satisfies the following property: <span class="math display">\[
 \flat{\bigotimes_{i=1}^p v_i}^T \flat{\bigotimes_{i=1}^p w_i} = \prod_{i=1}^p v_i^T w_i \qquad \text{(Eq 1)}
 \]</span></p>
+<details>
+<summary>
+Expand to see a proof.
+</summary>
+<span class="math display">\[\begin{align}
+\flat{\bigotimes_{i=1}^p v_i}^T \flat{\bigotimes_{i=1}^p w_i}
+&amp;= \sum_{l=1}^D \left[ \bigotimes_{i=1}^p v_i \right]_{\sigma(l)} \left [ \bigotimes_{i=1}^p w_i \right]_{\sigma(l)}  \\
+&amp;= \sum_{l=1}^D \prod_{i=1}^p v_{i, \sigma(l)_i} w_{i, \sigma(l)_i}
+\end{align}\]</span> On the other hand, if we apply the distributive property to <span class="math inline">\(\prod_{i=1}^p \sum_{j=1}^{d_i}  v_{i, j} w_{i, j}\)</span> we have to sum over all possible combinations that the second index <span class="math inline">\(j\)</span> can take, so that: <span class="math display">\[\begin{align}
+\prod_{i=1}^p v_i^T w_i
+&amp;= \prod_{i=1}^p \sum_{j=1}^{d_i}  v_{i, j} w_{i, j}
+= \sum_{l=1}^D \prod_{i=1}^p v_{i, \sigma(l)_i} w_{i, \sigma(l)_i} \\
+&amp;= \flat{\bigotimes_{i=1}^p v_i}^T \flat{\bigotimes_{i=1}^p w_i}
+\end{align}\]</span>
+</details>
 </section>
 <section id="transformer-architectures" class="level3 page-columns page-full">
 <h3 class="anchored" data-anchor-id="transformer-architectures">2.2. Transformer Architectures</h3>
@@ -454,12 +464,10 @@ where <span class="math inline">\(e^{n}_1, \cdots, e^{n}_{n} \in \R^{n}\)</span>
 </div></div><section id="softplus-repeated-tensor-product" class="level4 page-columns page-full">
 <h4 class="anchored" data-anchor-id="softplus-repeated-tensor-product">2.2.1. Softplus repeated tensor product</h4>
 <p>The <em>softplus-repeat</em> embedding uses an initial softplus to ensure positivity, and then repeatedly takes the tensor product of a <span class="math inline">\(d\)</span>-sized key or query with itself <span class="math inline">\(p\)</span> times, yielding a tensor of size <span class="math inline">\(\mathbb{R}^
-{d^p}\)</span>. Formally, we define:</p>
-<p><span class="math display">\[
+{d^p}\)</span>. Formally, we define: <span class="math display">\[
 \phi^p_{\text{softplus-repeat}}(k) =
 \text{flat}\left(\bigotimes_{i=1}^p \text{softplus}(k)\right)
-\]</span></p>
-<p>A JAX implementation of softplus-repeat attention is simple. Note that in line 4, we are invoking Equation 1 to turn the dot product of flattened <span class="math inline">\(p\)</span>-dimensional tensors into a product of <span class="math inline">\(p\)</span> vector dot products.</p>
+\]</span> A JAX implementation of softplus-repeat attention is simple. Note that in line 4, we are invoking Equation 1 to turn the dot product of flattened <span class="math inline">\(p\)</span>-dimensional tensors into a product of <span class="math inline">\(p\)</span> vector dot products.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">def</span> softplus_repeat_tensor_product_attn(K, Q, V, p):</span>
 <span id="cb1-2"><a href="#cb1-2"></a>    Q, K <span class="op">=</span> softplus(Q), softplus(K)</span>
 <span id="cb1-3"><a href="#cb1-3"></a>    C <span class="op">=</span> Q <span class="op">@</span> K.T</span>
@@ -468,7 +476,7 @@ where <span class="math inline">\(e^{n}_1, \cdots, e^{n}_{n} \in \R^{n}\)</span>
 <span id="cb1-6"><a href="#cb1-6"></a>    A <span class="op">=</span> B <span class="op">/</span> B.<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb1-7"><a href="#cb1-7"></a>    Y <span class="op">=</span> A <span class="op">@</span> V</span>
 <span id="cb1-8"><a href="#cb1-8"></a>    <span class="cf">return</span> Y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>This implementation is more pedagogical than practical, as it is not numerically stable. It is common for numerical issues to emerge when training at scale, and especially when training in mixed precision. In Appendix C, we provide an improved implementation that addresses these issues.</p>
+<p>This implementation is more pedagogical than practical, as it is not numerically stable. It is common for numerical issues to emerge when training at scale, and especially when training in mixed precision. In Appendix B, we provide an improved implementation that addresses these issues.</p>
 <p>Running experiments, we see:</p>
 <div class="column-body" style="text-align: center;">
 <iframe width="600" height="400" src="plots/03_softplus_repeat.html">
@@ -534,7 +542,7 @@ where <span class="math inline">\(e^{n}_1, \cdots, e^{n}_{n} \in \R^{n}\)</span>
 </div>
 </section>
 <section id="repeated-tensor-product" class="level4 page-columns page-full">
-<h4 class="anchored" data-anchor-id="repeated-tensor-product">2.2. Repeated tensor product</h4>
+<h4 class="anchored" data-anchor-id="repeated-tensor-product">2.2.2. Repeated tensor product</h4>
 <p>The <em>repeat</em> embedding is identical to the softplus-repeat embedding, but with no softplus. Since the softplus was used to guarantee positivity, its removal would seem to pose a problem; but one can easily check that, if <span class="math inline">\(p\)</span> is even, positivity of the inner products is guaranteed even without softmax. As a result, this embedding can be used only with even <span class="math inline">\(p\)</span>.</p>
 <p><span class="math display">\[
 \phi^p_{\text{repeat}}(k) =
@@ -548,7 +556,7 @@ where <span class="math inline">\(e^{n}_1, \cdots, e^{n}_{n} \in \R^{n}\)</span>
 <span id="cb2-5"><a href="#cb2-5"></a>    A <span class="op">=</span> B <span class="op">/</span> B.<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb2-6"><a href="#cb2-6"></a>    Y <span class="op">=</span> A <span class="op">@</span> V</span>
 <span id="cb2-7"><a href="#cb2-7"></a>    <span class="cf">return</span> Y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>See Appendix C for a numerically-stable implementation. Running experiments, we see an exciting result:</p>
+<p>See Appendix B for a numerically-stable implementation. Running experiments, we see an exciting result:</p>
 <div class="column-body" style="text-align: center;">
 <iframe width="600" height="350" src="plots/04_repeat.html">
 </iframe>
@@ -627,8 +635,7 @@ where <span class="math inline">\(e^{n}_1, \cdots, e^{n}_{n} \in \R^{n}\)</span>
 </section>
 <section id="symmetric-power-transformers" class="level2">
 <h2 class="anchored" data-anchor-id="symmetric-power-transformers">3. Symmetric Power Transformers</h2>
-<p>In the next section, we explore a final embedding function, one with equivalent performance but much smaller state<br>
-sizes. Once again, we will begin with an introduction to the relevant mathematical ideas, and then move on to describe a concrete architecture.</p>
+<p>In the next section, we explore a final embedding function, one with mathematically equivalent behavior but much smaller state sizes. Once again, we will begin with an introduction to the relevant mathematical ideas, and then move on to describe a concrete architecture.</p>
 <section id="mathematical-background-1" class="level3">
 <h3 class="anchored" data-anchor-id="mathematical-background-1">3.1. Mathematical Background</h3>
 <p>Observe that the embedding <span class="math inline">\(\phi^2_{\text{repeated}}(v)= \flat {v v^T}\)</span> is somewhat wasteful. The matrix <span class="math inline">\(v v^T\)</span> is symmetric, and so it contains duplicated entries.</p>
@@ -642,7 +649,8 @@ v_nv_1 &amp; v_nv_2 &amp; \cdots &amp; v_nv_m \\
 \end{array}
 \right]
 \]</span></p>
-<p>Entries at indices <span class="math inline">\((i,i)\)</span> appear a single time, and entries at indices <span class="math inline">\((i,j)\)</span> where <span class="math inline">\(i\neq j\)</span> appear twice. This is because <span class="math inline">\(v_i v_j = v_j v_i\)</span> due to the commutativity of scalar multiplication. Noticing this symmetry allows us to create an alternative embedding, <span class="math inline">\(\phi^2_\text{sym}: \R^d \to \R^{\frac{d^2 +d} 2}\)</span>, which can be implemented as:</p>
+<p>Entries at indices <span class="math inline">\((i,i)\)</span> appear a single time, but due to the commutativity of scalar multiplication (i.e.&nbsp;<span class="math inline">\(v_i v_j =
+v_j v_i\)</span>), the entries at indices <span class="math inline">\((i,j)\)</span> each appear twice (if <span class="math inline">\(i\neq j\)</span>). Noticing this symmetry allows us to create an alternative embedding, <span class="math inline">\(\phi^2_\text{sym}: \R^d \to \R^{\frac{d^2 +d} 2}\)</span>, which can be implemented as:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">def</span> sym_emb_2(v):</span>
 <span id="cb3-2"><a href="#cb3-2"></a>  x, d <span class="op">=</span> [], v.size</span>
 <span id="cb3-3"><a href="#cb3-3"></a>  <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(d):</span>
@@ -651,33 +659,33 @@ v_nv_1 &amp; v_nv_2 &amp; \cdots &amp; v_nv_m \\
 <span id="cb3-6"><a href="#cb3-6"></a>      x.append(sqrt(count) <span class="op">*</span> v[i] <span class="op">*</span> v[j])</span>
 <span id="cb3-7"><a href="#cb3-7"></a>  <span class="cf">return</span> x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>This construction <span class="math inline">\(\phi^2_\text{sym}\)</span> guarantees that <span class="math inline">\(\phi^2_\text{sym}(v)^T \phi^2_\text{sym}(w) = \phi^2_\text
-{repeat} (v)^T \phi^2_\text{repeat}(w)\)</span>. If you recall that, in the attention formulation of the linear transformer the embedding <span class="math inline">\(\phi\)</span> only influences the outputs via the attention scores, defined as: <span class="math display">\[
+{repeat} (v)^T \phi^2_\text{repeat}(w)\)</span>. Recall that in the attention formulation of the linear transformer the embedding <span class="math inline">\(\phi\)</span> only influences the outputs via the attention scores, which were defined as <span class="math display">\[
 A_{ij}  = \frac{ \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \phi(Q_i)^T \phi(K_k) }
-\]</span> that two linear transformers with embeddings <span class="math inline">\(\phi^2_\text{repeat}(v)\)</span> and <span class="math inline">\(\phi^2_\text{sym}(v)\)</span> will have exactly the same outputs, since they have the same <span class="math inline">\(\phi(Q_i)^T \phi(K_j)\)</span>. We’ve been able to exploit the symmetry of <span class="math inline">\(v v^T\)</span> to construct an equivalent embedding function with approximately half the dimensionality!</p>
-<p>Next, we will generalize this idea to higher powers.</p>
-<p><strong>Symmetric Tensors.</strong> The first thing we need to do is generalize the concept of symmetric matrices to symmetric tensors. For that, we need the concept of the <a href="https://en.wikipedia.org/wiki/Permutation">permutation</a> group of <span class="math inline">\(p\)</span> elements. Let <span class="math inline">\(\rho: \N_p \to \N_p\)</span> be an invertible function, then it is called a permutation. We write <span class="math inline">\(G_p\)</span> for the collection of all such permutations of <span class="math inline">\(p\)</span> elements.</p>
-<p>Allow us to overload the notation slightly and, for a multi-index <span class="math inline">\(\alpha = (\alpha_1, \cdots, \alpha_p)\)</span> define the permutation of the multi-index as <span class="math inline">\(\rho(\alpha) = (\alpha_{\rho(1)}, \cdots, \alpha_{\rho(p)})\)</span>. Then this allows us to define a symmetric tensor.</p>
-<p><strong>Definition:</strong> A tensor <span class="math inline">\(T \in \R^{\underbrace{n\times \cdots \times n}_p}\)</span> is symmetric if, <span class="math display">\[
+\]</span> Then two linear transformers with embeddings <span class="math inline">\(\phi^2_\text{repeat}(v)\)</span> and <span class="math inline">\(\phi^2_\text{sym}(v)\)</span> will have exactly the same outputs, since they have the same inner products <span class="math inline">\(\phi(Q_i)^T \phi(K_j)\)</span>. We’ve been able to exploit the symmetry of <span class="math inline">\(v v^T\)</span> to construct an equivalent embedding function with approximately half the dimensionality! Next, we will generalize this idea to higher powers.</p>
+<p><strong>Permutation group.</strong> The first thing we need is the <a href="https://en.wikipedia.org/wiki/Permutation">permutation group</a> of <span class="math inline">\(p\)</span> elements, which is defined as the set of all functions <span class="math inline">\(\rho: \N_p \to \N_p\)</span> that are invertible and denoted by <span class="math inline">\(G_p\)</span>. We also overload the notation slightly. For a multi-index <span class="math inline">\(\alpha = [\alpha_1, \cdots, \alpha_p]\)</span> define the permutation of the multi-index as <span class="math inline">\(\rho(\alpha) = [\alpha_{\rho(1)}, \cdots, \alpha_{\rho(p)}]\)</span>. This is useful to define symmetric tensors.</p>
+<p><strong>Symmetric tensors.</strong> A tensor <span class="math inline">\(T \in \R^{\underbrace{d\times \cdots \times d}_p}\)</span> is symmetric if for all multi-indices <span class="math inline">\(\alpha \in \N_d \times \cdots \times \N_d\)</span> and permutations <span class="math inline">\(\rho \in G_p\)</span> we have that: <span class="math display">\[
 T_\alpha = T_{\rho(\alpha)}
-\]</span> for all multi-indices <span class="math inline">\(\alpha \in \N_d^{\times p}\)</span> and permutations <span class="math inline">\(\rho \in G_p\)</span>. <span class="math inline">\(\blacksquare\)</span></p>
-<p>As we saw in the example of <span class="math inline">\(\phi^2_\text{sym}(v)\)</span>, when we tensor a vector <span class="math inline">\(v\in \R^d\)</span> with itself <span class="math inline">\(p\)</span> times, that produces tensors <span class="math inline">\(T = \bigotimes^p v\)</span> that are symmetric. Again, this is due to the commutativity of multiplication. For example, for any tensor constructed in this way, the multi-indices <span class="math inline">\([1, 2, 3]\)</span> and <span class="math inline">\([3, 2, 1]\)</span> will return the same entry: <span class="math inline">\(T_{[1, 2, 3]} = v_1 v_2 v_3 = v_3 v_2 v_1 = T_{[3, 2, 1]}\)</span>.</p>
-<p>The general proof is simple: <span class="math display">\[
+\]</span></p>
+<p><strong>Symmetric power of vectors.</strong> One way to produce symmetric tensors is to tensor a vector <span class="math inline">\(v\in \R^d\)</span> with itself <span class="math inline">\(p\)</span> times. Again, this is due to the commutativity of multiplication. For example, for a multi-index <span class="math inline">\([1, 2, 3]\)</span>, the entrie <span class="math inline">\(T_{[1, 2, 3]} = v_1 v_2 v_3\)</span> will equal <span class="math inline">\(T_{[3, 2, 1]} = v_3 v_2 v_1\)</span>. Showing that a tensor <span class="math inline">\(\bigotimes^p v\)</span> is symmetric is simple: <span class="math display">\[
 \left[\bigotimes_{i=1}^p v \right ]_{\rho(\alpha)} = \prod_{i=1}^p v_{\alpha_{\rho(i)}} = \prod_{i=1}^p v_{\alpha_i} = \left[\bigotimes_{i=1}^p v \right ]_{\alpha}
 \]</span></p>
-<p>What will an embedding <span class="math inline">\(\phi^p_\text{sym}\)</span> of a vector of length <span class="math inline">\(d\)</span> look like? As in the example above, the first thing to do is enumerate the unique elements. Since indices are permutation-invariant, we can do this by establishing any canonical permutation. The non-decreasing ordering is a natural choice. Thus, instead of storing the elements at all <span class="math inline">\(d^p\)</span> possible multi-indices, we need only store the <span class="math inline">\(\binom{d+p-1}{p}\)</span> non-decreasing sequences (i.e <span class="math inline">\(\alpha\)</span> where <span class="math inline">\(\alpha_i \le \alpha_{i+1}\)</span>).</p>
-<p>Next, in order to make the inner product come out unchanged, we need to upweight frequently-seen terms by the square root of their count, just as we did in the example of <span class="math inline">\(\phi^2_\text{sym}\)</span>. To know how many times a permutation of an index <span class="math inline">\(\alpha\)</span> is repeated, define the index-count vector <span class="math inline">\(c\in \N^d\)</span>, where <span class="math inline">\(c_i = \sum_{j=1}^p \delta(\alpha_j, i)\)</span> counts how many times each <span class="math inline">\(i\in \{1, \cdots, d\}\)</span> occurs in <span class="math inline">\(\alpha\)</span>. (For example, if <span class="math inline">\(\alpha = (0,1,1,3)\)</span>, we have <span class="math inline">\(c_0 = 1\)</span>, <span class="math inline">\(c_1 = 2\)</span>, <span class="math inline">\(c_2 = 0\)</span>, <span class="math inline">\(c_3 = 1\)</span>.) Then, there must be <span class="math inline">\(\frac{d!}{c_1 ! \; \cdots \; c_p!}\)</span> elements of the repeated-product embedding that have that value. These coefficients are known as the <a href="https://en.wikipedia.org/wiki/Multinomial_theorem">multinomials</a>.</p>
-<p>Putting these two ideas together, <span class="math inline">\(\phi^p_\text{sym}\)</span> will give a list of <span class="math inline">\(\binom{d+p-1}{p}\)</span> numbers, each corresponding to a particular unique element of the repeated tensor product multiplied by a multinomial coefficient that counts its appearances. The inner product of two vectors embedded in this way is identical to the repeated tensor product embedding, <span class="math inline">\(\phi^2_\text{sym}(v)^T \phi^2_\text{sym}(w) = \phi^2_\text {repeat}(v)^T \phi^2_\text {repeat}(w)\)</span>. In fact, it can be show that this is the <em>shortest</em> list that can has this property; we have fully exploited the symmetry of <span class="math inline">\(\phi^p_\text {repeat}\)</span>.</p>
+<p>To construct embeddings that exploit the symmetries of <span class="math inline">\(T = \bigotimes^p v\)</span> we will need some key properties about symmetric tensors:</p>
+<ul>
+<li><strong>Duplication counts:</strong> If <span class="math inline">\(T\)</span> is symmetric, the entry <span class="math inline">\(T_\alpha\)</span> might have duplicate entries. To know how many duplicates a multi-index <span class="math inline">\(\alpha\)</span> has, we first need to count how many times each number <span class="math inline">\(i\in \{1, \cdots, d\}\)</span> occurs in <span class="math inline">\(\alpha\)</span>. Define the counts <span class="math inline">\(c_i = \sum_{j=1}^p \delta(\alpha_j, i)\)</span>. Then, the number of multi-indices containing the same data as <span class="math inline">\(\alpha\)</span> is given by the formula <span class="math inline">\(\frac{d!}{c_1 ! \; \cdots \; c_p!}\)</span>.</li>
+<li><strong>Unique multi-indices:</strong> No data is lost if we restrict ourselves to only looking at entries <span class="math inline">\(T_\alpha\)</span> for multi-indices <span class="math inline">\(\alpha\)</span> that are non-decreasing (i.e <span class="math inline">\(\alpha_i \le \alpha_{i+1}\)</span>). The intuition is that an arbitrary multi-index <span class="math inline">\(\beta\)</span> can always be transformed into a non-decreasing multi-index <span class="math inline">\(\alpha\)</span> by applying some permutation <span class="math inline">\(\rho\)</span>. Using the defining property of symmetric tensors, <span class="math inline">\(T_\beta = T_{\rho(\beta)} = T_\alpha\)</span>. Thus, we loose no information by excluding every multi-index that isn’t non-decreasing.</li>
+<li><strong>Dimension:</strong> The space of symmetric tensors has dimension <span class="math inline">\(\binom{d+p-1}{p}\)</span>. This can be derived via a classic combinatorial argument counting the number of non-decreasing sequences.</li>
+</ul>
 <details>
 <summary>
-Expand to see a complete derivation of these properties.
+Expand to see a complete derivation of these properties and a few other relevant facts about symmetric tensors.
 </summary>
-<p><strong>Duplicate counts</strong> By definition, the only constraint a symmetric tensor has, is that all the entries <span class="math inline">\(T_{\rho(\alpha)}\)</span> must be the same for all permutations <span class="math inline">\(\rho \in G_p\)</span>. Now we want to understand the amount of duplication that that any specific <span class="math inline">\(\alpha\)</span> has. Since the number of permutations of the multi-indices is <span class="math inline">\(|G_p| = p!\)</span>, a naive estimate would be that every entrie <span class="math inline">\(T_\alpha\)</span> appears <span class="math inline">\(p!\)</span> times in the tensor. And indeed, that is the case for some multi-indices. For example, every permutation <span class="math inline">\(\rho \in G_3\)</span> sends the multi-index <span class="math inline">\([1,4,6]\)</span> to a different multi-index, so there are <span class="math inline">\(4!\)</span> entries with the same value. But. on the other hand, for the multi-index <span class="math inline">\([1,1,1]\)</span> it doesn’t matter what permutation <span class="math inline">\(\rho\)</span> we apply, we always have that <span class="math inline">\(\rho \alpha = \alpha\)</span>. So the entrie <span class="math inline">\([1,1,1]\)</span> of symmetric tensor <span class="math inline">\(T\)</span> could only appear a single time.</p>
+<p><strong>Duplicate counts.</strong> By definition, the only constraint a symmetric tensor has, is that all the entries <span class="math inline">\(T_{\rho(\alpha)}\)</span> must be the same for all permutations <span class="math inline">\(\rho \in G_p\)</span>. Now we want to understand the amount of duplication that that any specific <span class="math inline">\(\alpha\)</span> has. Since the number of permutations of the multi-indices is <span class="math inline">\(|G_p| = p!\)</span>, a naive estimate would be that every entrie <span class="math inline">\(T_\alpha\)</span> appears <span class="math inline">\(p!\)</span> times in the tensor. And indeed, that is the case for some multi-indices. For example, every permutation <span class="math inline">\(\rho \in G_3\)</span> sends the multi-index <span class="math inline">\([1,4,6]\)</span> to a different multi-index, so there are <span class="math inline">\(3!\)</span> entries with the same value. But. on the other hand, for the multi-index <span class="math inline">\([1,1,1]\)</span> it doesn’t matter what permutation <span class="math inline">\(\rho\)</span> we apply, we always have that <span class="math inline">\(\rho \alpha = \alpha\)</span>. So the entrie <span class="math inline">\([1,1,1]\)</span> of symmetric tensor <span class="math inline">\(T\)</span> could only appear a single time.</p>
 <p>To answer this question of a generic <span class="math inline">\(\alpha\)</span> we need the <a href="https://proofwiki.org/wiki/Orbit-Stabilizer_Theorem">orbit stabilizer theorem</a>. It tells us that the number of different multi-indices that can be produced by applying permutations to <span class="math inline">\(\alpha\)</span> (a.k.a the size of the orbit) equals the total number of permutations (which is <span class="math inline">\(p!\)</span>) divided by the number of permutations fixing <span class="math inline">\(\alpha\)</span> (the size of the stabilizer). The size of the stabilizer is easy to work out. The only permutations that leave multi-indices the same are the ones that interchange indices with the same value. For example, <span class="math inline">\(\alpha = [\alpha_1, \alpha_2, \alpha_3] = [1,1,2]\)</span>, we could apply a permutation that interchanges the first and second indices. For the generic formula, we need to know how many times each index <span class="math inline">\(i\in \{ 1, \cdots, d\}\)</span> appears in the multi-index <span class="math inline">\(\alpha\)</span>. Define <span class="math display">\[
 \text{count}(\alpha, i) = \sum_j \delta(\alpha_j - i)
 \]</span> Where <span class="math inline">\(\delta\)</span> is the delta function sending <span class="math inline">\(0\)</span> to <span class="math inline">\(1\)</span> and every other number to <span class="math inline">\(0\)</span>. Clearly, the number of permutations fixing <span class="math inline">\(\alpha\)</span> is <span class="math inline">\(\prod_{i=1}^d \text{count}(\alpha, i)!\)</span>. So applying the orbit stabilizer theorem we get that a symmetric tensor <span class="math inline">\(T\)</span> at multi-index <span class="math inline">\(\alpha\)</span> has <span class="math display">\[
 \frac {p!} {\prod_{i=1}^d \text{count}(\alpha, i)!} = \frac {p!}{\stab(\alpha)}
 \]</span> duplicated entries. This is also known as the formula for the <a href="https://en.wikipedia.org/wiki/Multinomial_theorem">multinomial theorem</a>.</p>
-<p><strong>Basis of symmetric tensors</strong> We know that a lot of multi-indices of a symmetric tensor are redundant. To understand the true structure (like the dimensionality) of symmetric tensors we need to find a way to select an instance of each, non redundant, multi-indices. One way to do that is to restrict oursleves to <em>non decreasing multi-indices</em>. Denote them by <span class="math inline">\(P = \{\alpha \in \N_d^{\times p} \; | \; \alpha_i \le \alpha_{i+1} \}\)</span>. Then we can construct a basis for the space of symmetric tensors out of <span class="math inline">\(\alpha \in P\)</span> like <span class="math display">\[
+<p><strong>Basis of symmetric tensors.</strong> We know that a lot of multi-indices of a symmetric tensor are redundant. To understand the true structure (like the dimensionality) of symmetric tensors we need to find a way to select an instance of each, non redundant, multi-indices. One way to do that is to restrict oursleves to <em>non decreasing multi-indices</em>. Denote them by <span class="math inline">\(P = \{\alpha \in \N_d^{\times p} \; | \; \alpha_i \le \alpha_{i+1} \}\)</span>. Then we can construct a basis for the space of symmetric tensors out of <span class="math inline">\(\alpha \in P\)</span> like <span class="math display">\[
 S^\alpha = \frac 1 {\stab(\alpha)} \sum_{\rho \in G_p} E^{\rho(\alpha)}
 \]</span> where you’ll recall that <span class="math inline">\(E^\alpha = \bigotimes^p_{i=1} e_{\alpha_i}\)</span> is the natural basis for the (non-symmetric) tensors. To convince ourselves that <span class="math inline">\(\{S^\alpha | \alpha \in P \}\)</span> forms a basis of the symmetric tensors we need to check that the set is linearly independent and that it spans all symmetirc tensors. Let’s check linear independence first. Assume that we have some coefficients <span class="math inline">\(x_\alpha \in \R\)</span> s.t. <span class="math display">\[
 \sum_{\alpha \in P}  x_\alpha S^\alpha = 0
@@ -699,20 +707,15 @@ Q_\beta &amp;= \left[\sum_{\alpha \in P} T_\alpha S^\alpha \right]_\beta
 &amp;= T_\beta
 \end{align}\]</span></p>
 <p>Concluding the proof. CARLES NOTE: consider flipping the order and showing first that they span all symmetric tensors.</p>
-<p><strong>Dimension of symmetric tensors</strong> Since we’ve created a basis for the space of symmetric tensors out of non-decreasing sequences we can establish the dimension of the space by counting all such sequences. This is a standard combinatorial problem solved via the method of <a href="https://en.wikipedia.org/wiki/Stars_and_bars_(combinatorics)">bars and stars</a>. Which tells us that the dimension is <span class="math display">\[\binom{d+p-1}{p}\]</span></p>
+<p><strong>Dimension of symmetric tensors.</strong> Since we’ve created a basis for the space of symmetric tensors out of non-decreasing sequences we can establish the dimension of the space by counting all such sequences. This is a standard combinatorial problem solved via the method of <a href="https://en.wikipedia.org/wiki/Stars_and_bars_(combinatorics)">bars and stars</a>. Which tells us that the dimension is <span class="math display">\[\binom{d+p-1}{p}\]</span></p>
 <p>The only thing we must note to apply the standard combinatorial results is that there is a 1-1 correspondance between non-decreasing sequences and multisets of <span class="math inline">\(d\)</span> elements of cardinality <span class="math inline">\(p\)</span>. This is made clear by looking at any example. The multiset <span class="math inline">\(\{ 1,1, 2, 4 \}\)</span> has a unique way in which it can be ordered if the sequence must be non-decreasing. CARLES NOTE: I don’t know how clear this all is. I kind of want to give a proof from scratch presenting the method of bars and stars</p>
 <p><strong>Symmetric powers of vectors span the symmetric tensors</strong> Showing that all tensors of the form <span class="math inline">\(\bigotimes^p v\)</span> are symmetric was tivial, but there is a harder question we might ask ourselves. Are all the <span class="math inline">\(\binom {d + p - 1} p\)</span> dimensions of the symmetric tensors actually necessary? Just like the naive way to store <span class="math inline">\(\bigotimes^p v\)</span> contins <span class="math inline">\(d^p\)</span> most of which are duplicates of one another, perhaps there is still redundancy when we just store the entries at non-decreasing multi-indices.</p>
 <p>The way to formalize this question is to ask whether the space of all symmetric tensors is spanned by tensors of the sort <span class="math inline">\(\bigotimes^p v\)</span>. The answer is yes, and is proven by showing the following result known as the <em>polarization identity</em>:</p>
-<p><strong>Result</strong> Let <span class="math inline">\(T: \N_d^{\times p} \to \R\)</span> be a symmetric tensor and define <span class="math inline">\(\bar T: \R^d \to \R\)</span> as <span class="math display">\[
-\bar T(v) = T(v, \cdots, v)
-\]</span> then the following identity holds <span class="math display">\[
-T = \frac 1 {p!}  \sum_{b_1, \cdots, b_d = 0}^1 \bigotimes_{i=1}^p \left ( b_1 e_1 + \cdots + b_d e_d \right)
-\]</span></p>
 </details>
 </section>
-<section id="algorithm" class="level3">
-<h3 class="anchored" data-anchor-id="algorithm">3.2. Algorithm</h3>
-<p><strong>Implementation.</strong> The following code exploits this structure to implement an embedding with the exact same inner products as <span class="math inline">\(\phi_\text{repeat}\)</span>, but a much smaller dimensionality:</p>
+<section id="implementation" class="level3">
+<h3 class="anchored" data-anchor-id="implementation">3.2 Implementation</h3>
+<p>Putting these two ideas together, <span class="math inline">\(\phi^p_\text{sym}(v)\)</span> will give a list of <span class="math inline">\(\binom{d+p-1}{p}\)</span> numbers, each corresponding to <span class="math inline">\([\bigotimes^p v]_\alpha\)</span> for non-decreasing <span class="math inline">\(\alpha\)</span>. Just as we did in the example of <span class="math inline">\(\phi^2_\text{sym}\)</span>, we also need to apply a correction that is the square root of the duplicate count of that particular <span class="math inline">\(\alpha\)</span>. The inner product of two vectors embedded in this way is identical to the repeated tensor product embedding, <span class="math inline">\(\phi^2_\text{sym}(v)^T \phi^2_\text{sym}(w) = \phi^2_\text {repeat}(v)^T \phi^2_\text {repeat}(w)\)</span>. The following is an example implementation of this embedding:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a><span class="co"># helper function to iterate over non-decreasing multiindices</span></span>
 <span id="cb4-2"><a href="#cb4-2"></a><span class="kw">def</span> index_iterator(a, d, p):</span>
 <span id="cb4-3"><a href="#cb4-3"></a>  <span class="cf">assert</span> <span class="bu">len</span>(a) <span class="op">==</span> p</span>
@@ -788,65 +791,104 @@ T = \frac 1 {p!}  \sum_{b_1, \cdots, b_d = 0}^1 \bigotimes_{i=1}^p \left ( b_1 e
 </table>
 </div>
 <p>Since this embedding produces identical outputs to the repeated tensor product, the learning curves are the same as those we saw in Section 3.2. We can evaluate each symmetric power architecture against our two metrics, state size (under 80 GB) and performance (loss below baseline).</p>
-<div style="width: 90%; margin: auto; text-align: center;">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 3%">
-<col style="width: 15%">
-<col style="width: 17%">
-<col style="width: 35%">
-<col style="width: 27%">
-</colgroup>
+<table class="caption-top table" style="width:90%; margin: auto; text-align:center;">
 <thead>
-<tr class="header">
-<th>p</th>
-<th>State Size</th>
-<th>Memory ≤ 80 GB?</th>
-<th>Relative Loss at 100K Steps</th>
-<th>Performs ≥ baseline?</th>
+<tr>
+<th>
+p
+</th>
+<th>
+State Size
+</th>
+<th>
+Memory ≤ 80 GB?
+</th>
+<th>
+Relative Loss at 100K Steps
+</th>
+<th>
+Performs ≥ baseline?
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td>2</td>
-<td>38 MB</td>
-<td>✔</td>
-<td>1.03x</td>
-<td>✘</td>
+<tr>
+<td>
+2
+</td>
+<td>
+38 MB
+</td>
+<td>
+✓
+</td>
+<td>
+1.03x
+</td>
+<td>
+✗
+</td>
 </tr>
-<tr class="even">
-<td>4</td>
-<td>14 GB</td>
-<td>✔</td>
-<td>0.98x</td>
-<td>✔</td>
+<tr style="background: #d4ffe6">
+<td>
+4
+</td>
+<td>
+14 GB
+</td>
+<td>
+✓
+</td>
+<td>
+0.98x
+</td>
+<td>
+✓
+</td>
 </tr>
-<tr class="odd">
-<td>6</td>
-<td>2.2 TB</td>
-<td>✘</td>
-<td>0.97x</td>
-<td>✔</td>
+<tr>
+<td>
+6
+</td>
+<td>
+2.2 TB
+</td>
+<td>
+✗
+</td>
+<td>
+0.97x
+</td>
+<td>
+✓
+</td>
 </tr>
-<tr class="even">
-<td>8</td>
-<td>196 TB</td>
-<td>✘</td>
-<td>-</td>
-<td>-</td>
+<tr>
+<td>
+8
+</td>
+<td>
+196 TB
+</td>
+<td>
+✗
+</td>
+<td>
+-
+</td>
+<td>
+-
+</td>
 </tr>
 </tbody>
 </table>
-</div>
 <p>Symmetric power with <span class="math inline">\(p=4\)</span> passes our bar. This architecture is looking promising!</p>
 </section>
 </section>
 <section id="conclusion-upcoming-work" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion-upcoming-work">Conclusion &amp; Upcoming Work</h2>
 <p>In this article, we have shown how to design a linear transformer which closes the performance gap to classic softmax transformers, using a tractably-small state: increase the state size with the tensor product, remove the softplus, and exploit symmetry. We expect this approach will provide transformer-level performance at greatly reduced training costs when combined with the <a href="https://manifestai.com/articles/linear-transformers-are-faster/#chunked-formulation">chunked algorithm</a>, as well as the constant-time inference common to all RNNs. In an upcoming article, we plan to release an open-source model that uses a symmetric power transformer at its core, together with an efficient CUDA kernel implementation. Stay tuned!</p>
-<p>Another application of the symmetric power will be seen in a second upcoming article, where we explore <a href="http://localhost:7691/coming-soon.html">Taylor Transformers</a>: a family of embedding functions that end up perfectly approximating the classical transformer by replacing the exponential inside the softmax with its Taylor approximation. The symmetric power turns out to be the core computational tool needed.</p>
-<p>In a third upcoming article studying <a href="http://localhost:7691/coming-soon.html">state scaling</a>, we will compare symmetric transformers more directly to other modern RNN approaches, by comparing the rate at which performance improves as the size of the state is increased.</p>
-<p>Thanks for reading! Join our discord for discussion and early previews of releases.</p>
+<p>Subscribe to our email list below for notifications of releases. Join our discord for discussion and early previews. Thanks for reading.</p>
 <form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
   <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
   Subscribe to be notified of new posts:
@@ -861,26 +903,10 @@ T = \frac 1 {p!}  \sum_{b_1, \cdots, b_d = 0}^1 \bigotimes_{i=1}^p \left ( b_1 e
 
 
 
-
 <div id="quarto-appendix" class="default page-columns page-full"><section id="acknowledgments" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">Acknowledgments</h2><div class="quarto-appendix-contents">
 
 <p>TODO</p>
-</div></section><section id="a.-recurrence-formulation-derivation" class="level2 appendix"><h2 class="anchored quarto-appendix-heading">A. Recurrence Formulation Derivation</h2><div class="quarto-appendix-contents">
-
-<p>Here we derive the recurrent formulation of embedded linear transformer from its attention formulation:</p>
-<p><span class="math display">\[
-\begin{aligned}
-Y_i &amp;= \sum_{j=1}^i A_{ij} V_j \qquad A_{ij}  = \frac{ \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \phi(Q_i)^T \phi(K_k) }\\
-Y_i &amp;= \sum_{j=1}^i \frac{ \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \phi(Q_i)^T \phi(K_k) } V_j \\
-    &amp;= \sum_{j=1}^i V_j \frac{ \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \phi(Q_i)^T \phi(K_k) } \\
-    &amp;= \sum_{j=1}^i V_j \frac{ \phi(K_j)^T \phi(Q_i)}{\sum_{k=1}^i \phi(K_k)^T \phi(Q_i) } \\
-    &amp;= (\sum_{j=1}^i \frac{V_j \phi(K_j)^T}{Z_i\phi(Q_i)}) \phi(Q_i) \\
-    &amp;= (\frac{\sum_{j=1}^i V_j \phi(K_j)^T}{Z_i\phi(Q_i)}) \phi(Q_i) \\
-    &amp;= (\frac{S_i}{Z_i\phi(Q_i)})\phi(Q_i) \\
-    &amp;= \frac{S_i\phi(Q_i)}{Z_i\phi(Q_i)} \\
-\end{aligned}
-\]</span></p>
-</div></section><section id="b.-softplus-split-tensor-product" class="level2 appendix page-columns page-full"><h2 class="anchored quarto-appendix-heading">B. Softplus split tensor product</h2><div class="quarto-appendix-contents page-columns page-full">
+</div></section><section id="a.-softplus-split-tensor-product" class="level2 appendix page-columns page-full"><h2 class="anchored quarto-appendix-heading">A. Softplus split tensor product</h2><div class="quarto-appendix-contents page-columns page-full">
 
 <p>The <em>softplus-split</em> embedding uses an initial softplus to ensure positivity, then splits the key of length <span class="math inline">\(d\)</span> into <span class="math inline">\(p\)</span> evenly-sized pieces of length <span class="math inline">\(\frac{d}{p}\)</span>, which are then combined using the tensor product. The resulting tensor is in <span class="math inline">\(\R^{\left(\frac{d}{p}\right)^p}\)</span>. Concretely, the equation for the softplus-split embedding is</p>
 <p><span class="math display">\[
@@ -899,14 +925,14 @@ Y_i &amp;= \sum_{j=1}^i \frac{ \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \phi(Q_i)^T \
 <span id="cb5-9"><a href="#cb5-9"></a>    A <span class="op">=</span> B <span class="op">/</span> B.<span class="bu">sum</span>(axis<span class="op">=</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb5-10"><a href="#cb5-10"></a>    Y <span class="op">=</span> A <span class="op">@</span> V</span>
 <span id="cb5-11"><a href="#cb5-11"></a>    <span class="cf">return</span> Y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>See Appendix C for a numerically-stable implementation.</p>
+<p>See Appendix B for a numerically-stable implementation.</p>
 <p>Let’s put this into action:</p>
 <div class="column-body" style="text-align: center;">
 <iframe width="600" height="350" src="plots/02_softplus_split.html">
 </iframe>
 </div>
 <p>We see that increasing <span class="math inline">\(p\)</span> causes performance to improve. However, all values of <span class="math inline">\(p\)</span> tested still fall short of the baseline.</p>
-</div></section><section id="c.-numerical-stability" class="level2 appendix"><h2 class="anchored quarto-appendix-heading">C. Numerical stability</h2><div class="quarto-appendix-contents">
+</div></section><section id="b.-numerical-stability" class="level2 appendix"><h2 class="anchored quarto-appendix-heading">B. Numerical stability</h2><div class="quarto-appendix-contents">
 
 <p>Numerical instabilities come from numbers underflowing (too small) or overflowing (too large). Solutions typically fall into a few main categories:</p>
 <ul>
@@ -1032,6 +1058,7 @@ Expand for a numerically-stable implementation of <strong>repeat</strong>.
 <ol>
 <li id="fn1"><p>This is also known as the <a href="https://en.wikipedia.org/wiki/Kernel_method">kernel method</a>. It is essential when one works with infinite-dimensional embeddings, and it’s also useful in this case to avoid materializing large-but-finite embeddings.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn2"><p>This state-size threshold is admittedly somewhat arbitrary. In principle, larger states are possible with clever sharding; but for excessively large states, which must be sharded across a huge number of GPUs, the hardware cost of sharding becomes completely prohibitive. In this article, we are training models whose parameters fit on a single GPU, so it seems reasonable to use the memory of a single GPU as the threshold for tractability.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>A natural choice for the ordering <span class="math inline">\(\sigma\)</span> is <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order#:~:text=In%20row%2Dmajor%20order%2C%20the,column%20in%20column%2Dmajor%20order.">row major ordering</a>.<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@misc{buckman2024,
   author = {Buckman, Jacob and Gelada, Carles and Zhang, Sean},
