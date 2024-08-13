@@ -164,9 +164,9 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
     <nav id="TOC" role="doc-toc" class="toc-active">
    
   <ul>
-  <li><a href="#how-to-download-the-dataset" id="toc-how-to-download-the-dataset" class="nav-link active" data-scroll-target="#how-to-download-the-dataset">How to download the dataset</a></li>
-  <li><a href="#how-the-dataset-was-constructed" id="toc-how-the-dataset-was-constructed" class="nav-link" data-scroll-target="#how-the-dataset-was-constructed">How the dataset was constructed</a></li>
-  <li><a href="#how-to-use-the-dataset" id="toc-how-to-use-the-dataset" class="nav-link" data-scroll-target="#how-to-use-the-dataset">How to use the dataset</a></li>
+  <li><a href="#how-to-download-and-use-the-dataset" id="toc-how-to-download-and-use-the-dataset" class="nav-link active" data-scroll-target="#how-to-download-and-use-the-dataset">1. How to download and use the dataset</a></li>
+  <li><a href="#how-the-dataset-was-constructed" id="toc-how-the-dataset-was-constructed" class="nav-link" data-scroll-target="#how-the-dataset-was-constructed">2. How the dataset was constructed</a></li>
+  <li><a href="#best-practices-for-sampling" id="toc-best-practices-for-sampling" class="nav-link" data-scroll-target="#best-practices-for-sampling">3. Best practices for sampling</a></li>
   
   </ul>
 </nav>
@@ -209,53 +209,20 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 </header>
 
 
-<p><em>This article is a pre-release WIP, and will be updated soon.</em></p>
-<p>As part of <a href="../../articles/compute-optimal-context-size">our broader mission of training language models with ultra-long context</a>, we are releasing a dataset for use in research on architectures and algorithms for long-context modeling. This dataset, which we call <strong>LongCrawl64</strong>, is <a href="">available on GitHub</a>. It consists of 6,661,465 pre-tokenized documents, each of which is 65,536 tokens long, for a total token count of 435 billion.</p>
-<section id="how-to-download-the-dataset" class="level3">
-<h3 class="anchored" data-anchor-id="how-to-download-the-dataset">How to download the dataset</h3>
+<p>As part of <a href="../../articles/compute-optimal-context-size">our broader mission of training language models with ultra-long context</a>, we are releasing a dataset for use in research on architectures and algorithms for long-context modeling. This dataset, which we call <strong>LongCrawl64</strong>, is available for download. It consists of 6,661,465 pre-tokenized documents, each of which is 65,536 tokens long, for a total token count of 435 billion.</p>
+<section id="how-to-download-and-use-the-dataset" class="level3">
+<h3 class="anchored" data-anchor-id="how-to-download-and-use-the-dataset">1. How to download and use the dataset</h3>
 <p>The dataset is hosted on a Google Cloud bucket. The easiest way to download it is using <code>gsutil</code>, which can be installed with:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://sdk.cloud.google.com <span class="kw">|</span> <span class="fu">bash</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> init</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>To download, use:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">GSUTIL_PARALLEL_THREAD_COUNT</span><span class="op">=</span>5 <span class="va">GSUTIL_PARALLEL_PROCESS_COUNT</span><span class="op">=</span>5 <span class="ex">gsutil</span> <span class="at">-m</span> cp <span class="at">-r</span> gs://longcrawl64/ /local/path/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Choose threads and processes as appropriate for your system.</p>
-</section>
-<section id="how-the-dataset-was-constructed" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="how-the-dataset-was-constructed">How the dataset was constructed</h3>
-<p>Included in the GitHub repository are the scripts we used to generate this dataset. This is included as a reference for anyone who wants to understand in detail what exactly the dataset consists of, and also will be a useful starting point for anyone who wants to put together a variant.</p>
-<p>The starting point for LongCrawl64 is <a href="https://github.com/togethercomputer/RedPajama-Data">RedPajama-v2</a>, a dataset consisting of all of the Common Crawl scrapes of the public internet. RedPajama-v2 is divided into three partitions, which they call <em>head</em>, <em>middle</em>, and <em>tail</em>. The head &amp; middle partitions come alongside useful pre-computed metrics, such as mean word length, whether each document is a duplicate, etc.</p>
-<p>We first use these metrics to filter RedPajama-v2 head &amp; middle, keeping only high-quality<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, non-duplicated documents with 16k words or more. We then tokenize each one with <a href="https://github.com/openai/tiktoken">OpenAI’s TikToken</a> tokenizer for GPT-2, which uses BPE with a vocabulary size of 50304. We then further discard any documents shorter than 64 kibitokens (KiT).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> LongCrawl64 includes all documents that remain.</p>
-<p>Unlike most LLM datasets, LongCrawl64 is not published as raw text. Instead, it is released in an “opinionated” format, after performing further preprocessing steps which make the dataset easy to use for research. This consists of three steps:</p>
-<ul>
-<li>Truncating each entry to be exactly 64 KiT.</li>
-<li>Shuffling the dataset along the document dimension.</li>
-<li>Rolling each document a random amount along the sequence dimension.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
-</ul>
-<p>The end result is a 6,661,465 x 65,336 <a href="https://zarr.readthedocs.io/en/stable/">Zarr</a> array of uint16s.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
-
-<div class="no-row-height column-margin column-container"><div class="">
-<p>If we always start at the beginning of each document, we could be misled by structure in the dataset itself; for example, if each document begins with an easy-to-predict subsequence, loss will increase on contexts outside of this window. Rolling solves this issue.</p>
-</div></div></section>
-<section id="how-to-use-the-dataset" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="how-to-use-the-dataset">How to use the dataset</h3>
-<p>The design of LongCrawl64 makes it easy to efficiently load IID minibatches at any context length.</p>
-<p>The dataset can be visualized as a rectangle:</p>
-<div class="column-body" style="text-align: center;">
-<p><img src="figures/dataset_square.jpeg" alt="Image" style="max-width:50%; height:auto; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);"></p>
-</div>
-<p>When sampling a minibatch, all we need to do is slice a smaller rectangle out from the underlying dataset. Thanks to the preprocessing, we can get minibatches of data of any context length with the statistical properties we desire via a simple iterative scheme.</p>
-<p>A visual explanation is easiest. To train with context length 64 KiT, simply iterate through the rows:</p>
-<div class="column-body" style="text-align: center;">
-<p><img src="figures/sampling_whole_sequences.gif" alt="Image" style="max-width:50%;"></p>
-</div>
-<p>To train with context length less than 64 KiT, iterate through the rows and then the columns:</p>
-<div class="column-body" style="text-align: center;">
-<p><img src="figures/sampling_smaller_sequences.gif" alt="Image" style="max-width:50%;"></p>
-</div>
-<p>Thanks to the shuffling &amp; rolling, any such rectangle will consist of rows uncorrelated from one another both in content and in position within their respective documents; and, by iterating in column-major order, we also ensure there are no correlations between consecutive minibatches.</p>
-<p>Under the hood, data is stored as compressed chunks of 2048 x 2048 tokens (~10Mb each). The iterative loading described above is therefore very efficient, since it performs only contiguous reads on a small number of chunks each time. It also permits reuse between subsequent minibatches via a simple LRU caching mechanism.</p>
-<p>One final detail: after tokens have been loaded, they must be converted into a input/target pair for training. We recommend using the loaded data as targets, and constructing the inputs by adding a padding token to the beginning of the sequence and dropping its final element.</p>
-<p>Below is a simple dataloader that implements these patterns. Extend or adjust it to meet your needs.</p>
+<p>Once downloaded, the dataset can be used with <code>zarr</code>. Below is a simple dataloader, implementing the sampling patterns described in Section 3 of this article. Extend or adjust it to meet your needs.</p>
+<details>
+<summary>
+Expand for example dataloader code.
+</summary>
 <div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> zarr</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -299,6 +266,42 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 <span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>          <span class="st">'targets'</span>: np.array(data),</span>
 <span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>        }</span>
 <span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> minibatch</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</section>
+<section id="how-the-dataset-was-constructed" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="how-the-dataset-was-constructed">2. How the dataset was constructed</h3>
+<p>The starting point for LongCrawl64 is <a href="https://github.com/togethercomputer/RedPajama-Data">RedPajama-v2</a>, a dataset consisting of all of the Common Crawl scrapes of the public internet. RedPajama-v2 is divided into three partitions, which they call <em>head</em>, <em>middle</em>, and <em>tail</em>. The head &amp; middle partitions come alongside useful pre-computed metrics, such as mean word length, whether each document is a duplicate, etc.</p>
+<p>We first use these metrics to filter RedPajama-v2 head &amp; middle, keeping only high-quality<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, non-duplicated documents with 16k words or more. We then tokenize each one with <a href="https://github.com/openai/tiktoken">OpenAI’s TikToken</a> tokenizer for GPT-2, which uses BPE with a vocabulary size of 50304. We further discard any documents shorter than 64 kibitokens (KiT).<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> LongCrawl64 includes all documents that remain.</p>
+<p>Unlike most LLM datasets, LongCrawl64 is not published as raw text. Instead, it is released in an “opinionated” format, after performing further preprocessing steps which make the dataset easy to use for research. This consists of three steps:</p>
+<ul>
+<li>Truncating each entry to be exactly 64 KiT.</li>
+<li>Shuffling the dataset along the document dimension.</li>
+<li>Rolling each document a random amount along the sequence dimension.<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a></li>
+</ul>
+<p>The end result is a 6,661,465 x 65,336 <a href="https://zarr.readthedocs.io/en/stable/">Zarr</a> array of uint16s.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a></p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>If we always start at the beginning of each document, we could be misled by structure in the dataset itself; for example, if each document begins with an easy-to-predict subsequence, loss will increase on contexts outside of this window. Rolling solves this issue.</p>
+</div></div></section>
+<section id="best-practices-for-sampling" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="best-practices-for-sampling">3. Best practices for sampling</h3>
+<p>The design of LongCrawl64 makes it easy to efficiently load IID minibatches at any context length.</p>
+<p>The dataset can be visualized as a rectangle:</p>
+<div class="column-body" style="text-align: center;">
+<p><img src="figures/dataset_square.jpeg" alt="Image" style="max-width:50%; height:auto; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);"></p>
+</div>
+<p>When sampling a minibatch, all we need to do is slice a smaller rectangle out from the underlying dataset. Thanks to the preprocessing, we can get minibatches of data of any context length with the statistical properties we desire via a simple iterative scheme.</p>
+<p>A visual explanation is easiest. To train with context length 64 KiT, simply iterate through the rows:</p>
+<div class="column-body" style="text-align: center;">
+<p><img src="figures/sampling_whole_sequences.gif" alt="Image" style="max-width:50%;"></p>
+</div>
+<p>To train with context length less than 64 KiT, iterate through the rows and then the columns:</p>
+<div class="column-body" style="text-align: center;">
+<p><img src="figures/sampling_smaller_sequences.gif" alt="Image" style="max-width:50%;"></p>
+</div>
+<p>Thanks to the shuffling &amp; rolling, any such rectangle will consist of rows uncorrelated from one another both in content and in position within their respective documents; and, by iterating in column-major order, we also ensure there are no correlations between consecutive minibatches.</p>
+<p>Under the hood, data is stored as compressed chunks of 2048 x 2048 tokens (~10Mb each). The iterative loading described above is therefore very efficient, since it performs only contiguous reads on a small number of chunks each time. It also permits reuse between subsequent minibatches via a simple LRU caching mechanism.</p>
+<p>One final detail: after tokens have been loaded, they must be converted into a input/target pair for training. We recommend using the loaded data as targets, and constructing the inputs by adding a padding token to the beginning of the sequence and dropping its final element.</p>
 <form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
   <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
   Subscribe to be notified of new posts:
@@ -761,6 +764,10 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
+<script src="https://giscus.app/client.js" data-repo="m-a-n-i-f-e-s-t/website" data-repo-id="R_kgDOLA6vSg" data-category="Announcements" data-category-id="DIC_kwDOLA6vSs4Cgv3x" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" data-loading="lazy" async="">
+</script>
+<input type="hidden" id="giscus-base-theme" value="light">
+<input type="hidden" id="giscus-alt-theme" value="dark">
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
