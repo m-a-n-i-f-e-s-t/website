@@ -149,10 +149,16 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Linear Transformers Are Faster After All – Manifest AI">
-<meta property="og:description" content="">
-<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:title" content="Manifest AI">
+<meta property="og:description" content="Our mission is to train a neural network to model all human output.">
+<meta property="og:image" content="/thumbnails/main.png">
 <meta property="og:site_name" content="Manifest AI">
+<meta name="twitter:title" content="Manifest AI">
+<meta name="twitter:description" content="Our mission is to train a neural network to model all human output.">
+<meta name="twitter:image" content="/thumbnails/main.png">
+<meta name="twitter:creator" content="@manifest__ai">
+<meta name="twitter:site" content="@manifest__ai">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="citation_title" content="Linear Transformers Are Faster After All">
 <meta name="citation_author" content="Jacob Buckman">
 <meta name="citation_author" content="Carles Gelada">
@@ -193,6 +199,11 @@ window.Quarto = {
     </a>
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://discord.gg/aFsCgDraGP"> <i class="bi bi-discord" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://twitter.com/manifest__ai"> <i class="bi bi-twitter" role="img">
 </i> 
@@ -262,6 +273,7 @@ window.Quarto = {
 </header>
 
 
+<div class="hidden">
 <p><span class="math display">\[
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Z}{\mathbb{Z}}
@@ -277,6 +289,7 @@ window.Quarto = {
 \newcommand{\Tok}{\text{Tok}}
 \newcommand{\Aij}{ A_{[i,j]}}
 \]</span></p>
+</div>
 <p>It is well-known that removing the exponential from the attention layer of a transformer allows for a recurrent reformulation, with computational cost that is linear instead of quadratic on context length <span class="citation" data-cites="katharopoulos2020transformers"><a href="#ref-katharopoulos2020transformers" role="doc-biblioref">[1]</a></span>. One would expect that such an architecture would be far faster to train, especially when the context size is large. However, when training deep neural networks on hardware accelerators (e.g.&nbsp;GPUs), reductions in FLOPs do not always straightforwardly translate into practical speedups. Initial empirical experiments showed that large language models based on linear transformers train more slowly than classic transformers, and led many to dismiss the approach as nice-in-theory but unhelpful-in-practice <span class="citation" data-cites="Tay2022Efficient"><a href="#ref-Tay2022Efficient" role="doc-biblioref">[2]</a></span>.</p>
 <p>At the moment, the conventional wisdom in the field is that a quadratic-cost algorithm with highly optimized hardware utilization (e.g.&nbsp;FlashAttention) gives the best training throughput <span class="citation" data-cites="dao2023flashattention"><a href="#ref-dao2023flashattention" role="doc-biblioref">[3]</a></span>. But this is mistaken. In this post, we explain several different ways of implementing linear transformers and we show that, in fact, they can produce massive speed-ups.</p>
 

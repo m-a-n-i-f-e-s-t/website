@@ -149,10 +149,16 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Linear Transformers Are Faster – Manifest AI">
-<meta property="og:description" content="">
-<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:title" content="Linear Transformers Are Faster - Manifest AI">
+<meta property="og:description" content="A hardware-efficient implementation of O(T) linear transformers gives massive practical speedups.">
+<meta property="og:image" content="/thumbnails/linear-transformers-are-faster.png">
 <meta property="og:site_name" content="Manifest AI">
+<meta name="twitter:title" content="Linear Transformers Are Faster - Manifest AI">
+<meta name="twitter:description" content="A hardware-efficient implementation of O(T) linear transformers gives massive practical speedups.">
+<meta name="twitter:image" content="/thumbnails/linear-transformers-are-faster.png">
+<meta name="twitter:creator" content="@manifest__ai">
+<meta name="twitter:site" content="@manifest__ai">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="citation_title" content="Linear Transformers Are Faster">
 <meta name="citation_author" content="Jacob Buckman">
 <meta name="citation_author" content="Carles Gelada">
@@ -193,6 +199,11 @@ window.Quarto = {
     </a>
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://discord.gg/aFsCgDraGP"> <i class="bi bi-discord" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://twitter.com/manifest__ai"> <i class="bi bi-twitter" role="img">
 </i> 
@@ -263,6 +274,7 @@ window.Quarto = {
 </header>
 
 
+<div class="hidden">
 <p><span class="math display">\[
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\Z}{\mathbb{Z}}
@@ -278,6 +290,7 @@ window.Quarto = {
 \newcommand{\Tok}{\text{Tok}}
 \newcommand{\Aij}{ A_{[i,j]}}
 \]</span></p>
+</div>
 <p>It is well-known that removing the exponential from the attention layer of a transformer allows for a recurrent reformulation, with computational cost that is linear instead of quadratic on context length <span class="citation" data-cites="katharopoulos2020transformers"><a href="#ref-katharopoulos2020transformers" role="doc-biblioref">[1]</a></span>. One would expect that such an architecture would be far faster to train, especially when the context size is large. However, when training deep neural networks on hardware accelerators (e.g.&nbsp;GPUs), reductions in FLOPs do not always straightforwardly translate into practical speedups. Initial empirical experiments showed that large language models based on linear transformers train more slowly than classic transformers, and led many to dismiss the approach as nice-in-theory but unhelpful-in-practice <span class="citation" data-cites="Tay2022Efficient"><a href="#ref-Tay2022Efficient" role="doc-biblioref">[2]</a></span>.</p>
 <p>At the moment, the conventional wisdom in the field is that a quadratic-cost algorithm with highly optimized hardware utilization (e.g.&nbsp;FlashAttention) gives the best training throughput <span class="citation" data-cites="dao2023flashattention"><a href="#ref-dao2023flashattention" role="doc-biblioref">[3]</a></span>. But this is mistaken. In this post, we explain several different ways of implementing linear transformers and we show that, in fact, they can produce massive speed-ups.</p>
 
@@ -486,7 +499,8 @@ S_i = S_{i-1} + V_i K_i^T
 <p>The results for GPT2 are what we would expect from a healthy model, given the setting. Note that since our dataset consists of short articles, of average length ~500 tokens, we can assume that even a context window of 1024 would include nearly everything relevant. Thus, we wouldn’t expect that increasing the context length beyond this point would decrease the loss the model ultimately converges to. Longer-context models do however need to learn to <em>ignore</em> many more irrelevant tokens, explaining the slowed initial learning.<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a></p>
 <p>In contrast, the results for Linear-GPT2 seem to indicate some underlying instability of the linear transformer architecture. It doesn’t even seem capable of ignoring irrelevant information, let alone exploiting useful long-term structure.</p>
 <p>Remedying these learning issues will be the main focus of our future work in linear transformers. Our current architecture is essentially a one-to-one clone of GPT2, sticking as architecturally close to the original as possible; aspects such as initializations, normalizations and hyperparameters were directly copied. It is well-known that these decisions can have a large impact on scaling and stability and often need to be tuned in an architecture-specific way. In the literature, various other linear variants of self-attention have been proposed, that incorporate techniques such as gating mechanisms in order to improve stability and learning <span class="citation" data-cites="choromanski2020rethinking qin2022cosformer peng2021random qin2022devil hua2022transformer sun2023retentive yang2023gated"><a href="#ref-choromanski2020rethinking" role="doc-biblioref">[5]</a>–<a href="#ref-yang2023gated" role="doc-biblioref">[11]</a></span>. A future post will include a thorough study of the impact of all of these choices.</p>
-<p>Ultimately, it may be impossible for any linear transformer to perfectly match the context scaling laws of the classic transformer baseline. Although removing the exponential seems like a minor change, it represents a meaningful decrease in expressivity.<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a> But as we’ve shown, linear transformers can be trained orders-of-magnitude more efficiently. On equivalent compute, linear transformers can be trained for many more steps; or, keeping steps constant as well, we can train a much larger model. If this additional scaling is sufficient to compensate for the reduced expressivity, linear transformers will be the more efficient architecture overall.</p>
+<p>Ultimately, it may be impossible for any linear transformer to perfectly match the context scaling laws of the classic transformer baseline. Although removing the exponential seems like a minor change, it represents a meaningful decrease in expressivity. But as we’ve shown, linear transformers can be trained orders-of-magnitude more efficiently. On equivalent compute, linear transformers can be trained for many more steps; or, keeping steps constant as well, we can train a much larger model. If this additional scaling is sufficient to compensate for the reduced expressivity, linear transformers will be the more efficient architecture overall.</p>
+<p><a href="https://manifestai.com/articles/symmetric-power-transformers/">In follow-up work, we show that a linear transformer variant that we call the <em>symmetric power transformer</em> is able to match the softmax transformer in performance.</a></p>
 <form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
   <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
   Subscribe to be notified of new posts:
@@ -575,7 +589,6 @@ S_i = S_{i-1} + V_i K_i^T
 <li id="fn6"><p>This comparison may not be completely fair. In these experiments, our implementation of neither sampling algorithm makes use of specialized kernels. A lot of the ideas of flash attention can be used to write a much faster KV cache sampling algorithm; on the other hand, it’s unclear if much improvement is possible on the recurrent sampling. Thus, it’s possible that with engineering effort the gap between the two algorithms could become smaller. However, the overall pattern will certainly remain the same.<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn7"><p>e.g.&nbsp;runs with context-size 1024 would have batch-size of <span class="math inline">\(2^{19} / 2^{10} = 2^{9} = 512\)</span>.<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn8"><p>Put another way: doubling the size of the input vastly increases the size of the function space over which gradient descent must search, and it’s intuitive that in a larger space it takes somewhat longer to find a good solution.<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn9"><p>We plan to elaborate on this topic in a future blog post.<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@misc{buckman2024,
   author = {Buckman, Jacob and Gelada, Carles},

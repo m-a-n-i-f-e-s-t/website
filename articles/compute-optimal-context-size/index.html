@@ -8,7 +8,7 @@
 
 <meta name="author" content="Jacob Buckman">
 <meta name="author" content="Carles Gelada">
-<meta name="dcterms.date" content="2024-05-13">
+<meta name="dcterms.date" content="2024-05-16">
 
 <title>Compute-Optimal Context Size – Manifest AI</title>
 <style>
@@ -115,17 +115,23 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Compute-Optimal Context Size – Manifest AI">
-<meta property="og:description" content="">
-<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:title" content="Compute-Optimal Context Size - Manifest AI">
+<meta property="og:description" content="Adapting the context length for optimal performance per dollar.">
+<meta property="og:image" content="/thumbnails/compute-optimal-context-size.png">
 <meta property="og:site_name" content="Manifest AI">
+<meta name="twitter:title" content="Compute-Optimal Context Size - Manifest AI">
+<meta name="twitter:description" content="Adapting the context length for optimal performance per dollar.">
+<meta name="twitter:image" content="/thumbnails/compute-optimal-context-size.png">
+<meta name="twitter:creator" content="@manifest__ai">
+<meta name="twitter:site" content="@manifest__ai">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="citation_title" content="Compute-Optimal Context Size">
 <meta name="citation_author" content="Jacob Buckman">
 <meta name="citation_author" content="Carles Gelada">
-<meta name="citation_publication_date" content="2024-05-13">
-<meta name="citation_cover_date" content="2024-05-13">
+<meta name="citation_publication_date" content="2024-05-16">
+<meta name="citation_cover_date" content="2024-05-16">
 <meta name="citation_year" content="2024">
-<meta name="citation_online_date" content="2024-05-13">
+<meta name="citation_online_date" content="2024-05-16">
 <meta name="citation_language" content="en">
 <meta name="citation_publisher" content="Manifest AI">
 <meta name="citation_reference" content="citation_title=Scaling language models: Methods, analysis &amp;amp;amp; insights from training gopher;,citation_author=Jack W. Rae;,citation_author=Sebastian Borgeaud;,citation_author=Trevor Cai;,citation_author=Katie Millican;,citation_author=Jordan Hoffmann;,citation_author=H. Francis Song;,citation_author=John Aslanides;,citation_author=Sarah Henderson;,citation_author=Roman Ring;,citation_author=Susannah Young;,citation_author=Eliza Rutherford;,citation_author=Tom Hennigan;,citation_author=Jacob Menick;,citation_author=Albin Cassirer;,citation_author=Richard Powell;,citation_author=George Driessche;,citation_author=Lisa Anne Hendricks;,citation_author=Maribeth Rauh;,citation_author=Po-Sen Huang;,citation_author=Amelia Glaese;,citation_author=Johannes Welbl;,citation_author=Sumanth Dathathri;,citation_author=Saffron Huang;,citation_author=Jonathan Uesato;,citation_author=John Mellor;,citation_author=Irina Higgins;,citation_author=Antonia Creswell;,citation_author=Nat McAleese;,citation_author=Amy Wu;,citation_author=Erich Elsen;,citation_author=Siddhant M. Jayakumar;,citation_author=Elena Buchatskaya;,citation_author=David Budden;,citation_author=Esme Sutherland;,citation_author=Karen Simonyan;,citation_author=Michela Paganini;,citation_author=Laurent Sifre;,citation_author=Lena Martens;,citation_author=Xiang Lorraine Li;,citation_author=Adhiguna Kuncoro;,citation_author=Aida Nematzadeh;,citation_author=Elena Gribovskaya;,citation_author=Domenic Donato;,citation_author=Angeliki Lazaridou;,citation_author=Arthur Mensch;,citation_author=Jean-Baptiste Lespiau;,citation_author=Maria Tsimpoukelli;,citation_author=Nikolai Grigorev;,citation_author=Doug Fritz;,citation_author=Thibault Sottiaux;,citation_author=Mantas Pajarskas;,citation_author=Toby Pohlen;,citation_author=Zhitao Gong;,citation_author=Daniel Toyama;,citation_author=Cyprien Masson d’Autume;,citation_author=Yujia Li;,citation_author=Tayfun Terzi;,citation_author=Vladimir Mikulik;,citation_author=Igor Babuschkin;,citation_author=Aidan Clark;,citation_author=Diego Las Casas;,citation_author=Aurelia Guy;,citation_author=Chris Jones;,citation_author=James Bradbury;,citation_author=Matthew J. Johnson;,citation_author=Blake A. Hechtman;,citation_author=Laura Weidinger;,citation_author=Iason Gabriel;,citation_author=William Isaac;,citation_author=Edward Lockhart;,citation_author=Simon Osindero;,citation_author=Laura Rimell;,citation_author=Chris Dyer;,citation_author=Oriol Vinyals;,citation_author=Kareem Ayoub;,citation_author=Jeff Stanway;,citation_author=Lorrayne Bennett;,citation_author=Demis Hassabis;,citation_author=Koray Kavukcuoglu;,citation_author=Geoffrey Irving;,citation_publication_date=2021;,citation_cover_date=2021;,citation_year=2021;,citation_fulltext_html_url=https://arxiv.org/abs/2112.11446;,citation_volume=abs/2112.11446;,citation_journal_title=CoRR;">
@@ -151,6 +157,11 @@ window.Quarto = {
     </a>
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://discord.gg/aFsCgDraGP"> <i class="bi bi-discord" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://twitter.com/manifest__ai"> <i class="bi bi-twitter" role="img">
 </i> 
@@ -206,7 +217,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 13, 2024</p>
+      <p class="date">May 16, 2024</p>
     </div>
   </div>
   
@@ -371,13 +382,13 @@ window.Quarto = {
   author = {Buckman, Jacob and Gelada, Carles},
   publisher = {Manifest AI},
   title = {Compute-Optimal {Context} {Size}},
-  date = {2024-05-13},
+  date = {2024-05-16},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-buckman2024" class="csl-entry quarto-appendix-citeas" role="listitem">
 <div class="">J.
 Buckman and C. Gelada, <span>“Compute-Optimal Context Size.”</span>
-Manifest AI, May 13, 2024.</div>
+Manifest AI, May 16, 2024.</div>
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {

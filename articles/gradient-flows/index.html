@@ -94,10 +94,16 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Why Gradient Descent Minimizes the Loss – Manifest AI">
-<meta property="og:description" content="">
-<meta property="og:image" content="https://manifestai.com/favicon.png">
+<meta property="og:title" content="Manifest AI">
+<meta property="og:description" content="Our mission is to train a neural network to model all human output.">
+<meta property="og:image" content="/thumbnails/main.png">
 <meta property="og:site_name" content="Manifest AI">
+<meta name="twitter:title" content="Manifest AI">
+<meta name="twitter:description" content="Our mission is to train a neural network to model all human output.">
+<meta name="twitter:image" content="/thumbnails/main.png">
+<meta name="twitter:creator" content="@manifest__ai">
+<meta name="twitter:site" content="@manifest__ai">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="citation_title" content="Why Gradient Descent Minimizes the Loss">
 <meta name="citation_author" content="Carles Gelada">
 <meta name="citation_publication_date" content="2024-07-05">
@@ -120,6 +126,11 @@ window.Quarto = {
     </a>
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://discord.gg/aFsCgDraGP"> <i class="bi bi-discord" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
   <li class="nav-item compact">
     <a class="nav-link" href="https://twitter.com/manifest__ai"> <i class="bi bi-twitter" role="img">
 </i> 
@@ -190,6 +201,7 @@ window.Quarto = {
 </header>
 
 
+<div class="hidden">
 <p><span class="math display">\[
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\der}{\partial}
@@ -205,6 +217,7 @@ window.Quarto = {
 \newcommand{\l}{\mathscr{l}}
 \newcommand{\E}{\mathbb E}
 \]</span></p>
+</div>
 <p>It’s commonly stated that neural networks are difficult to study because they are not convex, making it hard to say much about the behavior of gradient descent. But for the past few months I’ve been looking at ways to prove convergence guarantees to low loss without the assumption of convexity. Surprisingly, just with elementary concepts of calculus, it is possible to study simple neural networks like a two-layer MLP and show that learning will minimize the training loss.</p>
 <p>This article follos a very geometrical perspective. Here we think of the parameters of the neural network as a vector in a vector space, and the process of learning as a continuous curve through that space. This geometric perspective emerges out of taking the limit where the learning rate goes to <span class="math inline">\(0\)</span>. When the parameterers follow a differentiable path through time, we can invoke concepts like the energy of and length the path, which turn out to have profound interpretations within the context of a learning problem.</p>
 <p>Naturally, to show that the training loss is minimized, we need a “repalcement for convexity”. An assumption that provides similar guarantees, but which neural networks actually satisfy. What this alternative should be is perhaps the most important idea in the article. It can be summarized as: “the gradient must be large when the loss is large”. With some caveats, this property seems to hold for the neural networks that are used in practice and thus, we can guarantee that learning will minimize the loss.</p>
