@@ -115,16 +115,16 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Manifest AI">
-<meta property="og:description" content="Our mission is to train a neural network to model all human output.">
-<meta property="og:image" content="/thumbnails/main.png">
+<meta property="og:title" content="Why Gradient Descent Minimizes Training Loss">
+<meta property="og:description" content="Convexity is unnecessary to guarantee convergence to low loss">
+<meta property="og:image" content="/thumbnails/gd-minimizes-loss.png">
 <meta property="og:site_name" content="Manifest AI">
-<meta name="twitter:title" content="Manifest AI">
-<meta name="twitter:description" content="Our mission is to train a neural network to model all human output.">
-<meta name="twitter:image" content="/thumbnails/main.png">
+<meta name="twitter:title" content="Why Gradient Descent Minimizes Training Loss">
+<meta name="twitter:description" content="Convexity is unnecessary to guarantee convergence to low loss">
+<meta name="twitter:image" content="https://manifestai.com/thumbnails/gd-minimizes-loss.png">
 <meta name="twitter:creator" content="@manifest__ai">
 <meta name="twitter:site" content="@manifest__ai">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="citation_title" content="Why Gradient Descent Minimizes Training Loss">
 <meta name="citation_author" content="Carles Gelada">
 <meta name="citation_author" content="Jacob Buckman">
@@ -348,7 +348,7 @@ Since the target <span class="math inline">\(q=0\)</span> it’s clear that the 
 </ul>
 <p>Out of <span class="math inline">\(f, W\)</span> and <span class="math inline">\(w_0\)</span>, the following objects are defined:</p>
 <ul>
-<li><p>A path <span class="math inline">\(\gamma: [0, \infty) \to W\)</span> is a gradient flows of <span class="math inline">\(f\)</span> starting at <span class="math inline">\(w_0\)</span>. It describes the evolution of the parameters through time.</p></li>
+<li><p>A path <span class="math inline">\(\gamma: [0, \infty) \to W\)</span> is a gradient flow of <span class="math inline">\(f\)</span> starting at <span class="math inline">\(w_0\)</span>. It describes the evolution of the parameters through time.</p></li>
 <li><p>A loss curve <span class="math inline">\(\l:\R \to \R\)</span>, defined as <span class="math inline">\(\l(t) = f\circ \gamma(t)\)</span>, tells us the amount of loss at any moment in time.</p></li>
 </ul>
 <p><span class="math inline">\(\blacksquare\)</span></p>
