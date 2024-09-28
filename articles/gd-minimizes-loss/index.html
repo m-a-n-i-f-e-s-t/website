@@ -275,7 +275,7 @@ details[open] {
   padding: 8px; /* Padding inside the details for content alignment */
 }
 </style>
-<p>Every student of deep learning has wondered some point in their journey: “How can gradient descent on a neural network possibly succeed? Surely, on such a large and non-convex loss landscape, we will get stuck in some local minimum, far from the optimal solution.” And yet, deep learning practitioners quickly learn to trust that a large enough neural network with properly tuned hyper-parameters will successfully fit any training data we throw at it <span class="citation" data-cites="zhang2017understandingdeeplearningrequires"><a href="#ref-zhang2017understandingdeeplearningrequires" role="doc-biblioref">[1]</a></span>. In this article, we explore a mathemathematical theory to explain this surprising phenomenon.</p>
+<p>Every student of deep learning has wondered at some point in their journey: “How can gradient descent on a neural network possibly succeed? Surely, on such a large and non-convex loss landscape, we will get stuck in some local minimum, far from the optimal solution.” And yet, deep learning practitioners quickly learn to trust that a large enough neural network with properly tuned hyper-parameters will successfully fit any training data we throw at it <span class="citation" data-cites="zhang2017understandingdeeplearningrequires"><a href="#ref-zhang2017understandingdeeplearningrequires" role="doc-biblioref">[1]</a></span>. In this article, we explore a mathematical theory to explain this surprising phenomenon.</p>
 <p>One common approach to showing that gradient descent will converge to a global optimum is to show that the loss landscape is <em>convex</em>, which means that a line drawn between any pair of points will never intersect its surface. This property can be used to prove that no local minima exist <span class="citation" data-cites="bubeck2015convex"><a href="#ref-bubeck2015convex" role="doc-biblioref">[2]</a></span>. But unfortunately, this technique cannot be applied to neural networks, as the loss function of a neural network is not a convex function of its parameters. This can be demonstrated by a simple counterexample.</p>
 <details>
 <summary>
@@ -300,7 +300,7 @@ Since the target <span class="math inline">\(q=0\)</span> it’s clear that the 
 </iframe>
 </div>
 </div>
-<p>In this article, we investigate an alternative property to convexity which we call <em>learning health</em>. Informally, it says that if the loss is large, the gradient must also be large. (In the plot above, both loss landscapses are healthy.)</p>
+<p>In this article, we investigate an alternative property to convexity which we call <em>learning health</em>. Informally, it says that if the loss is large, the gradient must also be large. (In the plot above, both loss landscapes are healthy.)</p>
 <p>The central result of this article is to use learning health to prove that gradient descent on neural networks will decrease the loss to a small value. The argument goes like this:</p>
 <ul>
 <li>The neural network is healthy near the initialization.</li>
@@ -371,10 +371,10 @@ Proof
 &amp;\quad &amp;\text{(gradient def.)} \\
 &amp;= -&lt; \nabla f(w), \nabla f(w)&gt;
 &amp;\quad &amp;\text{(gradient flow def.)} \\
-&amp;= - | \nabla f\circ \gamma(t)| ^2
+&amp;= - | \nabla f (w)| ^2
 \end{align}\]</span></p>
 </details>
-<p>So, under gradient flow, the magnitude of the gradient tells us how fast the loss is decreasing at any moment in tme. A large gradient means fast learning! A consequence of this result is that <span class="math inline">\(\en(\gamma)\)</span> measures how much the path <span class="math inline">\(\gamma\)</span> has managed to reduce the loss.</p>
+<p>So, under gradient flow, the magnitude of the gradient tells us how fast the loss is decreasing at any moment in time. A large gradient means fast learning! A consequence of this result is that <span class="math inline">\(\en(\gamma)\)</span> measures how much the path <span class="math inline">\(\gamma\)</span> has managed to reduce the loss.</p>
 <p><strong>Result 1.3.</strong> Let <span class="math inline">\(f:W \to \R\)</span> be a differentiable function and <span class="math inline">\(\gamma:[0, t] \to W\)</span> be a gradient flow of <span class="math inline">\(f\)</span> as in definition 1.1. Then:</p>
 <p><span class="math display">\[
 \en(\gamma) = \l(0) - \l(t)
@@ -450,7 +450,7 @@ Proof
 \l(t) = e^{\ln \l(t)} \le  e^{\ln \l(0) - \alpha t} = \l(0) e^{ - \alpha t}
 \]</span>
 </details>
-<p>Unfortunately, neural networks don’t satisfy the learning health property for for all <span class="math inline">\(w\in W\)</span>. (To see that, just consider an MLP with “degenerate” parameters, where all the weight matrices are <span class="math inline">\(0\)</span>. That MLP will have 0 gradient, even when it has high loss.) But that does not prevent us from using learning health to derive guarantees. In Section 3 we will see that a properly-initialized 2-layer MLP does indeed satisfy a relaxed version of this property: there exists <span class="math inline">\(\alpha,\beta \in \R^+\)</span> such that for all <span class="math inline">\(w \in W\)</span>, <span class="math display">\[
+<p>Unfortunately, neural networks don’t satisfy the learning health property for all <span class="math inline">\(w\in W\)</span>. (To see that, just consider an MLP with “degenerate” parameters, where all the weight matrices are <span class="math inline">\(0\)</span>. That MLP will have 0 gradient, even when it has high loss.) But that does not prevent us from using learning health to derive guarantees. In Section 3 we will see that a properly-initialized 2-layer MLP does indeed satisfy a relaxed version of this property: there exists <span class="math inline">\(\alpha,\beta \in \R^+\)</span> such that for all <span class="math inline">\(w \in W\)</span>, <span class="math display">\[
 \frac{|\nabla f(w)|^2}{f(w)}  \ge \alpha - \beta \; |w-w_0|
 \]</span></p>
 <p>The main result of this section is a guarantee that can be applied to any learning problem satisfying this relaxed property.</p>
@@ -461,7 +461,7 @@ l(\infty) \le \l(0) \; \exp({-\frac {\alpha^3}{3 \beta^2 \l(0)} })
 <summary>
 Proof
 </summary>
-<p>The proof follows a very similar argument to 3.1,</p>
+<p>The proof follows a very similar argument to 2.1,</p>
 <p><span class="math display">\[\begin{align}
 \frac{\der \ln \l(t)}{\der t} &amp;= -\frac{|\nabla f(w)|^2}{f(w)} \quad &amp;\text{(result 1.3)} \\
 &amp;\le - \alpha + \beta \;  |w - w_0| \\
@@ -473,7 +473,7 @@ Proof
 <p>which implies <span class="math display">\[
 \l(t) \le \l(0) \exp(- \alpha t + \frac{2}{3}  \beta \sqrt \l(0) \; t^{3/2})
 \]</span></p>
-<p>Now, we want to find the value of <span class="math inline">\(t\)</span> that minimizes the term in the exponential. We set the derivative to <span class="math inline">\(0\)</span> by solving <span class="math inline">\(- \alpha t + \frac{2}{3}  \beta \sqrt {\l(0)} \; t^{3/2}=0\)</span> which you can easily is achieved at <span class="math inline">\(t^* = \frac {\alpha^2} {\beta^2 \l(0)}\)</span>. This implies that, <span class="math display">\[
+<p>Now, we want to find the value of <span class="math inline">\(t\)</span> that minimizes the term in the exponential. We set the derivative to <span class="math inline">\(0\)</span> by solving <span class="math inline">\(- \alpha t + \frac{2}{3}  \beta \sqrt {\l(0)} \; t^{3/2}=0\)</span> which you can easily see is achieved at <span class="math inline">\(t^* = \frac {\alpha^2} {\beta^2 \l(0)}\)</span>. This implies that, <span class="math display">\[
 \l(t^*) \le \l(0) \exp({-\frac{\alpha^3}{3\beta^2 \l(0)}})
 \]</span> And, since <span class="math inline">\(\l'(t) = -|\nabla f \circ \gamma(t)|^2 \le 0\)</span>, the loss function is monotonically decreasing, which implies that <span class="math inline">\(\l(\infty) \le \l(t^*) \le \l(0)\exp({-\frac{\alpha^3}{3\beta^2 \l(0)}})\)</span>, proving the result.</p>
 </details>
@@ -598,9 +598,9 @@ Recall that our weight initialization guarantees that <span class="math inline">
 <p><strong>Learning Guarantees.</strong> Since <span class="math inline">\(|\nabla f(w)|^2 = |\ht N|^2 + |\ht N|^2\)</span>, the previous result implies that <span class="math display">\[
 \frac{|\nabla f(w)|^2}{f(w)} \ge 2k - 4 \sqrt {km} |w_0 - w|\\
 \]</span> So by setting <span class="math inline">\(\alpha = 2k\)</span> and <span class="math inline">\(\beta = 4 \sqrt {km}\)</span>, the application of Result 2.2 gives <span class="math display">\[
-l(\infty) \le \l(0) \; \text{exp}({-\frac {k^2}{6 m \l(0)} })
+\l(\infty) \le \l(0) \; \text{exp}({-\frac {k^2}{6 m \l(0)} })
 \]</span> From looking at the above equation, it is apparent that the scale of the MLP helps it learn. By growing <span class="math inline">\(k\)</span> we can very quickly guarantee that the loss is decreased to any desired value.</p>
-<p>Play with the interactive visualization to see how this simple 2-layer MLP learns. The red line shows to this bound we’ve just derived.</p>
+<p>Below is an interactive visualization that can be played with to see how this simple 2-layer MLP learns. The red line shows the bound we’ve just derived.</p>
 <div id="root">
 
 </div>
