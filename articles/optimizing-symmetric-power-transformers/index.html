@@ -2,16 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.57">
+<meta name="generator" content="quarto-1.5.54">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jacob Buckman">
 <meta name="author" content="Carles Gelada">
 <meta name="author" content="Saurabh Kumar">
-<meta name="dcterms.date" content="2024-09-21">
+<meta name="author" content="Sean Zhang">
+<meta name="dcterms.date" content="2024-09-30">
 
-<title>Optimizing Symmetric Power Transformers – Manifest AI</title>
+<title>Improving Symmetric Power Transformers with Conformal Transformations – Manifest AI</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -116,7 +117,7 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Optimizing Symmetric Power Transformers - Manifest AI">
+<meta property="og:title" content="Improving Symmetric Power Transformers with Conformal Transformations - Manifest AI">
 <meta property="og:description" content="TODO">
 <meta property="og:image" content="/thumbnails/symmetric-power-transformers.png">
 <meta property="og:site_name" content="Manifest AI">
@@ -126,20 +127,28 @@ window.Quarto = {
 <meta name="twitter:creator" content="@manifest__ai">
 <meta name="twitter:site" content="@manifest__ai">
 <meta name="twitter:card" content="summary">
-<meta name="citation_title" content="Optimizing Symmetric Power Transformers">
+<meta name="citation_title" content="Improving Symmetric Power Transformers with Conformal Transformations">
 <meta name="citation_author" content="Jacob Buckman">
 <meta name="citation_author" content="Carles Gelada">
 <meta name="citation_author" content="Saurabh Kumar">
-<meta name="citation_publication_date" content="2024-09-21">
-<meta name="citation_cover_date" content="2024-09-21">
+<meta name="citation_author" content="Sean Zhang">
+<meta name="citation_publication_date" content="2024-09-30">
+<meta name="citation_cover_date" content="2024-09-30">
 <meta name="citation_year" content="2024">
-<meta name="citation_online_date" content="2024-09-21">
+<meta name="citation_online_date" content="2024-09-30">
 <meta name="citation_language" content="en">
 <meta name="citation_publisher" content="Manifest AI">
-<meta name="citation_reference" content="citation_title=Gated linear attention transformers with hardware-efficient training;,citation_author=Songlin Yang;,citation_author=Bailin Wang;,citation_author=Yikang Shen;,citation_author=Rameswar Panda;,citation_author=Yoon Kim;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2312.06635;">
-<meta name="citation_reference" content="citation_title=Mamba: Linear-time sequence modeling with selective state spaces;,citation_author=Albert Gu;,citation_author=Tri Dao;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2312.00752;">
+<meta name="citation_reference" content="citation_title=Roformer: Enhanced transformer with rotary position embedding;,citation_author=Jianlin Su;,citation_author=Murtadha Ahmed;,citation_author=Yu Lu;,citation_author=Shengfeng Pan;,citation_author=Wen Bo;,citation_author=Yunfeng Liu;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_volume=568;,citation_journal_title=Neurocomputing;,citation_publisher=Elsevier;">
+<meta name="citation_reference" content="citation_title=Random feature attention;,citation_author=Hao Peng;,citation_author=Nikolaos Pappas;,citation_author=Dani Yogatama;,citation_author=Roy Schwartz;,citation_author=Noah A Smith;,citation_author=Lingpeng Kong;,citation_publication_date=2021;,citation_cover_date=2021;,citation_year=2021;,citation_journal_title=arXiv preprint arXiv:2103.02143;">
+<meta name="citation_reference" content="citation_title=Fine-tuning pre-trained transformers into decaying fast weights;,citation_author=Huanru Henry Mao;,citation_publication_date=2022;,citation_cover_date=2022;,citation_year=2022;,citation_journal_title=arXiv preprint arXiv:2210.04243;">
+<meta name="citation_reference" content="citation_title=Gateloop: Fully data-controlled linear recurrence for sequence modeling;,citation_author=Tobias Katsch;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2311.01927;">
 <meta name="citation_reference" content="citation_title=Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality;,citation_author=Tri Dao;,citation_author=Albert Gu;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_journal_title=arXiv preprint arXiv:2405.21060;">
 <meta name="citation_reference" content="citation_title=You only cache once: Decoder-decoder architectures for language models;,citation_author=Yutao Sun;,citation_author=Li Dong;,citation_author=Yi Zhu;,citation_author=Shaohan Huang;,citation_author=Wenhui Wang;,citation_author=Shuming Ma;,citation_author=Quanlu Zhang;,citation_author=Jianyong Wang;,citation_author=Furu Wei;,citation_publication_date=2024;,citation_cover_date=2024;,citation_year=2024;,citation_journal_title=arXiv preprint arXiv:2405.05254;">
+<meta name="citation_reference" content="citation_title=Gated linear attention transformers with hardware-efficient training;,citation_author=Songlin Yang;,citation_author=Bailin Wang;,citation_author=Yikang Shen;,citation_author=Rameswar Panda;,citation_author=Yoon Kim;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2312.06635;">
+<meta name="citation_reference" content="citation_title=Mamba: Linear-time sequence modeling with selective state spaces;,citation_author=Albert Gu;,citation_author=Tri Dao;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2312.00752;">
+<meta name="citation_reference" content="citation_title=Retentive network: A successor to transformer for large language models;,citation_author=Yutao Sun;,citation_author=Li Dong;,citation_author=Shaohan Huang;,citation_author=Shuming Ma;,citation_author=Yuqing Xia;,citation_author=Jilong Xue;,citation_author=Jianyong Wang;,citation_author=Furu Wei;,citation_publication_date=2023;,citation_cover_date=2023;,citation_year=2023;,citation_journal_title=arXiv preprint arXiv:2307.08621;">
+<meta name="citation_reference" content="citation_title=Compute-Optimal Context Size;,citation_author=Jacob Buckman;,citation_author=Carles Gelada;,citation_publication_date=2024-05-16;,citation_cover_date=2024-05-16;,citation_year=2024;,citation_language=en;,citation_publisher=Manifest AI;">
+<meta name="citation_reference" content="citation_title=Symmetric Power Transformers;,citation_author=Jacob Buckman;,citation_author=Carles Gelada;,citation_author=Sean Zhang;,citation_publication_date=2024-08-15;,citation_cover_date=2024-08-15;,citation_year=2024;,citation_language=en;,citation_publisher=Manifest AI;">
 </head>
 
 <body class="floating nav-fixed slimcontent">
@@ -177,10 +186,18 @@ window.Quarto = {
     <nav id="TOC" role="doc-toc" class="toc-active">
    
   <ul>
-  <li><a href="#gating" id="toc-gating" class="nav-link active" data-scroll-target="#gating">1. Gating</a>
+  <li><a href="#section" id="toc-section" class="nav-link active" data-scroll-target="#section"></a>
   <ul class="collapse">
-  <li><a href="#learned-gating" id="toc-learned-gating" class="nav-link" data-scroll-target="#learned-gating">Learned Gating</a></li>
-  
+  <li><a href="#symmetric-power-transformers" id="toc-symmetric-power-transformers" class="nav-link" data-scroll-target="#symmetric-power-transformers">1. Symmetric Power Transformers</a>
+  <ul class="collapse">
+  <li><a href="#rotary-embeddings-rope" id="toc-rotary-embeddings-rope" class="nav-link" data-scroll-target="#rotary-embeddings-rope">1.1 Rotary embeddings (RoPE)</a></li>
+  </ul></li>
+  <li><a href="#gating" id="toc-gating" class="nav-link" data-scroll-target="#gating">2. Gating</a></li>
+  <li><a href="#learned-rotary-embeddings" id="toc-learned-rotary-embeddings" class="nav-link" data-scroll-target="#learned-rotary-embeddings">3 Learned Rotary Embeddings</a>
+  <ul class="collapse">
+  <li><a href="#full-training-curves" id="toc-full-training-curves" class="nav-link" data-scroll-target="#full-training-curves">Full Training Curves</a></li>
+  </ul></li>
+  <li><a href="#conformal-state-transformations" id="toc-conformal-state-transformations" class="nav-link" data-scroll-target="#conformal-state-transformations">4. Conformal State Transformations</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -194,7 +211,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Optimizing Symmetric Power Transformers</h1>
+<h1 class="title">Improving Symmetric Power Transformers with Conformal Transformations</h1>
 </div>
 
 
@@ -207,13 +224,14 @@ window.Quarto = {
              <p>Jacob Buckman </p>
              <p>Carles Gelada </p>
              <p>Saurabh Kumar </p>
+             <p>Sean Zhang </p>
           </div>
   </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 21, 2024</p>
+      <p class="date">September 30, 2024</p>
     </div>
   </div>
   
@@ -242,9 +260,6 @@ window.Quarto = {
 \newcommand{\Aij}{ A_{[i,j]}}
 \newcommand{\ten}{\small\text{tensor}}
 \newcommand{\sym}{\small\text{symmetric}}
-\newcommand{\flat}[1]{\text{flat}\left(#1\right)}
-\newcommand{\stab}{\text{stab}}
-\newcommand{\orbit}{\text{orbit}}
 \]</span></p>
 </div>
 <style>
@@ -279,115 +294,398 @@ details[open] {
   padding: 8px; /* Padding inside the details for content alignment */
 }
 </style>
-<p>In our previous article, we introduced symmetric power transformers, which are a variant of linear transformers with an embedding function based on the theory of symmetric tensors. We demonstrated that when using a context size of <span class="math inline">\(4096\)</span> on the LongCrawl64 dataset, the symmetric power transformer successfully closes the performance gap to classic softmax transformers using a tractably-small state. Specifically, at context size <span class="math inline">\(4096\)</span> a symmetric power transformer with <span class="math inline">\(p=4\)</span> satisfies two desired properties: (1) performance matches that of a softmax transformer baseline and (2) has a state size small enough to be tractable (<span class="math inline">\(\leq\)</span> 80 GB).</p>
-<p>While having a small state size allows for efficient training and inference, this capacity constraint poses a fundamental limitation. A symmetric power transformer with small state size can store only a small fraction of the information that a softmax transformer stores. Consequently, a model which naively tries to incorporate all information from a context into its state will suffer from poor performance when the context size is large. In fact, we see that the <span class="math inline">\(p=4\)</span> symmetric power transformer no longer matches the softmax transformer performance when the context size is <span class="math inline">\(65536\)</span>. When using a smaller symmetric power (<span class="math inline">\(p=2\)</span>), the symmetric power transformer performance does not match that of a softmax performer even at the smaller context size of <span class="math inline">\(4096\)</span>.</p>
+<!-- # Conformal embeddings: a unification of data dependent gating and RoPE -->
+<section id="section" class="level1 page-columns page-full">
+<h1></h1>
+<p>In a previous <a href="https://manifestai.com/articles/symmetric-power-transformers/">article</a>, we introduced symmetric power transformers, which are a variant of linear transformers with an embedding function based on the theory of symmetric tensors. We demonstrated that when using a context size of <span class="math inline">\(4096\)</span> on the LongCrawl64 dataset, the symmetric power transformer successfully closes the performance gap to classic softmax transformers using a tractably-small state. Specifically, at context size <span class="math inline">\(4096\)</span> a symmetric power transformer with <span class="math inline">\(p=4\)</span> satisfies two desired properties: (1) performance matches that of a softmax transformer baseline and (2) has a state size small enough to be tractable (<span class="math inline">\(\leq\)</span> <span class="math inline">\(80\)</span> GB).</p>
+<p>While having a recurrent formulation allows for efficient training and inference (training cost is linear instead of quadratic and inference cost is constant instead of linear), the capacity constraint on the recurrent state poses a fundamental limitation. A symmetric power transformer with a finite dimensional state size can only store a small fraction of the information that a softmax transformer stores. Since symmetric power transformers don’t have any easy way to erase information in their states, one might worry that they might suffer from poor performance when the context size is large. Indeed, we see that this issue emerges in two ways: (1) at training time and (2) at inference time.</p>
+<p><strong>1. At training time.</strong> Symmetric power transformers suffer degraded performance compared to the softmax baseline as the context size grows. We see this trend begin to emerge when the symmetric power <span class="math inline">\(p = 4\)</span>, and it occurs at smaller context sizes when <span class="math inline">\(p=2\)</span>.</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="410" src="plots/relative_loss_softmax_vs_sympow_dropdown.html">
+</iframe>
+</div>
+<p>It is evident that the effect is more pronounced for the p=2 (100M state size) model than the p=4 (13B state size). But solving this poor scaling of the training context size will be important even for the large models if we want to push them to millions of tokens in the context.</p>
+<p>In the linear transformer literature, gating has been shown to help with this problem <span class="citation" data-cites="gu2023mamba"><a href="#ref-gu2023mamba" role="doc-biblioref">[1]</a></span>, <span class="citation" data-cites="yang2023gated"><a href="#ref-yang2023gated" role="doc-biblioref">[2]</a></span>, <span class="citation" data-cites="dao2024transformers"><a href="#ref-dao2024transformers" role="doc-biblioref">[3]</a></span>, <span class="citation" data-cites="sun2024you"><a href="#ref-sun2024you" role="doc-biblioref">[4]</a></span>. Gating allows the network to erase some of the information that is placed on the state. A common approach is to set a different rate of forgetting per head <span class="citation" data-cites="sun2023retentive"><a href="#ref-sun2023retentive" role="doc-biblioref">[5]</a></span>.</p>
+<p><strong>2. At inference time.</strong> If we evaluate the ability of a trained model to make predictions at different context lengths (including ones longer than the ones used during training), we see that there is hardly any ability to generalize beyond the training context. The following contextwise plot shows just that. Following our previous <a href="https://manifestai.com/articles/compute-optimal-context-size">article</a>, it shows the average loss at different context lengths. The training context size is <span class="math inline">\(16384\)</span> which is indicated by the dashed red line.</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="400" src="plots/context_wise_scaling_plot_train_context_16k_softmax_vs_sympow.html">
+</iframe>
+</div>
+<p>In the transformer literature, one approach has become widely adopted to remediate this problem: Alibi embeddings [] have been shown to make transformers generalize well beyond the training context size. Surprisingly, it turns out that Alibi and gating are mathematically equivalent. When we think of standard transformers as linear transformers using an infinite dimensional embedding function (section X gives more details). Then, the linear bias of Alibi corresponds exactly to multiplicative gating on this infinite dimensional state. This gives us hope that we can</p>
+<p>One important thing to keep in mind is that any architectural modification to a linear transformer variant must be compatible with both, the recurrent and attention formulations. We need to do this when we introduce gating, and we also need to do it for rotary embeddings.</p>
 
 <div class="no-row-height column-margin column-container"><div class="">
-<div style="margin-top: 100px;">
-<p>Note that a symmetric power transformer with <span class="math inline">\(p=2\)</span> has a state size that is <span class="math inline">\(0.027\%\)</span> of the state size with <span class="math inline">\(p=4\)</span>.</p>
+<p>In our previous article we briefly discussed the fact symmetric power transformers are compatible with rotary embeddings, but we didn’t expand on the recurrent implementation of rotary embeddings.</p>
+</div></div><p>In this article, we make the following contributions:</p>
+<ul>
+<li>We apply learned (and data dependent) multiplicative gating developed in prior work <span class="citation" data-cites="dao2024transformers"><a href="#ref-dao2024transformers" role="doc-biblioref">[3]</a></span> to symmetric power transformers. We describe how to implement gating in both the attention and recurrent forms of the symmetric power transformer architecture.</li>
+<li>We discuss how to implement rotary embeddings with symmetric power transformers in both, the attention and recurrent formulations.</li>
+<li>We introduce learned and data dependent rotary embeddings by allowing the model to learn adjustments to the standard rotations applied at each time step.</li>
+<li>We highlight that the ideas of gating and rotary embedings can be conceptually unified into a single object: a conformal transformation of the state. This unification does not only hold for our sympow transformers, we’ll see that any classic transformer with rotary embeddings and Alibi can be thought of as an RNN with an infinite dimensional state that has a conformal transformation.</li>
+</ul>
+<p>All of these ideas combine to form the conformal symmetric power tranformer, which we call <strong>conformal-sympow</strong>. Our experiments on the Longcrawl64 dataset demonstrate that conformal-sympow further improves the performance of sympow, especially for longer context lengths. You can see that it doesn’t suffer from the degraded scaling of training context:</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="410" src="plots/relative_loss_softmax_vs_conformal_sympow_dropdown.html">
+</iframe>
 </div>
-</div></div><p>TODO: Include 2 plots here. One shows the gap between symmetric power (p=4) and softmax with context size 65536. The second shows the gap between symmetric power (p=2) and softmax with context size 4096.</p>
-<ul>
-<li>X-axis: Train steps</li>
-<li>Y-axis: Loss</li>
-<li>Methods: softmax, sympow</li>
-</ul>
-<p>TODO: Include plot here. Purpose: show that relative loss increases as context size increases.</p>
-<ul>
-<li>X-axis: context size (values: 1024, 4096, 16384, 65536)</li>
-<li>Y-axis: Relative loss (sympow / softmax) at 50k steps.</li>
-<li>Methods: Softmax, Sym Pow with p=4</li>
-<li>We expect to see that there is a linear increase in relative loss as context size increases multiplicatively.</li>
-</ul>
-<p>In this article, we explore two optimizations to the symmetric power transformer that more effectively maximize the utility of the limited state capacity. The first is learning a gating mechanism so that the model can decide information to store. Gating allows the model to selectively forget information that is no longer relevant, freeing up space for injesting new information.</p>
-<p>The second is learning adjustments to rotary embeddings to decide in embedding space information should be stored. Applying rotations with varying magnitude may allow the model to store some information densely in embedding space while other information further apart, making information more easily retrievable.</p>
-<p><strong>TODO: Write a section on the general formulation for transformations to the queries and keys in the attention formulation and the corresponding recurrent state update form.</strong></p>
-<p>Desired properties for attention:</p>
-<ul>
-<li>Set symmetric computation</li>
-<li>Translation invariance</li>
-</ul>
-<p>General formulation: something like <span class="math display">\[\alpha e^{i \theta}\]</span></p>
-<p>Question: Where should such a section be placed?</p>
-<section id="gating" class="level2">
-<h2 class="anchored" data-anchor-id="gating">1. Gating</h2>
-<p>In linear transformers, gating is a mechanism used to forget information in the model’s internal state. Gating provides two key benefits, particularly when the context size is large:</p>
-<ul>
-<li><strong>Efficient Memory Utilization.</strong> Given the limited capacity of a model’s internal state, it cannot retain all information from long sequences. Gating helps the model prioritize what information to retain and what information to discard, keeping only relevant information from past tokens.</li>
-<li><strong>Improved Optimization.</strong> Without gating, the gradient of the loss with respect to individual token embeddings may become smaller as context length increases because the contributions of each token to the overall output are averaged over a larger number of tokens.</li>
-</ul>
-<p>In the simplest form of multiplicative gating, at each time step the state is multiplied by a fixed scalar <span class="math inline">\(\gamma \in (0, 1)\)</span>. In the recurrent form of a linear transformer, this can be written as the following: <span class="math display">\[
-S_i = \gamma S_{i-1} + V_i \phi(K_i)^T
+<p>And, at inference time generalizes well beyond the training context:</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="400" src="plots/context_wise_scaling_plot_train_context_16k_softmax_vs_conformal_sympow.html">
+</iframe>
+</div>
+<p>We are finally happy with this architecture. Our next post will bring everything together by implementing conformal-sympow efficiently with its recurrent formulation.</p>
+<section id="symmetric-power-transformers" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="symmetric-power-transformers">1. Symmetric Power Transformers</h2>
+<p>We begin with a high level overview of symmetric power transformers. The inputs to the layer are sequences of <span class="math inline">\(Q_i, K_i, V_i \in \R^d\)</span> of queries, keys, and values, where <span class="math inline">\(i\)</span> ranges from <span class="math inline">\(1\)</span> to the sequence length <span class="math inline">\(t\)</span>. The outputs are a sequence <span class="math inline">\(Y_i\in \R^d\)</span>. In the <em>attention formulation</em>, the formula for the output vectors is: <span class="math display">\[
+Y_i = \sum_{j=1}^i A_{ij} V_j \qquad A_{ij}  = \frac{B_{ij}}{\sum_{k=1}^i B_{ik}} \qquad B_{ij} = (Q_i^T K_j)^p
+\qquad \text{(sympow)}
+\]</span> We refer to <span class="math inline">\(A_{ij}\)</span> as the attention scores and <span class="math inline">\(B_{ij}\)</span> as the preattention stores (mirroring the preactivation/activation lanugage often use to desrive the hidden values of an MLP before and after the nonlinearity).</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>It is important that the power <span class="math inline">\(p\)</span> is even because that guarantees the denominator is positive, which makes <span class="math inline">\(A_{i1}, \cdots, A_{ii}\)</span> a valid probability distribution. In turn, this makes the outputs <span class="math inline">\(Y_i\)</span> a convex combinatoin of <span class="math inline">\(V_1, \cdots, V_i\)</span>.</p>
+</div></div><p>The exact same outputs <span class="math inline">\(Y_i\)</span> can be computed via a <em>recurrent formulation</em>. Doing so invovles an embedding function <span class="math inline">\(\phi^p : \R^d \to \R^D\)</span>. The vector <span class="math inline">\(\phi^p(k)\)</span> contains the same information as <span class="math inline">\({k\otimes \cdots \otimes k}\)</span>, repeatedly taking tensor product <span class="math inline">\(p\)</span> times. But it does so much more efficiently because it removes a lot of symmetry in the tensor product. Thus <span class="math inline">\(D &lt;&lt; d^p\)</span>. Using this embedding function, we can write the recurrent equations: <span class="math display">\[
+Y_{i} = \frac{S_i \phi^p(Q_i)}{Z_i \phi^p(Q_i)} \qquad Z_i = Z_{i-1} + \phi^p(K_i)^T \qquad S_i = S_{i-1} + V_i \phi^p(K_i)^T
+\]</span> where <span class="math inline">\(Z_0\)</span> and <span class="math inline">\(S_0\)</span> are <span class="math inline">\(\mathcal 0\)</span> vectors in their respective spaces. Since <span class="math inline">\(S_i \in \R^{d \times D}\)</span> and <span class="math inline">\(Z_i \in \R^{D}\)</span>, the size of the state is <span class="math inline">\(D(d+1)\)</span>.</p>
+<p>These two forms give rise to a variety of algorithms for training linear transformers, with differing computational properties. <a href="https://manifestai.com/articles/linear-transformers-are-faster/">Read our earlier article on linear transformers for a detailed explanation.</a></p>
+<section id="rotary-embeddings-rope" class="level3">
+<h3 class="anchored" data-anchor-id="rotary-embeddings-rope">1.1 Rotary embeddings (RoPE)</h3>
+<p>In our previous <a href="https://manifestai.com/articles/symmetric-power-transformers/">post</a> on symmetric power transformers, we briefly discussed that even symmetric power transformers were compatible with RoPE. In this section, we will give the issue the proper discussion it deserves by deriving the attention and recurrent implementations.</p>
+<p>Rotary embeddings <span class="citation" data-cites="su2024roformer"><a href="#ref-su2024roformer" role="doc-biblioref">[6]</a></span> encode time information by rotating the keys and queries by an amount proportional to their corresponding timestep. The rotation matrix <span class="math inline">\(R\in \R^{d\times d}\)</span> tells us how much we want to rotate every timestep, so that: <span class="math display">\[
+Q'_{i} = R^i Q_i \qquad K'_j = R^j K_j
+\]</span> Then the preattention is changed to: <span class="math display">\[
+B_{ij} = \left({Q'_{i}}^T K'_j \right)^p = \left({Q_{i}}^T (R^{i-j})^T K_j \right)^p
+\qquad \text{(sympow rotary)}
+\]</span> It is evident that the effect of rotation of the embeddings is <em>relative</em> because it modulates interaction between <span class="math inline">\(Q_i\)</span> and <span class="math inline">\(K_j\)</span> depending only on the time difference <span class="math inline">\(i-j\)</span>.</p>
+<p>The rotation matrix <span class="math inline">\(R\)</span> is constructed in a very specific way. We start with some range of rotation rates <span class="math inline">\(\theta_1, \theta_2, \cdots, \theta_{\frac d 2}\)</span> defined by the formula <span class="math inline">\(\theta_i = \cdots\)</span>. The vector <span class="math inline">\(\theta\)</span> contains these rotation rates. Then, the rotation matrix is <span class="math display">\[\small
+R(\theta) = \begin{pmatrix}
+\cos(\theta_1) &amp; -\sin(\theta_1) &amp; 0 &amp; 0 &amp; \cdots &amp; 0 &amp; 0 \\
+\sin(\theta_1) &amp; \cos(\theta_1)  &amp; 0 &amp; 0 &amp; \cdots &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \cos(\theta_2) &amp; -\sin(\theta_2) &amp; \cdots &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \sin(\theta_2) &amp; \cos(\theta_2)  &amp; \cdots &amp; 0 &amp; 0 \\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; \cdots &amp; \cos(\theta_{d/2}) &amp; -\sin(\theta_{d/2}) \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; \cdots &amp; \sin(\theta_{d/2}) &amp; \cos(\theta_{d/2})
+\end{pmatrix}
 \]</span></p>
-<p>In the corresponding attention formulation, the attention score <span class="math inline">\(A_{ij}\)</span> between the <span class="math inline">\(i\)</span>-th query and <span class="math inline">\(j\)</span>-th key is computed as follows: <span class="math display">\[
-A_{ij}  = \frac{ \gamma^{(i-j)}  \phi(Q_i)^T \phi(K_j)}{\sum_{k=1}^i \gamma^{(i-k)} \phi(Q_i)^T \phi(K_k) }
-\]</span> The amount by which each key affects the output is determined by how far in the past the key is relative to the query. Since using a fixed <span class="math inline">\(\gamma \in (0, 1)\)</span> leads to exponential decay, the influence of keys from the distant past will be near zero.</p>
-<p>When using a symmetric power transformer with power <span class="math inline">\(p\)</span>, the attention score becomes <span class="math display">\[
-A_{ij}  = \frac{ \gamma^{(i-j)}  (Q_i^T K_j)^p}{\sum_{k=1}^i \gamma^{(i-k)} (Q_i^T K_k)^p }
-\]</span></p>
-<p>The corresponding recurrent state update is <span class="math display">\[
-S_i = \gamma S_{i-1} + V_i \phi_{\text{TP}}(K_i)^T
-\]</span></p>
-<p>where <span class="math inline">\(\phi_{\text{TP}}\)</span> is the symmetric power embedding function which applied tensor product <span class="math inline">\(p\)</span> times. That is, for a vector <span class="math inline">\(x \in \mathbb{R}^d\)</span>,</p>
-<p><span class="math display">\[\phi_{\text{TP}}(x) = \text{flat} \left( x \otimes x \otimes x \dots \otimes x \right) = \text{flat} \left( \bigotimes_{i=1}^{p} x \right)\]</span></p>
-<section id="learned-gating" class="level3">
-<h3 class="anchored" data-anchor-id="learned-gating">Learned Gating</h3>
-<p>Rather than using fixed gating, allowing each head in the model to learn its own gating values can be beneficial. Some heads may learn to store information from the distant past whereas other heads may learn to only retain recent information. Allowing gating to be input-dependent allows for further flexibility since inputs will modulate how much information from the past should be retained or discarded. Using learned rather than fixed gating values has been thoroughly explored in prior work <span class="citation" data-cites="dao2024transformers"><a href="#ref-dao2024transformers" role="doc-biblioref">[1]</a></span>, <span class="citation" data-cites="sun2024you"><a href="#ref-sun2024you" role="doc-biblioref">[2]</a></span>, <span class="citation" data-cites="gu2023mamba"><a href="#ref-gu2023mamba" role="doc-biblioref">[3]</a></span>, <span class="citation" data-cites="yang2023gated"><a href="#ref-yang2023gated" role="doc-biblioref">[4]</a></span>. In this article, we use input-dependent scalar gating, where at each time step, the value of gating to apply is a learned function of the input <span class="citation" data-cites="dao2024transformers"><a href="#ref-dao2024transformers" role="doc-biblioref">[1]</a></span>. We replace the fixed scalar <span class="math inline">\(\gamma\)</span> with an input-dependent scalar <span class="math inline">\(\gamma_i = \sigma(x_i W_\gamma)\)</span> where <span class="math inline">\(W_\gamma \in \mathbb{R}^{d \times 1}\)</span>.</p>
-<p>When using symmetric power attention with power <span class="math inline">\(p\)</span>, the attention score is <span class="math display">\[
-A_{ij}  = \frac{ (\Pi_{m=j+1}^i \gamma_m)  (Q_i^T K_j)^p}{\sum_{k=1}^i (\Pi_{m=k+1}^i \gamma_m) (Q_i^T K_k)^p }
-\]</span></p>
-<p>The recurrent state update is</p>
+<p>When multiplying a query or key vector by this rotation matrix, each pair of dimensions indexed by <span class="math inline">\(2j - 1\)</span> and <span class="math inline">\(2j\)</span> for <span class="math inline">\(j \in \{1, 2, ..., \frac{d}{2} \}\)</span> is rotated by a different amount <span class="math inline">\(\theta_j\)</span>. Rotaing each pair by a different angle helps break symmetry and increases the expressiveness of the positional encodings.</p>
+<p>A computational advantage of using rotation matrices of this form is that <span class="math inline">\(R(\theta)^k = R(k \theta)\)</span>, which massively simplifies the cost of computing all the <span class="math inline">\(Q'_i\)</span> and <span class="math inline">\(K'_j\)</span>.</p>
+<details>
+<summary>
+Expand to see a proof of this fact
+</summary>
+<p>We are given a block diagonal rotation matrix <span class="math inline">\(R(\theta)\)</span>, where each <span class="math inline">\(2 \times 2\)</span> block corresponds to a rotation by some angle <span class="math inline">\(\theta_i\)</span>:</p>
 <p><span class="math display">\[
-S_i = \gamma_i S_{i-1} + V_i \phi_\text{TP}(K_i)^T
+R(\theta) = \begin{pmatrix}
+\cos(\theta_1) &amp; -\sin(\theta_1) &amp; 0 &amp; 0 &amp; \cdots &amp; 0 &amp; 0 \\
+\sin(\theta_1) &amp; \cos(\theta_1)  &amp; 0 &amp; 0 &amp; \cdots &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \cos(\theta_2) &amp; -\sin(\theta_2) &amp; \cdots &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; \sin(\theta_2) &amp; \cos(\theta_2)  &amp; \cdots &amp; 0 &amp; 0 \\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; \cdots &amp; \cos(\theta_{d/2}) &amp; -\sin(\theta_{d/2}) \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; \cdots &amp; \sin(\theta_{d/2}) &amp; \cos(\theta_{d/2})
+\end{pmatrix}.
 \]</span></p>
-<p>TODO: Include 2 plots here which whow show gating helps with both performance and with optimization. One shows the gap between symmetric power (p=4) with and without gating and softmax with context size 65536. The second shows the gap between symmetric power (p=2) with and without gating and softmax with context size 4096.</p>
-<ul>
-<li>X-axis: Train steps</li>
-<li>Y-axis: Loss</li>
-<li>Methods: softmax, sympow, sympow + gating</li>
-</ul>
-<form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
-  <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
-  Subscribe to be notified of new posts:
-  </label>
-  <input style="width: 35%;" type="email" name="email" id="bd-email" placeholder="Email">
-  
-  <input style="width: 80px;" type="submit" value="Subscribe">
-</form>
+<p>We aim to prove that <span class="math inline">\(R(\theta)^k = R(k \theta)\)</span>, where <span class="math inline">\(k\)</span> is a positive integer, and <span class="math inline">\(k \theta = (k \theta_1, k \theta_2, \dots, k \theta_{d/2})\)</span>.</p>
+<p>Each <span class="math inline">\(2 \times 2\)</span> block of the matrix <span class="math inline">\(R(\theta)\)</span> represents a 2D rotation matrix:</p>
+<p><span class="math display">\[
+R(\theta_i) = \begin{pmatrix} \cos(\theta_i) &amp; -\sin(\theta_i) \\ \sin(\theta_i) &amp; \cos(\theta_i) \end{pmatrix}.
+\]</span></p>
+<p>We begin by proving that <span class="math inline">\(R(\theta_i)^k = R(k \theta_i)\)</span> for a single 2D rotation matrix <span class="math inline">\(R(\theta_i)\)</span>.</p>
+<p>Let’s first compute the square of the matrix <span class="math inline">\(R(\theta_i)\)</span>:</p>
+<p><span class="math display">\[
+R(\theta_i)^2 = R(\theta_i) R(\theta_i) = \begin{pmatrix} \cos(\theta_i) &amp; -\sin(\theta_i) \\ \sin(\theta_i) &amp; \cos(\theta_i) \end{pmatrix} \begin{pmatrix} \cos(\theta_i) &amp; -\sin(\theta_i) \\ \sin(\theta_i) &amp; \cos(\theta_i) \end{pmatrix}.
+\]</span></p>
+<p>Multiplying these two matrices gives:</p>
+<p><span class="math display">\[
+R(\theta_i)^2 = \begin{pmatrix}
+\cos(\theta_i)\cos(\theta_i) - \sin(\theta_i)\sin(\theta_i) &amp; -(\cos(\theta_i)\sin(\theta_i) + \sin(\theta_i)\cos(\theta_i)) \\
+\sin(\theta_i)\cos(\theta_i) + \cos(\theta_i)\sin(\theta_i) &amp; \cos(\theta_i)\cos(\theta_i) - \sin(\theta_i)\sin(\theta_i)
+\end{pmatrix}.
+\]</span></p>
+<p>Using the trigonometric identities for double angles: <span class="math display">\[
+\cos(2\theta_i) = \cos^2(\theta_i) - \sin^2(\theta_i),
+\]</span> <span class="math display">\[
+\sin(2\theta_i) = 2\sin(\theta_i)\cos(\theta_i),
+\]</span> we obtain:</p>
+<p><span class="math display">\[
+R(\theta_i)^2 = \begin{pmatrix} \cos(2\theta_i) &amp; -\sin(2\theta_i) \\ \sin(2\theta_i) &amp; \cos(2\theta_i) \end{pmatrix}.
+\]</span></p>
+<p>Thus, <span class="math inline">\(R(\theta_i)^2\)</span> is the matrix that rotates by angle <span class="math inline">\(2\theta_i\)</span>.</p>
+<p>Now, we extend this to higher powers of <span class="math inline">\(R(\theta_i)\)</span>. By induction, multiplying <span class="math inline">\(R(\theta_i)\)</span> <span class="math inline">\(k\)</span> times results in a total rotation by <span class="math inline">\(k \theta_i\)</span>:</p>
+<p><span class="math display">\[
+R(\theta_i)^k = \begin{pmatrix} \cos(k\theta_i) &amp; -\sin(k\theta_i) \\ \sin(k\theta_i) &amp; \cos(k\theta_i) \end{pmatrix}.
+\]</span></p>
+<p>Thus, we have shown that:</p>
+<p><span class="math display">\[
+R(\theta_i)^k = R(k\theta_i).
+\]</span></p>
+<p>Now consider the full block diagonal matrix <span class="math inline">\(R(\theta)\)</span>. Since each block <span class="math inline">\(R(\theta_i)\)</span> is independent of the others, the <span class="math inline">\(k\)</span>-th power of the block diagonal matrix <span class="math inline">\(R(\theta)\)</span> is simply the <span class="math inline">\(k\)</span>-th power of each <span class="math inline">\(2 \times 2\)</span> block. That is,</p>
+<p><span class="math display">\[
+R(\theta)^k = \begin{pmatrix}
+R(\theta_1)^k &amp; 0 &amp; \cdots &amp; 0 \\
+0 &amp; R(\theta_2)^k &amp; \cdots &amp; 0 \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+0 &amp; 0 &amp; \cdots &amp; R(\theta_{d/2})^k
+\end{pmatrix}.
+\]</span></p>
+<p>Using the result from Step 3 for each block, we get:</p>
+<p><span class="math display">\[
+R(\theta)^k = \begin{pmatrix}
+R(k \theta_1) &amp; 0 &amp; \cdots &amp; 0 \\
+0 &amp; R(k \theta_2) &amp; \cdots &amp; 0 \\
+\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+0 &amp; 0 &amp; \cdots &amp; R(k \theta_{d/2})
+\end{pmatrix}.
+\]</span></p>
+<p>This is equivalent to the rotation matrix <span class="math inline">\(R(k\theta)\)</span>, where <span class="math inline">\(k\theta = (k\theta_1, k\theta_2, \dots, k\theta_{d/2})\)</span>.</p>
+</details>
+<p>Now we want to find the recurrent formulation of rotary embeddings with symmetric power transformers. A simple way we can do that is by including one extra vector in the recurrent state which is now a tuple <span class="math inline">\((S, Z, \mu)\)</span>, where <span class="math inline">\(\mu \in \R^{\frac d 2}\)</span>. The recurrent equations are given by <!--
+$$
+Z_i = Z_{i-1} + \phi^p(K'_i)^T \qquad S_i = S_{i-1} + V_i \phi^p(K'_i)^T \qquad \mu_i = \mu_{i-1} + \theta
+$$
+--></p>
+<p><span class="math display">\[
+Z_i = Z_{i-1} + \phi^p(R(\mu_i) K_i)^T \qquad S_i = S_{i-1} + V_i \phi^p(R(\mu_i) K_i)^T \qquad \mu_i = \mu_{i-1} + \theta
+\]</span></p>
+<p>Note we rotate the keys by <span class="math inline">\(R(\mu_i)\)</span> before using them.</p>
+<p>Given <span class="math inline">\(S_i\)</span> and <span class="math inline">\(Z_i\)</span>, the outputs are the same as before, except that we rotate the queries by <span class="math inline">\(R(\mu)\)</span> before using them: <span class="math display">\[
+Y_{i} = \frac{S_i \phi^p( R(\mu_i) Q_i)}{Z_i \phi^p( R(\mu_i) Q_i)}
+\]</span></p>
+<details>
+<summary>
+Expand for a proof of the equivalence between the state and recurrent formulations
+</summary>
+<p>We begin by writing the output <span class="math inline">\(Y_i\)</span> at time step <span class="math inline">\(i\)</span> in the attention formulation. For notational simplicity, let <span class="math inline">\(C_i = \sum_{k=1}^i (Q_i'^T K_k')^p = \sum_{k=1}^i \phi^p(Q_i')^T \phi^p(K_k')\)</span>.</p>
+<p><span class="math display">\[
+\begin{align}
+Y_i &amp;= \sum_{j=1}^i \frac{\left( Q_i^T (R^{i-j})^T K_j\right) ^p V_j}{C_i} \\
+    &amp;= \sum_{j=1}^i \frac{\left( Q_i^T (R^i)^T R^j K_j\right)^p V_j}{C_i} \\
+    &amp;= \sum_{j=1}^i \frac{\left(Q_i^T R(\mu_i)^T R(\mu_j) K_j\right)^p V_j}{C_i} \\
+    &amp;= \sum_{j=1}^i \frac{\left((R(\mu_i) Q_i)^T R(\mu_j) K_j\right)^p V_j}{C_i} \\
+    &amp;= \sum_{j=1}^i \frac{\left(\phi^p(R(\mu_i) Q_i)^T \phi^p(R(\mu_j) K_j)\right) V_j}{C_i} \\
+    &amp;= \sum_{j=1}^i \frac{V_j \phi^p(R(\mu_j) K_j)^T \phi^p(R(\mu_i) Q_i)}{C_i} \\
+    &amp;= \frac{\left( \sum_{j=1}^i V_j \phi^p(R(\mu_j) K_j)^T \right)  \phi^p(R(\mu_i) Q_i) }{C_i} \\
+    &amp;= \frac{S_i  \phi^p(R(\mu_i) Q_i) }{Z_i \phi^p(R(\mu_i) Q_i)}
+\end{align}
+\]</span></p>
+<p>which is the reccurent formulation of the output <span class="math inline">\(Y_i\)</span>. The last line above uses the fact that</p>
+<p><span class="math display">\[
+\sum_{j=1}^i V_j \phi^p(R(\mu_j) K_j)^T = S_i
+\]</span></p>
+<p>and</p>
+<span class="math display">\[
+\begin{align}
+C_i &amp;= \sum_{k=1}^i \phi^p(Q_i')^T \phi^p(K_k') \\
+    &amp;= \sum_{k=1}^i \phi^p(R(\mu_i) Q_i)^T \phi^p(R(\mu_k) K_k) \\
+    &amp;= \sum_{k=1}^i \phi^p(R(\mu_k) K_k)^T \phi^p(R(\mu_i) Q_i) \\
+    &amp;= Z_i \phi^p(R(\mu_i) Q_i)
+\end{align}
+\]</span>
+</details>
+</section>
+</section>
+<section id="gating" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="gating">2. Gating</h2>
+<p>The basic idea of gating is that at each time step the state matrix <span class="math inline">\(S\in \R^{d \times D}\)</span> will be discounted by a scalar <span class="math inline">\(\gamma \in [0, 1]\)</span>. Discounting the state ``erases” past information stored in the state. This technique has been used extensively through the linear transformer literature <span class="citation" data-cites="peng2021random"><a href="#ref-peng2021random" role="doc-biblioref">[7]</a></span>, <span class="citation" data-cites="mao2022fine"><a href="#ref-mao2022fine" role="doc-biblioref">[8]</a></span>, <span class="citation" data-cites="katsch2023gateloop"><a href="#ref-katsch2023gateloop" role="doc-biblioref">[9]</a></span>. One common approach to implement gating is to manually pick a gating value for each head, usually using a range of large and small <span class="math inline">\(\gamma\)</span> for different heads to allow the model to keep track of short and long term interactions. But, naturally, the gating values can also be learnable parameters or even data dependent values, as has been thoroughly explored in prior work <span class="citation" data-cites="dao2024transformers"><a href="#ref-dao2024transformers" role="doc-biblioref">[3]</a></span>, <span class="citation" data-cites="sun2024you"><a href="#ref-sun2024you" role="doc-biblioref">[4]</a></span>, <span class="citation" data-cites="gu2023mamba"><a href="#ref-gu2023mamba" role="doc-biblioref">[1]</a></span>, <span class="citation" data-cites="yang2023gated"><a href="#ref-yang2023gated" role="doc-biblioref">[2]</a></span>.</p>
+<p>After exploring with a few variations of gating, including fixed, learnable and data dependent versions, we ended up converging to the technique used in <span class="citation" data-cites="dao2024transformers"><a href="#ref-dao2024transformers" role="doc-biblioref">[3]</a></span>. The discount value at timestep <span class="math inline">\(i\)</span> is <span class="math inline">\(\gamma_i = \sigma(W_\gamma X_i)\)</span> where <span class="math inline">\(\sigma\)</span> refers to the sigmoid function, <span class="math inline">\(W_\gamma \in \mathbb{R}^{d \times 1}\)</span> and <span class="math inline">\(X_i\)</span> are the input sequence we used to compute the keys, queries, and values (e.g.&nbsp;<span class="math inline">\(K_i = W_K X_i\)</span>). When using symmetric power attention with power <span class="math inline">\(p\)</span>, the recurrent state update is simply <span class="math display">\[
+Z_i = \gamma_i Z_{i-1} + \phi^p(K'_i)^T \qquad S_i = \gamma_i S_{i-1} + V_i \phi^p(K'_i)^T \qquad \mu_i = \mu_{i-1} + \theta
+\]</span> Recall that <span class="math inline">\(K'_i = R(\mu_i) K_i\)</span>.</p>
+<p>To write the attention formulation we define <span class="math inline">\(\beta_{ij} = \Pi_{k=j+1}^i \gamma_m\)</span>. Then, in the attention formulation, the preattention becomes <span class="math display">\[
+B_{ij} = \beta_{ij} \; ( {Q'_i}^T K'_j)^p
+\qquad \text{(sympow gated)}
+\]</span></p>
+<details>
+<summary>
+Expand for a derivation of the equivalence between the state and attention formulations
+</summary>
+<p>We begin by writing the output <span class="math inline">\(Y_i\)</span> at time step <span class="math inline">\(i\)</span> in the attention formulation. For notational simplicity, let <span class="math inline">\(C_i = \sum_{k=1}^i \beta_{ik} (Q_i'^T K_k')^p = \sum_{k=1}^i \beta_{ik} \phi^p(Q_i')^T \phi^p(K_k')\)</span>.</p>
+<p><span class="math display">\[
+\begin{align}
+Y_i &amp;= \sum_{j=1}^i \frac{\beta_{ij} \left(Q_i'^T K'_j\right)^p V_j}{C_i} \\
+    &amp;= \sum_{j=1}^i \frac{\beta_{ij} \left(\phi^p(Q'_i)^T \phi^p(K'_j)\right) V_j}{C_i} \\
+    &amp;= \sum_{j=1}^i \frac{\beta_{ij} V_j \phi^p(K'_j)^T \phi^p(Q'_i)}{C_i} \\
+    &amp;= \frac{\left( \sum_{j=1}^i \beta_{ij} V_j \phi^p(K'_j)^T \right)  \phi^p(Q'_i) }{C_i} \\
+    &amp;= \frac{S_i  \phi^p(Q'_i) }{Z_i \phi^p(Q'_i)}
+\end{align}
+\]</span></p>
+<p>which is the recurrent formulation of the output <span class="math inline">\(Y_i\)</span>. The last line above uses the fact that</p>
+<p><span class="math display">\[
+\sum_{j=1}^i \beta_{ij} V_j \phi^p(K'_j)^T = S_i
+\]</span></p>
+<p>and</p>
+<p><span class="math display">\[
+\begin{align}
+C_i &amp;= \sum_{k=1}^i \beta_{ik} \phi^p(Q_i')^T \phi^p(K_k') \\
+    &amp;= \sum_{k=1}^i \beta_{ik} \phi^p(K_k')^T \phi^p(Q_i') \\
+    &amp;= Z_i \phi^p(Q'_i)
+\end{align}
+\]</span></p>
+<p>We prove that <span class="math inline">\(S_i = \sum_{j=1}^i \beta_{ij} V_j \phi^p(K'_j)^T\)</span> by induction.</p>
+<p>As the base case, note that <span class="math inline">\(S_1 =  V_1 \phi^p(K'_1)^T\)</span></p>
+For the inductive step, suppose that for <span class="math inline">\(k &gt; 1\)</span>, <span class="math inline">\(S_k = \sum_{j=1}^k \beta_{kj} V_j \phi^p(K'_j)^T\)</span>. Then <span class="math display">\[
+\begin{align}
+S_{k+1} &amp;= \gamma_{k+1} S_k + V_{k+1}\phi^p(K'_{k+1})^T \\
+        &amp;= \gamma_{k+1} \left( \sum_{j=1}^k \beta_{kj} V_j \phi^p(K'_j)^T \right) + V_{k+1}\phi^p(K'_{k+1})^T \\
+        &amp;= \left( \sum_{j=1}^k \beta_{(k+1)j} V_j \phi^p(K'_j)^T \right) + V_{k+1}\phi^p(K'_{k+1})^T \\
+        &amp;= \sum_{j=1}^{k+1} \beta_{(k+1)j} V_j \phi^p(K'_j)^T
+\end{align}
+\]</span> This completes the inductive step.
+</details>
+<!--
+
+In the recurrent form of a symmetric power transformer, we just need to modify the recurrent equation as:
+$$
+S_i = \gamma S_{i-1} + V_i \phi^p(K_i)^T
+$$
+In the corresponding attention formulation, the attention score $A_{ij}$ between the $i$-th query and $j$-th key is computed as follows:
+$$
+B_{ij} = \gamma^{(i-j)}  (Q_i^T K_j)^p \qquad \text{(sympow fixed gated)}
+$$
+The amount by which each key affects the output is determined by how far in the past the key is relative to the query. Since using a fixed $\gamma \in (0, 1)$ leads to exponential decay, the influence of keys from the distant past will be near zero. 
+
+There are two reasonable ways we could try to implement gating:
+* inverse gating on the keys. Keep attention the same
+* similar to the mask
+
+The second option is the one we could get to work. The seoncd suffers from numerical stability. Gating can also be implemented in a numerally stable way.
+**TODO: Explain numerical stability. Add code snippet here.**
+
+Rather than using fixed gating, allowing each head in the model to learn its own gating values can be beneficial. Some heads may learn to store information from the distant past whereas other heads may learn to only retain recent information. Allowing gating to be input-dependent allows for further flexibility since inputs will modulate how much information from the past should be retained or discarded.
+
+-->
+<p>Let’s see what difference gating makes, and whether it solves the issues we encountered in the intro. We can look at the loss at the end of training on 400k documents. As we grow the train context size, gated sympow stays better than the baseline as far as we were able to test it!</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="410" src="plots/relative_loss_gating.html">
+</iframe>
+</div>
+<p>Improves optimization:</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="450" src="plots/train_loss_curves_gating.html">
+</iframe>
+</div>
+<p>Finally, we see that after adding learned gating, the symmetric power transformer is able to successfully generalize past the train context size.</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="400" src="plots/context_wise_scaling_plot_train_context_16k_gating.html">
+</iframe>
+</div>
+</section>
+<section id="learned-rotary-embeddings" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="learned-rotary-embeddings">3 Learned Rotary Embeddings</h2>
+<p>Even though the idea is kind of obvious, we didn’t find any examples of people learning the rotation rates. There are many ways we could do it. For example, the network could independently decide how much to rotate each of the 2D subspaces. But we found that a good way to implement it is for the network to output a scalar <span class="math inline">\(\beta_i = 1 + \text{tanh}(W_\beta X_i)\)</span> and use it to scale the fixed <span class="math inline">\(\theta\)</span> vectora that RoPE usually applies. In the recurrent formulation, this produces the equation <span class="math display">\[
+\mu_i = \mu_{i-1} + \beta_i \theta
+\]</span> and in the attention formulation <span class="math display">\[
+B_{ij} = \left(Q_i R(c_{ij}\theta) K_j \right)^p \qquad c_{ij} = \sum_{k=j+1}^i \beta_i  \qquad \text{(sympow learned rotary)}
+\]</span></p>
+<p>We can see that learning the rotary embeddings further improves the performance of sympow with fixed rotary embeddings:</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="410" src="plots/relative_loss.html">
+</iframe>
+</div>
+<p>and generalizes past the train context size:</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="400" src="plots/context_wise_scaling_plot_train_context_16k.html">
+</iframe>
+</div>
+<section id="full-training-curves" class="level3 page-columns page-full">
+<h3 class="anchored" data-anchor-id="full-training-curves">Full Training Curves</h3>
+<p>Here you can see all the training curves for p2 and p4 at different context lengths. You can also toggle which lines to show</p>
+<div class="column-body" style="text-align: center;">
+<iframe width="600" height="450" src="plots/train_loss_curves_all.html">
+</iframe>
+</div>
+</section>
+</section>
+<section id="conformal-state-transformations" class="level2">
+<h2 class="anchored" data-anchor-id="conformal-state-transformations">4. Conformal State Transformations</h2>
+<p><em>Note: this section has no practical implications, it just shows the concepts of gating and rotations can be unified into a single mathematical idea, not only for sympow transformers, but also for regular transformers with RoPE and Alibi. Those suffering from a mathematically unsophisticated mind might skip this section</em></p>
+<p>We refer to the combination of gating and rotary embeddings as conformal state transformation. The reason stems from this result. If <span class="math inline">\(P\in \R^{d\times d}\)</span> is a rotation matrix, then there exists another rotation matrix <span class="math inline">\(\bar P \in \R^{D \times D}\)</span> s.t. <span class="math display">\[
+\phi^p( P k) = \bar P \phi^p(k)
+\]</span></p>
+<details>
+<summary>
+Expand for a proof of this fact
+</summary>
+<p>Let <span class="math inline">\(V\)</span> be a vector space with dimension <span class="math inline">\(d\)</span> and basis vectors <span class="math inline">\(\{ v_1, v_2, \dots, v_d \}\)</span>, and let <span class="math inline">\(R \in \mathbb{R}^{d \times d}\)</span> be a rotation matrix. Define the linear map <span class="math inline">\(R' : V^{\otimes k} \to V^{\otimes k}\)</span> (the tensor product of <span class="math inline">\(k\)</span> copies of <span class="math inline">\(V\)</span>) by its action on the basis elements as <span class="math display">\[
+R'(v_{i_1} \otimes v_{i_2} \otimes \dots \otimes v_{i_k}) = (R v_{i_1}) \otimes (R v_{i_2}) \otimes \dots \otimes (R v_{i_k}) \quad \text{for all } i_1, i_2, \dots, i_k.
+\]</span> Then <span class="math inline">\(R' \in \mathbb{R}^{d^k \times d^k}\)</span> is a rotation matrix.</p>
+<p>We need to show that $ R’ $ satisfies the properties of a rotation matrix, namely: 1. <span class="math inline">\(R'\)</span> is an orthogonal matrix, i.e., <span class="math inline">\(R'^T R' = I\)</span>. 2. <span class="math inline">\(\det(R') = 1\)</span>, so that <span class="math inline">\(R'\)</span> represents a proper rotation.</p>
+<p><strong>Step 1: Orthogonality of <span class="math inline">\(R'\)</span></strong> Since <span class="math inline">\(R'\)</span> is defined by its action on the basis elements of <span class="math inline">\(V^{\otimes k}\)</span> as <span class="math display">\[
+R'(v_{i_1} \otimes v_{i_2} \otimes \dots \otimes v_{i_k}) = (R v_{i_1}) \otimes (R v_{i_2}) \otimes \dots \otimes (R v_{i_k}),
+\]</span> and <span class="math inline">\(R\)</span> is an orthogonal matrix, i.e., <span class="math inline">\(R^T R = I_d\)</span>, where <span class="math inline">\(I_d\)</span> is the identity matrix in <span class="math inline">\(\mathbb{R}^{d}\)</span>, we need to verify that <span class="math inline">\(R'\)</span> preserves the inner product in the tensor product space. The inner product of two basis elements <span class="math inline">\(v_{i_1} \otimes v_{i_2} \otimes \dots \otimes v_{i_k}\)</span> and <span class="math inline">\(v_{j_1} \otimes v_{j_2} \otimes \dots \otimes v_{j_k}\)</span> in <span class="math inline">\(V^{\otimes k}\)</span> is given by: <span class="math display">\[
+\langle v_{i_1} \otimes v_{i_2} \otimes \dots \otimes v_{i_k}, v_{j_1} \otimes v_{j_2} \otimes \dots \otimes v_{j_k} \rangle = \prod_{p=1}^{k} \langle v_{i_p}, v_{j_p} \rangle.
+\]</span> Applying <span class="math inline">\(R'\)</span> to this inner product, we get: <span class="math display">\[
+\langle R'(v_{i_1} \otimes \dots \otimes v_{i_k}), R'(v_{j_1} \otimes \dots \otimes v_{j_k}) \rangle = \prod_{p=1}^{k} \langle R v_{i_p}, R v_{j_p} \rangle.
+\]</span> Since <span class="math inline">\(R\)</span> is orthogonal, we have <span class="math inline">\(\langle R v_{i_p}, R v_{j_p} \rangle = \langle v_{i_p}, v_{j_p} \rangle\)</span> for each <span class="math inline">\(p\)</span>. Therefore, <span class="math inline">\(R'\)</span> preserves the inner product, meaning that <span class="math inline">\(R'\)</span> is an orthogonal matrix, i.e., <span class="math inline">\(R'^T R' = I_{d^k}\)</span>.</p>
+<strong>Step 2: Determinant of <span class="math inline">\(R'\)</span></strong> Next, we show that $ (R’) = 1 $. Since $ R’ = R R R $ (a $ k $-fold tensor product of $ R $ with itself), we can use the property of the determinant for tensor products of matrices. Specifically, if $ A $ and $ B $ are square matrices, then: <span class="math display">\[
+\det(A \otimes B) = \det(A)^{\dim(B)} \det(B)^{\dim(A)}.
+\]</span> In our case, since <span class="math inline">\(R' = R \otimes R \otimes \dots \otimes R\)</span>, we have: <span class="math display">\[
+\det(R') = \det(R)^{k \cdot d}.
+\]</span> Since <span class="math inline">\(R\)</span> is a rotation matrix in <span class="math inline">\(\mathbb{R}^d\)</span>, we know that <span class="math inline">\(\det(R) = 1\)</span>. Therefore: <span class="math display">\[
+\det(R') = 1^{k \cdot d} = 1.
+\]</span> Thus, <span class="math inline">\(R'\)</span> is a proper rotation matrix.
+</details>
+<p>Thus, rotating our keys and queries and then embedding them is equivalent to embedding them first and then appying a higher dimensional rotation.</p>
+<p>This fact can be used to get an alternative recurrent formulation for our symmetric power transformer with RoPE. Instead of keeping track of how much we’ve rotated from the begining to time <span class="math inline">\(i\)</span> with the variable <span class="math inline">\(\mu\)</span>, we can instead rotate our state matrix <span class="math display">\[
+S_i = S_{i-1} \bar R(\beta_i \theta) + V_i K_i^T
+\]</span></p>
+<p>And now, if we combine with gating, we get the recurrent equation <span class="math display">\[
+S_i = \gamma_i S_{i-1} \bar R(\beta_i\theta) + V_i K_i^T
+\]</span></p>
+<p>A matrix of the form <span class="math inline">\(C = \gamma R\)</span> is called a <a href="https://en.wikipedia.org/wiki/Conformal_linear_transformation">conformal linear transformation</a> because it preserves angles. Thus, the combination of rotation and gating is equivalent to transforming the state by right multiplying it with a conformal matrix.</p>
+<p>The exact same fact is true when we look at a standard transformer which uses RoPE and Alibi.</p>
+<details>
+<summary>
+Expand for a proof
+</summary>
+</details>
+
+
+
+</section>
 </section>
 
-</section>
-
-<div id="quarto-appendix" class="default"><section id="acknowledgments" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">Acknowledgments</h2><div class="quarto-appendix-contents">
-
-<p>We would like to thank …</p>
-
-
-
-</div></section><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
-<div id="ref-dao2024transformers" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[1] </div><div class="csl-right-inline">T. Dao and A. Gu, <span>“Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality,”</span> <em>arXiv preprint arXiv:2405.21060</em>, 2024.</div>
-</div>
-<div id="ref-sun2024you" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[2] </div><div class="csl-right-inline">Y. Sun <em>et al.</em>, <span>“You only cache once: Decoder-decoder architectures for language models,”</span> <em>arXiv preprint arXiv:2405.05254</em>, 2024.</div>
-</div>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
 <div id="ref-gu2023mamba" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[3] </div><div class="csl-right-inline">A. Gu and T. Dao, <span>“Mamba: Linear-time sequence modeling with selective state spaces,”</span> <em>arXiv preprint arXiv:2312.00752</em>, 2023.</div>
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">A. Gu and T. Dao, <span>“Mamba: Linear-time sequence modeling with selective state spaces,”</span> <em>arXiv preprint arXiv:2312.00752</em>, 2023.</div>
 </div>
 <div id="ref-yang2023gated" class="csl-entry" role="listitem">
-<div class="csl-left-margin">[4] </div><div class="csl-right-inline">S. Yang, B. Wang, Y. Shen, R. Panda, and Y. Kim, <span>“Gated linear attention transformers with hardware-efficient training,”</span> <em>arXiv preprint arXiv:2312.06635</em>, 2023.</div>
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">S. Yang, B. Wang, Y. Shen, R. Panda, and Y. Kim, <span>“Gated linear attention transformers with hardware-efficient training,”</span> <em>arXiv preprint arXiv:2312.06635</em>, 2023.</div>
+</div>
+<div id="ref-dao2024transformers" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">T. Dao and A. Gu, <span>“Transformers are SSMs: Generalized models and efficient algorithms through structured state space duality,”</span> <em>arXiv preprint arXiv:2405.21060</em>, 2024.</div>
+</div>
+<div id="ref-sun2024you" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">Y. Sun <em>et al.</em>, <span>“You only cache once: Decoder-decoder architectures for language models,”</span> <em>arXiv preprint arXiv:2405.05254</em>, 2024.</div>
+</div>
+<div id="ref-sun2023retentive" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[5] </div><div class="csl-right-inline">Y. Sun <em>et al.</em>, <span>“Retentive network: A successor to transformer for large language models,”</span> <em>arXiv preprint arXiv:2307.08621</em>, 2023.</div>
+</div>
+<div id="ref-su2024roformer" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[6] </div><div class="csl-right-inline">J. Su, M. Ahmed, Y. Lu, S. Pan, W. Bo, and Y. Liu, <span>“Roformer: Enhanced transformer with rotary position embedding,”</span> <em>Neurocomputing</em>, vol. 568, p. 127063, 2024.</div>
+</div>
+<div id="ref-peng2021random" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[7] </div><div class="csl-right-inline">H. Peng, N. Pappas, D. Yogatama, R. Schwartz, N. A. Smith, and L. Kong, <span>“Random feature attention,”</span> <em>arXiv preprint arXiv:2103.02143</em>, 2021.</div>
+</div>
+<div id="ref-mao2022fine" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[8] </div><div class="csl-right-inline">H. H. Mao, <span>“Fine-tuning pre-trained transformers into decaying fast weights,”</span> <em>arXiv preprint arXiv:2210.04243</em>, 2022.</div>
+</div>
+<div id="ref-katsch2023gateloop" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[9] </div><div class="csl-right-inline">T. Katsch, <span>“Gateloop: Fully data-controlled linear recurrence for sequence modeling,”</span> <em>arXiv preprint arXiv:2311.01927</em>, 2023.</div>
 </div>
 </div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@misc{buckman2024,
-  author = {Buckman, Jacob and Gelada, Carles and Kumar, Saurabh},
+  author = {Buckman, Jacob and Gelada, Carles and Kumar, Saurabh and
+    Zhang, Sean},
   publisher = {Manifest AI},
-  title = {Optimizing {Symmetric} {Power} {Transformers}},
-  date = {2024-09-21},
+  title = {Improving {Symmetric} {Power} {Transformers} with {Conformal}
+    {Transformations}},
+  date = {2024-09-30},
   langid = {en}
 }
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-buckman2024" class="csl-entry quarto-appendix-citeas" role="listitem">
 <div class="">J.
-Buckman, C. Gelada, and S. Kumar, <span>“Optimizing Symmetric Power
-Transformers.”</span> Manifest AI, Sep. 21, 2024.</div>
+Buckman, C. Gelada, S. Kumar, and S. Zhang, <span>“Improving Symmetric
+Power Transformers with Conformal Transformations.”</span> Manifest AI,
+Sep. 30, 2024.</div>
 </div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
