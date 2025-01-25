@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.5.57">
+<meta name="generator" content="quarto-1.5.54">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -153,6 +153,11 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/m-a-n-i-f-e-s-t/power-attention"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
     <a class="nav-link" href="https://discord.gg/aFsCgDraGP"> <i class="bi bi-discord" role="img">
 </i> 
 <span class="menu-text"></span></a>
@@ -224,12 +229,15 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 <section id="how-to-download-and-use-the-dataset" class="level3">
 <h3 class="anchored" data-anchor-id="how-to-download-and-use-the-dataset">1. How to download and use the dataset</h3>
 <p>The dataset is hosted on a Google Cloud bucket. The easiest way to download it is using <code>gsutil</code>, which can be installed with:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://sdk.cloud.google.com <span class="kw">|</span> <span class="fu">bash</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> init</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>To download, use:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="va">GSUTIL_PARALLEL_THREAD_COUNT</span><span class="op">=</span>5 <span class="va">GSUTIL_PARALLEL_PROCESS_COUNT</span><span class="op">=</span>5 <span class="ex">gsutil</span> <span class="at">-m</span> cp <span class="at">-r</span> gs://longcrawl64/ /local/path/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>Choose threads and processes as appropriate for your system.</p>
-<p>Once downloaded, the dataset can be used with <code>zarr</code>. Below is a simple dataloader, implementing the sampling patterns described in Section 3 of this article. Extend or adjust it to meet your needs.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> https://sdk.cloud.google.com <span class="kw">|</span> <span class="fu">bash</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>There are two data formats, one which is compatible with <a href="https://github.com/karpathy/nanoGPT/tree/master">nanoGPT</a>, and one which may be more generically useful (we use it for contextwise scaling experiments). To download, use one of the two following commands:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># nanoGPT format</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="va">GSUTIL_PARALLEL_THREAD_COUNT</span><span class="op">=</span>5 <span class="va">GSUTIL_PARALLEL_PROCESS_COUNT</span><span class="op">=</span>5 <span class="ex">gsutil</span> <span class="at">-m</span> cp <span class="at">-r</span> gs://longcrawl64/<span class="pp">*</span>.bin /local/path/</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Manifest AI format</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="va">GSUTIL_PARALLEL_THREAD_COUNT</span><span class="op">=</span>5 <span class="va">GSUTIL_PARALLEL_PROCESS_COUNT</span><span class="op">=</span>5 <span class="ex">gsutil</span> <span class="at">-m</span> cp <span class="at">-r</span> gs://longcrawl64/<span class="pp">*</span>.zarr /local/path/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Choose threads and processes as appropriate for your system. On big machines, 8 threads and 64 processes is typical. Note that the total size of the dataset in Manifest AI format is around 750GB. The nanoGPT format is a subset of the overall dataset, and is 100GB.</p>
+<p>Once downloaded, it is straightforward to train on longcrawl64 with nanoGPT. Simply place the .bin files in a folder and adjust <a href="https://github.com/karpathy/nanoGPT/blob/master/train.py#L115">the dataset path</a>.</p>
+<p>If you are not using nanoGPT, the second format of the dataset can likely be straightforwardly integrated with your existing codebase. This format is stored using <code>zarr</code>. Below is a simple dataloader, implementing the sampling patterns described below, in Section 3 of this article. Extend or adjust it to meet your needs.</p>
 <details>
 <summary>
 Expand for example dataloader code.
