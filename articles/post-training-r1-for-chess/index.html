@@ -324,9 +324,20 @@ window.Quarto = {
 <section id="partitioning" class="level3">
 <h3 class="anchored" data-anchor-id="partitioning">Partitioning</h3>
 <p>Next, we analyze <em>partitioning</em> strategies, which describe how we divide these large objects amongst the GPUs.</p>
-<p><strong>Mixture of Experts (MoE) and Tensor Parallel (TP).</strong> In our implementation, both expert parallel and tensor parallel share same device mesh to split the computation. Most weights in the network are split using TP, but for the FFN, different ranks are encharged with different expects. The main objects split with Tensor Parallel: * embeddings (sharded along vocab dimension) both for the netowork inputs and outputs (both of which share the same weights as it’s a common practice) * attention <span class="math inline">\(W_Q\)</span>, <span class="math inline">\(W_K\)</span> and <span class="math inline">\(W_V\)</span> (column sharded). Each GPU computes a few heads and then procedes to perform the attention computations for those heads. * attention output projection <span class="math inline">\(W_O\)</span>. (row sharded) * ffn.w1 (column sharded, if ffn is a dense layer) * ffn.w2 (row sharded, if ffn is a dense layer) * ffn.w3 (column sharded, if ffn is a dense layer)</p>
+<p><strong>Mixture of Experts (MoE) and Tensor Parallel (TP).</strong> In our implementation, both expert parallel and tensor parallel share same device mesh to split the computation. Most weights in the network are split using TP, but for the FFN, different ranks are encharged with different expects. The main objects split with Tensor Parallel:</p>
+<ul>
+<li>embeddings (sharded along vocab dimension) both for the netowork inputs and outputs (both of which share the same weights as it’s a common practice)</li>
+<li>attention <span class="math inline">\(W_Q\)</span>, <span class="math inline">\(W_K\)</span> and <span class="math inline">\(W_V\)</span> (column sharded). Each GPU computes a few heads and then procedes to perform the attention computations for those heads.</li>
+<li>attention output projection <span class="math inline">\(W_O\)</span>. (row sharded)</li>
+<li>ffn.w1 (column sharded, if ffn is a dense layer)</li>
+<li>ffn.w2 (row sharded, if ffn is a dense layer)</li>
+<li>ffn.w3 (column sharded, if ffn is a dense layer)</li>
+</ul>
 <p>The following diagram illustrates the idea of a tensor parallelized attention block. The idea is similar for FFN layers. <img src="img/tensor_parallel.png" class="img-fluid" alt="image"></p>
-<p>For expert parallel, we only shard the following components (experts): * ffn.experts (if ffn is an MoE layer)</p>
+<p>For expert parallel, we only shard the following components (experts):</p>
+<ul>
+<li>ffn.experts (if ffn is an MoE layer)</li>
+</ul>
 <p>In our implementation, all ranks across a given expert-parallel mesh or a tensor-parallel mesh receive the entire set of input activations. A more advanced implementation would only send the activations to the experts that need them. Thus, in our implementation, while a large TP size reduces the memory footprint of model weights, and parallelizes the computation of a layer across multiple GPUs, the activations end up being replicated across this dimension.</p>
 <p><strong>Pipeline Parallel (PP).</strong> As is standard in LLM training, we explore partitioning the weights and activations across depth and utilize pipeling strategies to reduce the amount of time GPUs are waiting for their inputs to become avaialbe. We use the Gpipe schedule implemented in <a href="https://github.com/pytorch/pytorch/blob/main/torch/distributed/pipelining/schedules.py#L572">pytorch</a>. Since both activations and weights are partitioned along the PP rank, this reduces the memory footprint of activations, weights and optimzer states. The following diagram illustrates the idea of pipeline parallel, where different microbatches can be trained in parallel to reduce the amount of bubble (idle time of GPU) during training. More sophisticated pipeline paralleism such as the <a href="https://github.com/deepseek-ai/DualPipe">DualPipe</a> algorithm allows each GPU to handle more than one “chunk” of the model, allowing for better GPU utilization.</p>
 <div class="quarto-figure quarto-figure-center">
