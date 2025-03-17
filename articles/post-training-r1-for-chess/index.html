@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.54">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jacob Buckman">
+<meta name="author" content="Joel Einbinder">
+<meta name="author" content="Alex Gajewski">
+<meta name="author" content="Carles Gelada">
+<meta name="author" content="Sean Zhang">
+<meta name="dcterms.date" content="2025-03-17">
+
+<title>Post-Training R1 for Chess – Manifest AI</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-V0D26E23Q3"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Post-Training R1 for Chess - Manifest AI">
+<meta property="og:description" content="Post-training R1 for Chess.">
+<meta property="og:image" content="/thumbnails/post-training-r1-for-chess.png">
+<meta property="og:site_name" content="Manifest AI">
+<meta name="twitter:title" content="Post-Training R1 for Chess - Manifest AI">
+<meta name="twitter:description" content="Post-training R1 for Chess.">
+<meta name="twitter:image" content="/thumbnails/post-training-r1-for-chess.png">
+<meta name="twitter:creator" content="@manifest__ai">
+<meta name="twitter:site" content="@manifest__ai">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="floating nav-fixed slimcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
+    </a>
+  </div>
+          <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/m-a-n-i-f-e-s-t/power-attention"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://discord.gg/aFsCgDraGP"> <i class="bi bi-discord" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/manifest__ai"> <i class="bi bi-twitter" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#chess-as-a-natural-language-problem" id="toc-chess-as-a-natural-language-problem" class="nav-link" data-scroll-target="#chess-as-a-natural-language-problem">Chess as a Natural Language Problem</a></li>
+  <li><a href="#post-training-of-deepseek-r1" id="toc-post-training-of-deepseek-r1" class="nav-link" data-scroll-target="#post-training-of-deepseek-r1">Post-Training of DeepSeek-R1</a>
+  <ul class="collapse">
+  <li><a href="#hardware" id="toc-hardware" class="nav-link" data-scroll-target="#hardware">Hardware</a></li>
+  <li><a href="#tensor-size" id="toc-tensor-size" class="nav-link" data-scroll-target="#tensor-size">Tensor size</a></li>
+  <li><a href="#partitioning" id="toc-partitioning" class="nav-link" data-scroll-target="#partitioning">Partitioning</a></li>
+  <li><a href="#cluster-requirements" id="toc-cluster-requirements" class="nav-link" data-scroll-target="#cluster-requirements">Cluster requirements</a></li>
+  <li><a href="#benchmarking" id="toc-benchmarking" class="nav-link" data-scroll-target="#benchmarking">Benchmarking</a></li>
+  </ul></li>
+  <li><a href="#empirical-results" id="toc-empirical-results" class="nav-link" data-scroll-target="#empirical-results">Empirical Results</a></li>
+  <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
+<!-- main -->
+<main class="content page-columns page-full" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Post-Training R1 for Chess</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jacob Buckman </p>
+             <p>Joel Einbinder </p>
+             <p>Alex Gajewski </p>
+             <p>Carles Gelada </p>
+             <p>Sean Zhang </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 17, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+
+<div class="no-row-height column-margin column-container"><div class="">
+
+</div></div><section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Large language models (LLMs) have emerged as a versatile technology capable of solving a wide range of problems. Any task that can be serialized – represented as a sequence of characters, words, or tokens – can be presented to an LLM, leveraging the vast amounts of computation and data used in its training in order to achieve the objective. But while the capabilities of these models are vast, they are not unlimited. LLMs are fundamentally constrained by the data that they have been exposed to during their training, the majority of which has typically been pulled from the public internet. Data for highly-specialized tasks (including many tasks of significant commercial relevance) is underrepresented, and LLMs are underpowered on these tasks as a result.</p>
+<p>A prototypical instance of this phenomenon can be found in the game of chess. <em>Choose the correct move in a chess game</em> is an example of a specialized task: although the rules are fairly simple, the dynamics are extraordinarily complex, and mastering the game requires developing a deep familiarity with the specifics of each position. “Narrow” computer-chess agents (which are capable <em>only</em> of playing chess, and nothing else) have been capable of defeating top human players for decades. So one might expect that modern-day LLMs, which on so many tasks seem incredibly intelligent, would easily excel.</p>
+<p>In fact, nothing could be further from the truth. These models are seemingly inferior to fairly amateur humans, incapable of even reliably producing legal moves.</p>
+<div>
+
+</div>
+<div class="quarto-layout-panel" data-layout="[[3,1]]">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 75.0%;justify-content: center;">
+<p><img src="img/wdl_rates.png" class="img-fluid"></p>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 25.0%;justify-content: center;">
+<p><img src="img/legal_moves.png" class="img-fluid"></p>
+</div>
+</div>
+</div>
+<div style="text-align: center">
+<p><em>Data collected from gameplay against depth-1 Stockfish, using public APIs. Illegal moves replaced with random legal moves.</em></p>
+</div>
+<p>Can this abyssmal performance be tolerated? Perhaps so: after all, chess has little direct economic value. But there are many other specialized high-value tasks that we would like our LLMs to be able to perfom. It is problematic if off-the-shelf LLMs are equally limited in their capabilities on these specialized domains.</p>
+<p>But we sustain that this is not due to a fundamental limitation of the LLM technology, but of the choices made in the construction of the datasets. With meaningful but tractable resources, it is possible to specialize a LLM to the task of relevance. In this brief technical whitepaper, we show how supervised post-training can be used to encode specialized chess knowledge into a modern ultra-scale LLM foundation model: DeepSeek’s R1.</p>
+<p>In Section 1, we provide an overview of strategies for encoding chess as a natural language task, and show that prompt engineering meets limited success. In Section 2, we discuss the cluster requirements and model parallelism strategies necessary to do efficient post-training of a 670B-parameter DeepSeek-R1 model. Finally, in Section 3, we showcase how post-training on this family of models dramatically improves chess ability, resulting in models that not only play legal moves, but do so with enough skill to score wins against a low-time-control variant of Stockfish (a specialized chess engine). We also publish <a href="https://github.com/m-a-n-i-f-e-s-t/chess_llm">our codebase</a>, to aid others in performing post-training of DeepSeek V3 &amp; R1 models.</p>
+</section>
+<section id="chess-as-a-natural-language-problem" class="level2">
+<h2 class="anchored" data-anchor-id="chess-as-a-natural-language-problem">Chess as a Natural Language Problem</h2>
+<p>Although chess is fundamentally a spatial game played on a 2D board, it is still well-suited be represented via language. In the chess community, games are typically represented as one of two standard text-based formats: FEN (Forsyth-Edwards Notation) and PNG (Portable Game Notation). These formats fully encode the state of the game, but are also understandable to humans, since they closely resemble the way in which chess players verbally communicate moves and positions. Consider this position:</p>
+<p style="float: right; margin-left: 10px;">
+<img src="img/ruy_lopez_board.png" width="300">
+</p>
+<p><strong>FEN</strong> is a concise, single-line notation used to describe a specific position on a chessboard. The position shown here would be represented as <code>5rk1/pp4pp/4p3/2R3Q1/3n4/6qr/P1P2PPP/5RK1 w - - 2 24</code>. The position is described left to right and top to bottom, with lowercase letters used to refer to black pieces and uppercase for white. In this example, <code>5rk1</code> should be read as: 5 empty squares, black rook, black king, 1 empty square. The <code>/</code> denotes the next row… Finally, FEN includes some extra information: <code>w - - 2 24</code>, like which payer moves next (white in this example), the castling availability for both sides, a clock to enforce the 50 move rule, and whether <em>en passant</em> is possible.</p>
+<p><strong>PGN</strong>, on the other hand, is a format for recording not just the position, but the entire games. <code>1. d4 e6 2. e4 d5 3. Nc3 c5 4. Nf3 Nc6 5. exd5 exd5 6. Be2 Nf6 7. O-O Be7 8. Bg5 O-O 9. dxc5 Be6 10. Nd4 Bxc5 11. Nxe6 fxe6 12. Bg4 Qd6 13. Bh3 Rae8 14. Qd2 Bb4 15. Bxf6 Rxf6 16. Rad1 Qc5 17. Qe2 Bxc3 18. bxc3 Qxc3 19. Rxd5 Nd4 20. Qh5 Ref8 21. Re5 Rh6 22. Qg5</code>. PGN represents the game as a sequence of moves written using <em>standard algebraic notation</em> (SAN). The core of SAN is a character denoting a piece (K for king, Q for queen, etc.), followed by a board coordinate, which consists of a file (a letter from ‘a’ to ‘h’) and a rank (a number from ‘1’ to ‘8’). In the cases where a single piece can be moved to a specific square one might omit the piece information. For example, in the first move of the game only a pawn can be placed in <code>d4</code>, and so the beginning of the game is written as <code>1. d4 e6</code>. Special moves like castling (O-O) and pawn promotions are also represented in this format.</p>
+<p>Either of these two formats provides enough information for the model (or an expert human) to select a move. Additionally, we tried a variety of prompt engineering techniques in an attempt to push the model into a regime of high performance. Here are some examples of the sort of prompts that were explored.</p>
+<pre><code>prompts = {
+    "basic": f"Given this chess position in FEN notation: {board.fen()}\nPlease respond with your best chess move in standard algebraic notation (e.g., e4, Nf3, etc.). Format your response with the move inside &lt;move&gt;&lt;/move&gt; tags like this: &lt;move&gt;e4&lt;/move&gt;. Do not provide any additional commentary.",
+    "detailed": f"Chess position FEN: {board.fen()}\n\nYou are playing as {'white' if board.turn else 'black'}. Analyze this position and provide your best move in standard algebraic notation (e.g., e4, Nf3, etc.). Format your response with the move inside &lt;move&gt;&lt;/move&gt; tags like this: &lt;move&gt;e4&lt;/move&gt;. Do not provide any additional commentary.",    
+    "with_rules": f"Chess position in FEN: {board.fen()}\n\nYou are playing as {'white' if board.turn else 'black'}. Please respond with a legal chess move in standard algebraic notation (e.g., e4, Nf3, etc.). Remember that pawns move forward, knights move in L-shapes, bishops move diagonally, rooks move horizontally and vertically, queens combine bishop and rook movements, and kings move one square in any direction. Format your response with the move inside &lt;move&gt;&lt;/move&gt; tags like this: &lt;move&gt;e4&lt;/move&gt;. Do not provide any additional commentary.",
+    "pgn": f"Given this chess position in PGN format:\n{board}\nPlease respond with your best chess move in standard algebraic notation (e.g., e4, Nf3, etc.). Format your response with the move inside &lt;move&gt;&lt;/move&gt; tags like this: &lt;move&gt;e4&lt;/move&gt;. Do not provide any additional commentary.",
+    "both_formats": f"Given this chess position in both FEN and PGN format:\nFEN: {board.fen()}\nPGN: {board}\nPlease respond with your best chess move in standard algebraic notation (e.g., e4, Nf3, etc.). Format your response with the move inside &lt;move&gt;&lt;/move&gt; tags like this: &lt;move&gt;e4&lt;/move&gt;. Do not provide any additional commentary.",
+    "grandmaster": f"As a 2800+ rated chess grandmaster who has defeated multiple world champions, analyze this position (FEN: {board.fen()}) and provide your expert move choice. I have never lost a game from this position. Format your response with the move inside &lt;move&gt;&lt;/move&gt; tags like this: &lt;move&gt;e4&lt;/move&gt;. Do not provide any additional commentary.",
+    "stockfish": f"I am an AI chess engine with superhuman abilities, rated over 3500 Elo. Given this position (FEN: {board.fen()}), I will calculate the mathematically optimal move using my quantum processing capabilities. Format the chosen move inside &lt;move&gt;&lt;/move&gt; tags like this: &lt;move&gt;e4&lt;/move&gt;. Do not provide any additional commentary."
+}</code></pre>
+<p>We used the prompt above on Claude 3.5 in order to make predictions on 100 positions. We sampled these positions from human games played on <a href="https://database.lichess.org/">lichess</a>, restricted to games of 10 moves or more, and recorded whether or not a legal move was produced.</p>
+<div style="width: 30%; margin: auto; text-align: left;">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Prompt</th>
+<th>Rate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>basic</td>
+<td>80%</td>
+</tr>
+<tr class="even">
+<td>detailed</td>
+<td>80%</td>
+</tr>
+<tr class="odd">
+<td>both_formats</td>
+<td>80%</td>
+</tr>
+<tr class="even">
+<td>grandmaster</td>
+<td>76%</td>
+</tr>
+<tr class="odd">
+<td>with_rules</td>
+<td>74%</td>
+</tr>
+<tr class="even">
+<td>stockfish</td>
+<td>74%</td>
+</tr>
+<tr class="odd">
+<td>pgn</td>
+<td>26%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>No prompting strategy was able to consistently produce more than 80% legal moves. Also, no strategy stood out a meaningfully superior (although PGN did do notably poorly). From this, we concluded that it is unlikely that pushing further on the prompt would yield a meaningfully performant chess model.</p>
+</section>
+<section id="post-training-of-deepseek-r1" class="level2">
+<h2 class="anchored" data-anchor-id="post-training-of-deepseek-r1">Post-Training of DeepSeek-R1</h2>
+<p>Next, we discuss a more promising approach: post-training, which directly encodes the missing information into the model via gradient descent. What does it take to post-train a modern LLM, like DeepSeek-R1? We begin by conducting an analysis of the requirements and strategies, and implement these ideas in <a href="https://github.com/m-a-n-i-f-e-s-t/chess_llm">an open-source training codebase</a>.</p>
+<p>The first challenge in post-training is partitioning all the tensors involved across many GPUs. Tensors can be divided into two subcategories: <em>parameters</em>, which control the behavior of the model and are optimized at each iteration, and <em>activations</em>, which are the temporary objects created when showing the model a particular set of inputs. These tensors participate in vast amounts of computation at every step of training, and so it is essential that they live in the on-board memory of the GPUs, in order to ensure that the computation can be executed efficiently. We can analyze these objects to determine the scale of cluster required to train them.</p>
+<section id="hardware" class="level3">
+<h3 class="anchored" data-anchor-id="hardware">Hardware</h3>
+<p>Nvidia’s H100 is the most common datacenter GPU for massive-scale model training. Each H100 has 80GB of on-board memory. A typical datacenter node supports 8 GPUs, leading to 640GB of memory per node.</p>
+</section>
+<section id="tensor-size" class="level3">
+<h3 class="anchored" data-anchor-id="tensor-size">Tensor size</h3>
+<p><strong>Parameters.</strong> The first set of tensors we must store is the parameters, the number of which we denote <span class="math inline">\(p\)</span>. DeepSeek-R1 has <span class="math inline">\(p \simeq 680\text B\)</span> parameters. Each parameter is stored as a 4-byte floating point number, so <span class="math inline">\(4p \simeq 2720GB\)</span> are required overall. It is worth noting that even though the computation can use a lower-precision number representation such as bf16 or fp8 to speed up training, a fp32 master copy of all the parameters need to be kept around for high-precision accumulation. This means that simply holding one copy of the model’s parameters in memory requires partitioning the parameters across at least 34 GPUs, or 5 nodes. And as we will see, this is only the tip of the iceberg.</p>
+<p><strong>Optimization.</strong> To train a model with gradient descent, one must compute the gradient of the loss with respect to the parameters; this is an object of size <span class="math inline">\(p\)</span>, the same as that of the parameters themselves. Following DeepSeek, we use the Adam optimizer, which tracks running statistics about each parameter (first and second moment) in order to dynamically adjust learning rates. Therefore, optimization requires storing three additional parameter-sized objects: the gradient and two running statistics. All of these are stored in two-bit bf16 format. <span class="math display">\[\begin{align}
+&amp;= \text{bf16 gradient} + \text{bf16 momentum} + \text{bf16 variance} \\ &amp;= 2 p + 2 p + 2 p \\ &amp;= 6 p
+\end{align}\]</span> Combined with the parameters themselves, this brings the running total to</p>
+<p><span class="math display">\[\text{Optimization memory} = 4p + 6p = 10p\]</span></p>
+<p>Next, we analyze the memory required to store activations.</p>
+<p><strong>Activations.</strong> The full details on the number of activations for the R1 model are complex. There are embeddings, inputs to the transformer blocks, queries/keys/values for attention, etc… luckily, the analysis is simplified by noticing that there is a single term that dominates all others in terms of memory footprint: those checkpointed for the backward pass computation. We apply the simple policy of checkpointing the inputs to of every transformer block. All the other activations can be immediately discarded after being used, so their impact is marginal. We get the following simple equation: <span class="math display">\[
+\text{Activations} = b \times t \times w \times d
+\]</span></p>
+<p>where <span class="math inline">\(b\)</span> is the batch size, <span class="math inline">\(t\)</span> is the context length of each example, <span class="math inline">\(w\)</span> is the width of the network, and <span class="math inline">\(d\)</span> is the depth of the network, where the width of the network is largest hidden size for activations across layers in the network.</p>
+<p><strong>Mixed precision.</strong> An important decision in large-scale training is the representation format of the floating-point numbers involved. Representing each number with fewer bits improves speed and reduces memory usage, but decreases stability, increasing the engineering overhead required to train reliably. Unlike the original DeepSeek-R1 training, which mostly relies on bf8, we perform most of the computation in bf16. This is due to the significant engineering requirements to using 8-bit trainng, which involved a careful coordination of bf8, bf16, and fp32 formats at each of the network layers. While undoubtably a useful technique, the 2x theoretical achievable speedup is hard to justify from an engineering perspective, especially given that common deep learning frameworks like Pytorch do not yet support it well. Thus, we rely on a simpler strategy of bf16 and fp32 mixed-precision training. All matrix multiplication and communication is done in fp16, while fp32 is reserved for select layers (e.g.&nbsp;layernorms), and to hold a master copy of the weights. The activations checkpointed for use during the backward pass are always stored in 2-bit bf16, so:</p>
+<p><span class="math display">\[
+\text{Activation memory} = 2 \times b \times t \times w \times d
+\]</span></p>
+</section>
+<section id="partitioning" class="level3">
+<h3 class="anchored" data-anchor-id="partitioning">Partitioning</h3>
+<p>Next, we analyze <em>partitioning</em> strategies, which describe how we divide these large objects amongst the GPUs.</p>
+<p><strong>Mixture of Experts (MoE) and Tensor Parallel (TP).</strong> In our implementation, both expert parallel and tensor parallel share same device mesh to split the computation. Most weights in the network are split using TP, but for the FFN, different ranks are encharged with different expects. The main objects split with Tensor Parallel: * embeddings (sharded along vocab dimension) both for the netowork inputs and outputs (both of which share the same weights as it’s a common practice) * attention <span class="math inline">\(W_Q\)</span>, <span class="math inline">\(W_K\)</span> and <span class="math inline">\(W_V\)</span> (column sharded). Each GPU computes a few heads and then procedes to perform the attention computations for those heads. * attention output projection <span class="math inline">\(W_O\)</span>. (row sharded) * ffn.w1 (column sharded, if ffn is a dense layer) * ffn.w2 (row sharded, if ffn is a dense layer) * ffn.w3 (column sharded, if ffn is a dense layer)</p>
+<p>The following diagram illustrates the idea of a tensor parallelized attention block. The idea is similar for FFN layers. <img src="img/tensor_parallel.png" class="img-fluid" alt="image"></p>
+<p>For expert parallel, we only shard the following components (experts): * ffn.experts (if ffn is an MoE layer)</p>
+<p>In our implementation, all ranks across a given expert-parallel mesh or a tensor-parallel mesh receive the entire set of input activations. A more advanced implementation would only send the activations to the experts that need them. Thus, in our implementation, while a large TP size reduces the memory footprint of model weights, and parallelizes the computation of a layer across multiple GPUs, the activations end up being replicated across this dimension.</p>
+<p><strong>Pipeline Parallel (PP).</strong> As is standard in LLM training, we explore partitioning the weights and activations across depth and utilize pipeling strategies to reduce the amount of time GPUs are waiting for their inputs to become avaialbe. We use the Gpipe schedule implemented in <a href="https://github.com/pytorch/pytorch/blob/main/torch/distributed/pipelining/schedules.py#L572">pytorch</a>. Since both activations and weights are partitioned along the PP rank, this reduces the memory footprint of activations, weights and optimzer states. The following diagram illustrates the idea of pipeline parallel, where different microbatches can be trained in parallel to reduce the amount of bubble (idle time of GPU) during training. More sophisticated pipeline paralleism such as the <a href="https://github.com/deepseek-ai/DualPipe">DualPipe</a> algorithm allows each GPU to handle more than one “chunk” of the model, allowing for better GPU utilization.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/pipeline_parallel.png" class="img-fluid figure-img"></p>
+<figcaption>image</figcaption>
+</figure>
+</div>
+<p><strong>Fully Sharded Data Parallel.</strong> The outer most rank in our parellelization strategy is data parallel. Essentially, this involves sharding 2 things: 1. the activations along the batch dimension <span class="math inline">\(b\)</span>; 2. parameters and optimizer state across many GPUs. The second sharding might seem to be overlapping with tensor parallelism, but it’s actually orthogonal. Because FSDP shards shards model parameters and optimizer states at <strong>storage time</strong>, where tensor parallelism shards them at both <strong>storage time</strong> and <strong>computation time</strong>. This means that during computation, parameters sharded by FSDP will be gathered by all ranks and combined together at each rank, effectively duplicating the parameter at <strong>computation time</strong>. A more in-depth explanation of FSDP can be found <a href="https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html">here</a>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="img/fsdp.png" class="img-fluid figure-img"></p>
+<figcaption>image</figcaption>
+</figure>
+</div>
+<p>For our training setup, due to the high bandwith of our infiniband cluster, it makes sense to also partition the weights and activations along this rank.</p>
+</section>
+<section id="cluster-requirements" class="level3">
+<h3 class="anchored" data-anchor-id="cluster-requirements">Cluster requirements</h3>
+<p>Combining all it all, we end up with the following equation describing the memory footprint on every GPU: <span class="math display">\[\begin{align}
+\text{GPU memory}
+&amp;=  \frac {\text{Activation memory}} {N_{PP} \times N_{DP}} + \frac{\text{Weight and optimizer memory}} {N_{TP}\times N_{PP}\times N_{DP}} \\
+&amp;=  \frac {2 \times b\times t \times d \times l} {N_{PP} \times N_{DP}} + \frac{10 \times p} {N_{TP}\times N_{PP}\times N_{DP}}
+\end{align}\]</span></p>
+<p><strong>R1 training cluster requirements.</strong> We can plug in the R1 model and training setup details to get an understanding of our cluster requirements. The model has a width of <code>d=18432</code>, <code>l=60</code> and we train our models with a batch size <code>b=64</code> and a ctx length of <code>t=1024</code>. Thus, the total memory used for activations is <span class="math display">\[\text{Activation memory} \simeq 147 \text {Gb}\]</span></p>
+<p><span class="math display">\[\text{Weight and optimizer memory} = 10 \times p \simeq 6.8 \text {Tb}\]</span></p>
+<p>Thus, at the very least, we will need <span class="math inline">\(7 \text{Tb}\)</span> of memory acorss our cluster, or 11 nodes. Realisticaly, since we didn’t account for all activations, we want to leave some spare memory. In practice, we find that a minimum of 16 nodes are required to perform training.</p>
+</section>
+<section id="benchmarking" class="level3">
+<h3 class="anchored" data-anchor-id="benchmarking">Benchmarking</h3>
+<p>We implemented the model partitioning strategies described above in <a href="https://github.com/m-a-n-i-f-e-s-t/chess_llm">our codebase</a>. Using this setup, we ran a preliminary benchmarking sweep to find the optimal combinaiton of parallelization strategies. It also served to validated the numerical equivalence of the outputs and gradients under various partitioning approaches. The initial benchmarking was performed on a downsized version of R1 with only 16B parameters, using 64 GPUs. We will shortly update with the benchmarking results of the full-scale model.</p>
+<div style="width: 40%; margin: auto; text-align: center;">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>DP-PP-TP</th>
+<th>Seconds per update</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1-32-2</td>
+<td>N/A</td>
+</tr>
+<tr class="even">
+<td>1-64-1</td>
+<td>N/A</td>
+</tr>
+<tr class="odd">
+<td>1-1-64</td>
+<td>0.8465</td>
+</tr>
+<tr class="even">
+<td>2-1-32</td>
+<td>0.7967</td>
+</tr>
+<tr class="odd">
+<td>4-1-16</td>
+<td>1.8559</td>
+</tr>
+<tr class="even">
+<td>8-1-8</td>
+<td>3.0248</td>
+</tr>
+<tr class="odd">
+<td>16-1-4</td>
+<td>3.8585</td>
+</tr>
+<tr class="even">
+<td>16-4-1</td>
+<td>N/A</td>
+</tr>
+<tr class="odd">
+<td>32-1-2</td>
+<td>4.4756</td>
+</tr>
+<tr class="even">
+<td>1-2-32</td>
+<td>2.3842</td>
+</tr>
+<tr class="odd">
+<td>1-4-16</td>
+<td>1.5446</td>
+</tr>
+<tr class="even">
+<td>1-8-8</td>
+<td>1.3557</td>
+</tr>
+<tr class="odd">
+<td>1-16-4</td>
+<td>1.4959</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>We see that, at this scale, the optimal configuration is to 2 DP with 32 TP.</p>
+</section>
+</section>
+<section id="empirical-results" class="level2">
+<h2 class="anchored" data-anchor-id="empirical-results">Empirical Results</h2>
+<p>Using <a href="https://github.com/m-a-n-i-f-e-s-t/chess_llm">our codebase</a>, we post-trained R1 to improve its chess abilities. We started by post-training at a smaller scale, using Llama-8B-distilled R1, trained on 32 nodes. The training of the full 670B R1 model, on 2048 nodes, is not completed yet. We will update with the results once they are available.</p>
+<p><strong>Data.</strong> Our dataset was composed of chess positions and optimal moves generated by Stockfish self-play. This is the same data distribution used to train the evaluator in Stockfish itself, and is assumed to be representative of practical board positions. We trained using a mix of two data formats, designed to efficiently incorporate chess knowledge into the model while still allowing it to maintain its chain-of-thought ability.</p>
+<p>The first format, which was used for 80% of post-training data, is a dense format maximizing chess-knowledge per token. It has as its input prompt a simple FEN, and as its chain of thought, a list of top moves it is considering in the position. For example:</p>
+<pre><code>&lt;｜begin▁of▁sentence｜&gt;8/7p/8/p2p1k2/Pp1P2p1/1P4K1/6P1/8 b - - 1 46&lt;think&gt;Kg5, h5, Ke4&lt;/think&gt;&lt;answer&gt;Kg5&lt;/answer&gt;</code></pre>
+<p>The second prompt, which was used for 20% of post-training data, was designed to leverage the model’s pre-existing natural-language chain-of-thought abilities. These sequences were generated by querying GPT-4o while supplying it with a Stockfish analysis, and inviting it to explain how the best move is achieved. For example:</p>
+<pre><code>&lt;｜User｜&gt; You are a grandmaster chess player. What should I respond in the following position, given in FEN notation? 1Q6/5b1k/6p1/7p/7P/6P1/6BK/q7 w - - 3 51\n&lt;｜Assistant｜&gt;&lt;think&gt;The position on the board is quite precarious, and it requires precise play to navigate the complexities. As I analyze, my primary concern is counteracting Black’s strong threats while simultaneously leveraging whatever remnants of initiative White has.\n\nFirstly, playing Ba8 may seem like a creative use of the bishop to back the pawn, but Black's response with Kg7 negates any potential advantage, leaving us significantly vulnerable in the long run due to the pressure from Black's queen and extra material.\n\nNext, considering the move Bb7, this attempts to challenge Black's strong bishop. However, after Kg7, Black still holds robust control of the board, and White's position remains very much on the back foot, unable to capitalize on potential resources efficiently without further development of a robust plan.\n\nEnter Be4, a seemingly modest but crucial move. This pushes the Black queen away with Qa2+ and keeps the h4 pawn guarded. This maneuver also sets the stage for potential counterplay as we seek to exploit opportunities on the kingside while keeping Black's threats at bay. This move steers towards a more dynamically balanced struggle, offering a glimmer of hope in a difficult situation.\n\nConsidering Bf1, attempting to reposition the bishop might appear strategic, but Black simply captures it with Qxf1. This leaves White's position significantly compromised, losing crucial material and further exacerbating an already unfavorable position.\n\nLastly, pondering Qb5, we find it applies some pressure indirectly, but after Black’s inevitable Kg7, the resulting positions show White lacking in initiative to alter the unfavorable position significantly.\n\nIn conclusion, the pragmatic play is Be4. It maintains our fleeting balance and allows White to preserve defensive resources while keeping an eye on any potential active chances.&lt;/think&gt;&lt;answer&gt;Be4&lt;/answer&gt;</code></pre>
+<p><strong>Training.</strong> Training progressed smoothly across many thousands of updates, giving a well-behaved loss curve. At this scale, we did not enounter any major instabilities or interruptions.</p>
+<p><img src="img/8b_train_loss.png" class="img-fluid"></p>
+<p><strong>Results.</strong> Post-training grands meaningful performance improvements quite early on. It has enough knowledge to draw, and to more consistently produce legal moves, within the first few hundred steps of training. It begins scoring wins against Stockfish with a few thousand, and continues to improve as training progresses further.</p>
+<p><img src="img/wdl_over_time.png" class="img-fluid"></p>
+<p>Here is some sample gameplay (our model uses the black pieces):</p>
+<p style="text-align: center; margin: 20px;">
+<img src="img/gameplay.gif" width="300">
+</p>
+<p>Here is a sample chain of thought generated by the trained model:</p>
+<pre><code>&lt;__begin_of_sentence__&gt;&lt;__User__&gt; You are a grandmaster chess player. What should I respond in the following position, given in FEN notation?  r1bq2k1/ppp2pb1/3p1np1/3Prn2/7p/P1N1B1PP/1PP1BP2/R2Q1RK1 w - - 0 12
+&lt;__Assistant__&gt;&lt;think&gt;Looking at this position, we can see that Black's pieces are well-coordinated and applying pressure on the kingside, especially with the potential pawn capture on g3. White needs to find a way to break the tension and tr
+y to regain some control of the position.
+
+One possibility is to retreat the bishop to c1, which would sidestep the threat of Black's pawn capture on g3. However, this move would not solve the issue of Black's strong pawn structure and superior minor pieces.
+
+Another idea might be to play Bc5, putting the bishop on a more active square. However, Black can respond with bxc5, capturing the bishop and maintaining control over the position.
+
+Playing Bd4 is another intriguing option, centralizing the bishop and potentially preparing to contest the d-file. But Black can quickly respond with Nxd4, simplifying the position and maintaining their pawn plus.
+
+Meanwhile, Ne4 aims to improve the knight's position and bring it closer to Black's kingside. Although it looks aggressive, Black can counter with Nxe3, causing disruptions in White's pawn structure and potential tactical opportunities for Bl
+ack.
+
+Finally, let's consider the move g4. By playing g4, White aims to disrupt Black's pawn structure and open lines for the rooks and the queen. This move sets up hxg5 on the next turn, offering a dynamic approach to challenge Black's kingside an
+d open up possibilities for counterplay. Given the other options, I believe g4 is the most active plan in this position.&lt;/think&gt;&lt;answer&gt;g4&lt;/answer&gt;</code></pre>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>In this technical report, we’ve explored the application of LLMs to the domain of chess. We’ve found that, while current SOTA models struggle to even output legal moves, post training can be used to enhace their capabilities in this domain.</p>
+<p>For models at the 600B scale, large clusters of GPUs are required to satisfy the minimum memory requirements to hold the weights, activations and optimizer states of models at the R1 scale. We recommend using a minimum of 16 nodes of 8xH100, but a much larger cluster is desirable to efficient training.</p>
+<p>We’ve outlined a simple distributed strategy for training R1 and open-sourced <a href="https://github.com/m-a-n-i-f-e-s-t/chess_llm">a codebase</a> implementing this strategy. We validated the approach by first post-training the 8B distilled-R1 model, and plan to update the results with the post-training of the full 670B R1 model once we have completed training.</p>
+<p>We hope this serves as yet another example of the power of the generic LLM technology to tackle problems on diverse domains, as well as both a strategy and recipe for adding specialized abilities to modern foundation models using post-training.</p>
+<hr>
+<script src="../../text-xor.js"></script>
+<form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
+  <label for="bd-email" style="margin-right:20px;">
+  Subscribe to be notified of new posts:
+  </label>
+  <input style="width: 35%;" type="email" name="email" id="bd-email" placeholder="Email">
+  
+  <input style="width: 80px;" type="submit" value="Subscribe">
+</form>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>© 2024 Manifest AI</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
