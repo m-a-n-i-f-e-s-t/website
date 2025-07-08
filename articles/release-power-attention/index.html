@@ -6,8 +6,12 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Jacob Buckman">
+<meta name="author" content="Carles Gelada">
+<meta name="author" content="Sean Zhang">
+<meta name="dcterms.date" content="2024-08-15">
 
-<title>Manifest AI</title>
+<title>Release: Power Attention – Manifest AI</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,19 +27,19 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<link href="./favicon.png" rel="icon" type="image/png">
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<link href="../../favicon.png" rel="icon" type="image/png">
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "language": {
     "search-no-results-text": "No results",
@@ -61,29 +65,68 @@ gtag('js', new Date());
 gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 </script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
-<link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="Manifest AI">
-<meta property="og:description" content="Our mission is to train a neural network to model all human output.">
-<meta property="og:image" content="/thumbnails/main.png">
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Release: Power Attention - Manifest AI">
+<meta property="og:description" content="Releasing open-source code for Power Attention and accompanying research paper.">
+<meta property="og:image" content="/thumbnails/release-power-attention.png">
 <meta property="og:site_name" content="Manifest AI">
-<meta name="twitter:title" content="Manifest AI">
-<meta name="twitter:description" content="Our mission is to train a neural network to model all human output.">
-<meta name="twitter:image" content="/thumbnails/main.png">
+<meta name="twitter:title" content="Release: Power Attention - Manifest AI">
+<meta name="twitter:description" content="Releasing open-source code for Power Attention and accompanying research paper.">
+<meta name="twitter:image" content="https://manifestai.com/thumbnails/release-power-attention.png">
 <meta name="twitter:creator" content="@manifest__ai">
 <meta name="twitter:site" content="@manifest__ai">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
+<meta name="citation_title" content="Release: Power Attention">
+<meta name="citation_author" content="Jacob Buckman">
+<meta name="citation_author" content="Carles Gelada">
+<meta name="citation_author" content="Sean Zhang">
+<meta name="citation_publication_date" content="2024-08-15">
+<meta name="citation_cover_date" content="2024-08-15">
+<meta name="citation_year" content="2024">
+<meta name="citation_online_date" content="2024-08-15">
+<meta name="citation_language" content="en">
+<meta name="citation_publisher" content="Manifest AI">
 </head>
 
-<body class="nav-fixed fullcontent">
+<body class="floating nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./m-logo-tight.png" alt="" class="navbar-logo">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
     </a>
   </div>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
@@ -111,90 +154,178 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <nav id="TOC" role="doc-toc" class="toc-active">
+   
+  <ul>
+  
+  </ul>
+</nav>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+    </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Release: Power Attention</h1>
+</div>
 
 
 
-<div class="homepage-body">
-<p><img src="manifest-ai-text-vector.png" class="img-fluid" style="width:60.0%"></p>
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jacob Buckman </p>
+             <p>Carles Gelada </p>
+             <p>Sean Zhang </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">August 15, 2024</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<style>
+summary {
+  cursor: pointer;
+  padding: 8px;
+  background-color: #f0f0f0; /* Light grey background */
+  border-radius: 8px; /* Rounded corners for consistency */
+}
+
+/* Hover state changes the background color to a lighter grey */
+summary:hover {
+  background-color: #e0e0e0; /* Lighter grey on hover */
+}
+
+/* Override hover effect when details is open */
+details[open] summary:hover {
+  background-color: #f0f0f0; /* Maintain the same color as the non-hover state */
+}
+
+details[open] summary {
+  padding: 8px;
+}
+
+details {
+  padding: 0; /* No padding when details is not open */
+  border-radius: 8px; /* Rounded corners for consistency */
+  background-color: #f0f0f0; /* Light grey background */
+}
+
+details[open] {
+  padding: 8px; /* Padding inside the details for content alignment */
+}
+</style>
+<p>In <a href="https://manifestai.com/articles/symmetric-power-transformers/">our previous article</a>, we described <em>symmetric power transformers</em>, an alternative to transformers whose state size can be configured independently of both context length and parameter count. This architecture is as powerful as classic transformers, trains far more quickly at long contexts, and can be implemented efficiently on modern accelerators.</p>
+<p>Today, we are open-sourcing Power Attention, a hardware-aware implementation of the core operation at the heart of symmetric power transformers: &nbsp; <a href="https://github.com/m-a-n-i-f-e-s-t/power-attention">link to code</a></p>
+<p>Power Attention provides a drop-in replacement for other forms of attention, including Flash Attention, Linear Attention, or Mamba’s time-mixing. Any sequence architecture can easily be converted into a linear-cost architecture, yielding massive benefits for both training and inference on long contexts. For example, in the figure below, we train a 124M-parameter RWKV7 model on sequences of length 65536 using different attention variants. Power Attention dominates both RWKV’s default linear attention, and “classic” transformer attention, in loss-per-FLOP.</p>
+<div style="text-align: center;">
+<p><img src="img/flops.png" width="100%"></p>
+</div>
+<p>This result comes from our latest research on the learning properties of power attention, published on ArXiv: &nbsp; <a href="https://arxiv.org/abs/2507.04239">link to paper</a></p>
+<p>This paper gives a formal exposition of symmetric power attention, and explains why symmetric power transformers are better suited for long-context training than the original transformer. We focus on the <em>weight-state FLOP ratio (WSFR)</em>, which measures how the computational work of a model is partitioned between the weights (which contain general information obtained from the dataset) and the state (which contains sequence-specific information obtained from the context). As is often the case, these two must be balanced properly in order to scale well. Models which are too skewed towards either are not compute-optimal.</p>
+<div style="float: right; width: 40%; margin-left: 20px;">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Attention</th>
+<th>Context Length</th>
+<th>WSFR</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Exponential</td>
+<td>1,024</td>
+<td>8:1</td>
+</tr>
+<tr class="even">
+<td><strong>Exponential</strong></td>
+<td><strong>8,192</strong></td>
+<td><strong>1:1</strong></td>
+</tr>
+<tr class="odd">
+<td>Exponential</td>
+<td>65,536</td>
+<td>1:8</td>
+</tr>
+<tr class="even">
+<td>Exponential</td>
+<td>1,000,000</td>
+<td>1:125</td>
+</tr>
+<tr class="odd">
+<td>Linear</td>
+<td>1,024</td>
+<td>30:1</td>
+</tr>
+<tr class="even">
+<td>Linear</td>
+<td>8,192</td>
+<td>30:1</td>
+</tr>
+<tr class="odd">
+<td>Linear</td>
+<td>65,536</td>
+<td>30:1</td>
+</tr>
+<tr class="even">
+<td>Linear</td>
+<td>1,000,000</td>
+<td>30:1</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Transformers, whose state is their KV cache, incur state FLOPs proportional to their context length. This translates to a highly skewed WSFR when training at long context. Modern RNNs like RWKV and Mamba, which use linear attention, have the opposite problem: their state FLOPs are independent of context and far smaller than is merited given their parameter counts, leading their WSFR to be skewed towards weight FLOPs at all practical scales. The table to the right summarizes this state of affairs for 120M-parameter architectures. Only one architecture (bolded) has a balanced WSFR.</p>
+<p>There are two paths to rectify this imbalance: decrease the state size of exponential attention, or increase the state size of linear attention.</p>
+<p>Power attention takes the latter approach. A hyperparameter <span class="math inline">\(p\)</span>, which controls the power of the attention, provides a lever for adjusting the state FLOPs independently of the weight FLOPs. This leads to balanced architectures, good scaling, and efficient learning. <a href="https://arxiv.org/abs/2507.04239">Read our paper for more.</a></p>
+<p>In the coming weeks we’ll be releasing speed upgrades and benchmarking results for our kernels, open-sourcing our internal library for writing clean, fast, and generic CUDA code, and digestible summaries of key insights from our paper.</p>
 <form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
-  <label for="bd-email" style="width:25%">
-  Subscribe for updates:
+  <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
+  Subscribe to be notified of new posts:
   </label>
   <input style="width: 35%;" type="email" name="email" id="bd-email" placeholder="Email">
   
   <input style="width: 80px;" type="submit" value="Subscribe">
 </form>
-<section id="writing" class="level3">
-<h3 class="anchored" data-anchor-id="writing">writing</h3>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Date</th>
-<th>Title</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Jan 1, 2024</td>
-<td><a href="./articles/mission/index.html">Our Mission</a></td>
-</tr>
-<tr class="even">
-<td>Jan 5, 2024</td>
-<td><a href="./articles/linear-transformers-are-faster/index.html">Linear Transformers Are Faster</a></td>
-</tr>
-<tr class="odd">
-<td>May 16, 2024</td>
-<td><a href="./articles/compute-optimal-context-size/index.html">Compute-Optimal Context Size</a></td>
-</tr>
-<tr class="even">
-<td>Aug 14, 2024</td>
-<td><a href="./articles/longcrawl64/index.html">LongCrawl64: A Long-Context Dataset</a></td>
-</tr>
-<tr class="odd">
-<td>Aug 15, 2024</td>
-<td><a href="./articles/symmetric-power-transformers/index.html">Symmetric Power Transformers</a></td>
-</tr>
-<tr class="even">
-<td>Sep 23, 2024</td>
-<td><a href="./articles/gd-minimizes-loss/index.html">Why Gradient Descent Minimizes Training Loss</a></td>
-</tr>
-<tr class="odd">
-<td>Jul 6, 2025</td>
-<td><a href="./articles/release-power-attention/index.html">Release: Power Attention</a></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="code" class="level3">
-<h3 class="anchored" data-anchor-id="code">code</h3>
-<p><a href="https://github.com/m-a-n-i-f-e-s-t/power-attention">Power Attention</a></p>
-</section>
-<section id="research" class="level3">
-<h3 class="anchored" data-anchor-id="research">research</h3>
-<p><a href="https://arxiv.org/abs/2507.04239">Scaling Context Requires Rethinking Attention</a></p>
-</section>
-<section id="about-us" class="level3">
-<h3 class="anchored" data-anchor-id="about-us">about us</h3>
-<p><a href="https://twitter.com/carlesgelada">Carles Gelada</a>, <a href="http://www.jacobbuckman.com">Jacob Buckman</a>, <a href="https://www.seanzhang.me/">Sean Zhang</a>. We are 8+ year veteran deep learning researchers, formerly at labs like OpenAI, Google Brain, and Meta. Our research has been published at NeurIPS, ICLR, ICML, etc., and been cited 2000+ times. We are backed by a small group of highly techinal long-term investors including <a href="https://www.decibel.vc/">Decibel</a> and <a href="https://trueventures.com/">True</a>.</p>
-</section>
-<section id="join-us" class="level3">
-<h3 class="anchored" data-anchor-id="join-us">join us</h3>
-<p>We are hiring core technical team members.</p>
-<p>The role has elements of both software engineering and research. Responsibilities include implementing deep learning architectures, deriving algorithms, developing research infrastructure, running large-scale experiments, and interpreting and communicating results.</p>
-<p>We will work well together if you are independent-minded, capable of self-teaching, and value thinking from first principles. Skills we are looking for include comfort with mathematics, strong communication, deep knowledge in areas like CUDA, XLA/MLIR, Jax, or distributed systems/HPC, and experience training large-scale deep learning models.</p>
-We do not care about formal credentials. If you share our vision and would like to get involved, please send an example of some technical work that you are proud of to <span class="email">777b7a607577605479757a7d72716760757d3a777b79</span>
-<script src="text-xor.js"></script>
-</section>
-</div>
 
 
+<div id="quarto-appendix" class="default"><section id="acknowledgments" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">Acknowledgments</h2><div class="quarto-appendix-contents">
 
-</main> <!-- /main -->
+<p>We would like to thank <a href="www.sfcompute.com">SF Compute</a> for supporting this research.</p>
+
+
+</div></section><section class="quarto-appendix-contents" id="quarto-citation"><h2 class="anchored quarto-appendix-heading">Citation</h2><div><div class="quarto-appendix-secondary-label">BibTeX citation:</div><pre class="sourceCode code-with-copy quarto-appendix-bibtex"><code class="sourceCode bibtex">@misc{buckman2024,
+  author = {Buckman, Jacob and Gelada, Carles and Zhang, Sean},
+  publisher = {Manifest AI},
+  title = {Release: {Power} {Attention}},
+  date = {2024-08-15},
+  langid = {en}
+}
+</code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre><div class="quarto-appendix-secondary-label">For attribution, please cite this work as:</div><div id="ref-buckman2024" class="csl-entry quarto-appendix-citeas" role="listitem">
+<div class="">J.
+Buckman, C. Gelada, and S. Zhang, <span>“Release: Power
+Attention.”</span> Manifest AI, Aug. 15, 2024.</div>
+</div></div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -615,6 +746,10 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script>
+<script src="https://giscus.app/client.js" data-repo="m-a-n-i-f-e-s-t/website" data-repo-id="R_kgDOLA6vSg" data-category="Announcements" data-category-id="DIC_kwDOLA6vSs4Cgv3x" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light" data-lang="en" crossorigin="anonymous" data-loading="lazy" async="">
+</script>
+<input type="hidden" id="giscus-base-theme" value="light">
+<input type="hidden" id="giscus-alt-theme" value="dark">
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">
