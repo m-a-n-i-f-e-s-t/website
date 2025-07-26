@@ -321,7 +321,7 @@ Expand for example dataloader code.
 <p>Thanks to the shuffling &amp; rolling, any such rectangle will consist of rows uncorrelated from one another both in content and in position within their respective documents; and, by iterating in column-major order, we also ensure there are no correlations between consecutive minibatches.</p>
 <p>Under the hood, data is stored as compressed chunks of 2048 x 2048 tokens (~10Mb each). The iterative loading described above is therefore very efficient, since it performs only contiguous reads on a small number of chunks each time. It also permits reuse between subsequent minibatches via a simple LRU caching mechanism.</p>
 <p>One final detail: after tokens have been loaded, they must be converted into a input/target pair for training. We recommend using the loaded data as targets, and constructing the inputs by adding a padding token to the beginning of the sequence and dropping its final element.</p>
-<form action="https://buttondown.email/api/emails/embed-subscribe/manifestai" method="post" target="popupwindow" onsubmit="window.open('https://buttondown.email/manifestai', 'popupwindow')" class="embeddable-buttondown-form">
+<form action="https://eo-subscribe-manifest.jono-997.workers.dev" method="post" target="_blank" class="embeddable-buttondown-form">
   <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
   Subscribe to be notified of new posts:
   </label>
