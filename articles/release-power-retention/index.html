@@ -8,9 +8,10 @@
 
 <meta name="author" content="Jacob Buckman">
 <meta name="author" content="Carles Gelada">
-<meta name="dcterms.date" content="2024-01-01">
+<meta name="author" content="Sean Zhang">
+<meta name="dcterms.date" content="2025-09-22">
 
-<title>Our Mission – Manifest AI</title>
+<title>Release: Power Retention – Manifest AI</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -66,19 +67,19 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Our Mission - Manifest AI">
-<meta property="og:description" content="Training a neural network to model all human output.">
-<meta property="og:image" content="/thumbnails/mission.png">
+<meta property="og:title" content="Release: Power Retention - Manifest AI">
+<meta property="og:description" content="Releasing open-source code for Power Retention and accompanying research paper.">
+<meta property="og:image" content="/thumbnails/release-power-retention.png">
 <meta property="og:site_name" content="Manifest AI">
-<meta name="twitter:title" content="Our Mission - Manifest AI">
-<meta name="twitter:description" content="Training a neural network to model all human output.">
-<meta name="twitter:image" content="/thumbnails/mission.png">
+<meta name="twitter:title" content="Release: Power Retention - Manifest AI">
+<meta name="twitter:description" content="Releasing open-source code for Power Retention and accompanying research paper.">
+<meta name="twitter:image" content="https://manifestai.com/thumbnails/release-power-retention.png">
 <meta name="twitter:creator" content="@manifest__ai">
 <meta name="twitter:site" content="@manifest__ai">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 </head>
 
-<body class="floating nav-fixed">
+<body class="nav-fixed hide-release-link fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -120,19 +121,14 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    
-</nav>
-<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-    </div>
+    
 <!-- main -->
-<main class="content page-columns page-full" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Our Mission</h1>
+<h1 class="title">Release: Power Retention</h1>
 </div>
 
 
@@ -144,13 +140,14 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
     <div class="quarto-title-meta-contents">
              <p>Jacob Buckman </p>
              <p>Carles Gelada </p>
+             <p>Sean Zhang </p>
           </div>
   </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 1, 2024</p>
+      <p class="date">September 22, 2025</p>
     </div>
   </div>
   
@@ -162,24 +159,50 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 </header>
 
 
+<style>
+summary {
+  cursor: pointer;
+  padding: 8px;
+  background-color: #f0f0f0; /* Light grey background */
+  border-radius: 8px; /* Rounded corners for consistency */
+}
 
-<div class="no-row-height column-margin column-container"><div class="">
+/* Hover state changes the background color to a lighter grey */
+summary:hover {
+  background-color: #e0e0e0; /* Lighter grey on hover */
+}
 
-</div></div><p>A poem is a shadow of the act of writing poetry.</p>
-<p>Humanity casts many shadows. All literature, letters, recipes, and tweets. Mathematical proofs and git repositories. Laws, treaties, and declarations of war. Financial statements, employee performance reports, and bankruptcy filings. Podcasts, operas, accidental voicemails, YouTube videos and Hollywood blockbusters. Restaurant reviews and love letters and times tables. Individually, each of these pieces of information is nothing but the faintest shadow of the process that produced it. But collectively, these shadows tell a rich story about the world.</p>
-<p>Since the dawn of humanity, the brain alone could reconstruct the world from these shadows. But the last decade of deep learning has convinced us that this won’t be the case for much longer. Though significant challenges remain, we stand poised to solve them. If successful, it will become possible to synthesize every documentable aspect of humanity into the weights of a neural network.</p>
-<p><strong>Our mission is to train a neural network to model all human output.</strong></p>
-<p>There are two primary challenges in our pursuit of this goal.</p>
-<ul>
-<li>Currently, it’s not technically feasible to train a model that can ingest all the data that we can collect. Limitations around context length, modality, and throughput force us to use only a small subset of the data available to us.</li>
-<li>Much of the data we will need has never been collected, curated, and organized into datasets that we can use for training.</li>
-</ul>
-<p>We are building a world-class team of engineers and researchers to tackle these challenges, united around shared principles and a specific research agenda. We value clear thinking, sharing knowledge, and an extreme commitment to scientific honesty. Our research is guided by mathematical beauty and grounded in rigorous empiricism. We are committed to letting the quality of our work speak for itself. No hype, no fluff. All meat.</p>
-<p>If this vision resonates, please reach out:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="email">777b7a607577605479757a7d72716760757d3a777b79</span></p>
-<script src="../../text-xor.js"></script>
+/* Override hover effect when details is open */
+details[open] summary:hover {
+  background-color: #f0f0f0; /* Maintain the same color as the non-hover state */
+}
+
+details[open] summary {
+  padding: 8px;
+}
+
+details {
+  padding: 0; /* No padding when details is not open */
+  border-radius: 8px; /* Rounded corners for consistency */
+  background-color: #f0f0f0; /* Light grey background */
+}
+
+details[open] {
+  padding: 8px; /* Padding inside the details for content alignment */
+}
+</style>
+<iframe width="100%" height="450" src="https://www.youtube.com/embed/L7hiTd3E-PM" title="YouTube video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen="">
+</iframe>
+<p><br></p>
+<p>Today, we are open-sourcing <em>power retention</em>, which is far more efficient than transformers at long contexts, without sacrificing scalability or hardware efficiency. Use <code>pip install retention</code> to try it out, or get the code <a href="https://github.com/m-a-n-i-f-e-s-t/retention">here</a>.</p>
+<p>Power retention is a drop-in replacement for the attention layer of any transformer: <code>flash_attention(q,k,v)</code> becomes <code>power_retention(q,k,v)</code>. After this substitution, you can expect to see speedups of &gt;10x during training and &gt;100x during inference for context lengths of 64k tokens, with gains increasing even further at still-longer contexts. This is possible thanks to our hardware-aware implementation, which achieves GPU utilization comparable to that of FlashAttention.</p>
+<p>For an overview of power retention, read <a href="https://manifestai.com/articles/what-is-power-retention/">this article</a>. For a deeper dive, read <a href="https://arxiv.org/abs/2507.04239">our research paper on ArXiv</a>.</p>
+<p>Pre-trained transformers can easily be metamophosed into power retention models by doing a small amount of retraining. As a demonstration, we have retrained StarCoder2-3B into PowerCoder-3B, which is available open-source &amp; open-weights <a href="https://huggingface.co/manifestai/powercoder-3b">on Huggingface</a>.</p>
+<p>Finally, we are also open-sourcing Vidrial: our framework for writing clean, efficient CUDA kernels. <a href="https://manifestai.com/articles/what-is-vidrial/">Learn more about Vidrial here</a>. Vidrial kernels are available via the retention package as <code>retention.experimental</code>. For example, our Vidrial implementation of FlashAttention2 is up to 20% faster than existing implementations, and can be used with <code>from retention.experimental import flash</code>.</p>
+<p>Artificial human-level intelligence requires the ability to synthesize a lifetime of experiences, and that starts with the fundamental design of the architecture. Power retention unlocks a glorious long-context future. If you have an exciting long-context task or dataset, please reach out to <span class="email">contact@manifestai.com</span>, we would love to collaborate. And, if you are interested in being ahead of the curve on the next generation of foundational AI models, join our <a href="https://discord.com/invite/aFsCgDraGP">community discord</a> and subscribe to our mailing list below.</p>
 <form action="https://eo-subscribe-manifest.jono-997.workers.dev" method="post" target="_blank" class="embeddable-buttondown-form">
-  <label for="bd-email" style="margin-right:20px;">
-  Or, subscribe to be notified of new posts:
+  <label for="bd-email" style="font-weight:bold;margin-right:20px;margin-top:20px;">
+  Subscribe to be notified of new posts:
   </label>
   <input style="width: 35%;" type="email" name="email" id="bd-email" placeholder="Email">
   
@@ -187,8 +210,12 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 </form>
 
 
+<div id="quarto-appendix" class="default"><section id="acknowledgments" class="level3 appendix"><h2 class="anchored quarto-appendix-heading">Acknowledgments</h2><div class="quarto-appendix-contents">
 
-</main> <!-- /main -->
+<p>We would like to thank <a href="https://www.sfcompute.com">SF Compute</a> for supporting this research.</p>
+
+
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

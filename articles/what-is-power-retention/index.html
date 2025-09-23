@@ -9,7 +9,7 @@
 <meta name="author" content="Jacob Buckman">
 <meta name="author" content="Carles Gelada">
 <meta name="author" content="Sean Zhang">
-<meta name="dcterms.date" content="2025-09-01">
+<meta name="dcterms.date" content="2025-09-23">
 
 <title>What Is Power Retention? – Manifest AI</title>
 <style>
@@ -90,6 +90,12 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
     <img src="../../m-logo-tight.png" alt="" class="navbar-logo">
     </a>
   </div>
+          <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../articles/release-power-retention/"> 
+<span class="menu-text"><span class="release-pill">New release: Power Retention. Read more →</span></span></a>
+  </li>  
+</ul>
           <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item compact">
     <a class="nav-link" href="https://github.com/m-a-n-i-f-e-s-t/power-attention"> <i class="bi bi-github" role="img">
@@ -152,7 +158,7 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 1, 2025</p>
+      <p class="date">September 23, 2025</p>
     </div>
   </div>
   
@@ -167,21 +173,21 @@ gtag('config', 'G-V0D26E23Q3', { 'anonymize_ip': true});
 
 <div class="no-row-height column-margin column-container"><div class="">
 
-</div></div><p><em>Power Retention</em> is a new architecture developed by Manifest that enables AI to handle millions of tokens at a fraction of today’s cost. It replaces Transformers’ <em>attention</em> as the de facto approach for designing large language models, and unlocks long-context applications that were previously prohibitively expensive or impractically slow.</p>
+</div></div><p><em>Power retention</em> is a new architecture developed by Manifest that enables AI to handle millions of tokens at a fraction of today’s cost. It replaces Transformers’ <em>attention</em> as the de facto approach for designing large language models, and unlocks long-context applications that were previously prohibitively expensive or impractically slow.</p>
 <section id="the-problem-with-transformers" class="level3">
 <h3 class="anchored" data-anchor-id="the-problem-with-transformers">The Problem With Transformers</h3>
-<p>Transformers are an incredible architecture. Their invention represented a massive leap forward in AI progress. But that does not make them perfect. The Transformer architecture has limitations, and we are now beginning to see them.</p>
+<p>Transformers are an incredible architecture. Their invention represented a massive leap forward in AI progress. But that does not make them perfect. The Transformer architecture has limitations, which are now beginning to come into focus.</p>
 <p>The fatal flaw of Transformers is that they remember the past in <em>perfect detail</em>.</p>
 <p>In theory, perfect detail might seem desirable. In practice, it is crippling. Imagine telling a doctor about your symptoms of slurred speech and facial droop, and then patiently waiting while he spends thirty hours mentally replaying every detail of his past – childhood, adolescence, medical school, career, all the way up to the present moment – before diagnosing you as being at risk of an imminent stroke. That is exactly how Transformers process information. A human who operates this way would not be useful in most jobs, and yet this is how the current generation of AIs are designed to operate.<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
-<p>Our new technology changes this paradigm and makes AI memory look a lot more like human memory. Power retention equips LLMs with a fixed-size memory, and since space is limited, it becomes precious. Each new experience is carefully incorporated into its worldview. There are certain aspects of human intelligence – such as ignoring irrelevant details, synthesizing evidence to reach conclusions, or reminiscing on the past – that become crucial for retention models; aspects that Transformers completely sidestep in favor of naive memorization. The upshot is that, thanks to power retention, our aforementioned “doctor” will soon be able to offer a diagnosis as quickly at the end of his career as he did at the beginning, but better informed thanks to a rich history of experiences.</p>
+<p>Our new technology changes this paradigm and makes AI memory look a lot more like human memory. Power retention equips LLMs with a fixed-size memory, and since space is limited, it becomes precious. Each new experience is carefully incorporated into the worldview of the AI. There are certain aspects of human intelligence – such as ignoring irrelevant details, synthesizing evidence to reach conclusions, or reminiscing on the past – that become crucial for retention models; aspects that Transformers completely sidestep in favor of naive memorization. The upshot is that, thanks to power retention, our aforementioned “doctor” will soon be able to offer a diagnosis as quickly at the end of his career as he did at the beginning, but better informed thanks to a rich history of experiences.</p>
 <p>This difference represents an enormous unlock in practical capabilities for AI. No longer will you need to start a brand-new session for each interaction. Instead, all of your interactions will be a continual stream, shaping the AI’s understanding of your needs and enabling it to assist you more effectively. No longer will agentic platforms need to break up tasks before running out of context and getting confused – a single agent will be able to remember all aspects of the task and see it through to its conclusion. No longer will you be forced to use a patchwork of RAG heuristics to wade through a sea of tokens and pray that the relevant ones make it into the context – power retention means that all the information can simply be made available, and the AI will decide for itself how to choose the relevant aspects in constructing its response. For those who dream of achieving AGI, it is clear that this technology represents a necessary stepping stone on the path to general human-level capabilities.</p>
 </section>
 <section id="why-power-retention" class="level3">
 <h3 class="anchored" data-anchor-id="why-power-retention">Why Power Retention?</h3>
 <p>In our architecture, <em>retention</em> serves the same purpose as a Transformer’s <em>attention</em> layer, in that it is a technique for synthesizing the information contained in the context (the past) into good predictions about upcoming tokens (the future). Attending to the past requires remembering it – that’s why Transformers, which use attention, are memorization machines. In contrast, retention learns to identify which parts of the past are important and retain only the most relevant ones. Retention can also be understood as a unification of attention with an older idea, <em>recurrence</em>.<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> By combining the best parts of attention (hardware-friendly design) with the best parts of recurrence (judicious use of fixed-size memory), we get retention.</p>
 <p>But it is the <em>power</em> in power retention that represents the heart of the breakthrough. Retention has been studied<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a> since at least 2016, but until now, it has been mostly relegated to the status of academic curiosity. The reason is simple: in the era of LLMs, scale is king, and no previous retention model could be scaled up as well as Transformers can. Our critical insight was to discover that a specific form of retention, derived from a mathematical idea known as the <a href="https://en.wikipedia.org/wiki/Symmetric_power"><em>symmetric power</em></a>, has incredible scaling properties. The enormous potential of power retention became clear, and the team at Manifest dove into action to make it practical and usable.</p>
-<p>We’ve developed custom GPU kernels for power retention training &amp; inference, which we have now <a href="https://github.com/m-a-n-i-f-e-s-t/power-attention">open-sourced</a>. Anyone training long-context models can install them right now and see immediate speedups.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> If you are interested in understanding power retention in more detail, or seeing rigorous comparisons between power retention, attention, and other approaches, we also released a paper titled <a href="https://arxiv.org/abs/2507.04239">Scaling Context Requires Rethinking Attention</a>. We have several more exciting releases building on this technology coming soon.</p>
-<p>Artificial human-level intelligence requires the ability to synthesize a lifetime of experiences, and that starts with the fundamental design of the architecture. There’s a gloriously long-context future ahead of us. If you have an exciting long-context task or dataset, please reach out to <span class="email">777b7a607577605479757a7d72716760757d3a777b79</span>, we would love to collaborate. And, if you are interested in being ahead of the curve on the next generation of foundational AI models, join our <a href="https://discord.com/invite/aFsCgDraGP">community discord</a> and subscribe to our mailing list below.</p>
+<p>We’ve developed custom GPU kernels for power retention training &amp; inference, which we have now <a href="https://github.com/m-a-n-i-f-e-s-t/retention">open-sourced</a>. Anyone training long-context models can install them right now and see immediate speedups.<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a> If you are interested in understanding power retention in more detail, or seeing rigorous comparisons between power retention, attention, and other approaches, we also released a paper titled <a href="https://arxiv.org/abs/2507.04239">Scaling Context Requires Rethinking Attention</a>. We are also releasing an open-source and open-weights power retention coding model, <a href="https://huggingface.co/manifestai/powercoder-3b">PowerCoder-3B</a>.</p>
+<p>If you are interested in being ahead of the curve on the next generation of foundational AI models, join our <a href="https://discord.com/invite/aFsCgDraGP">community discord</a> and subscribe to our mailing list below.</p>
 <div style="text-align: center;">
 <form action="https://eo-subscribe-manifest.jono-997.workers.dev" method="post" target="_blank" class="embeddable-buttondown-form">
   <input style="width: 35%;" type="email" name="email" id="bd-email" placeholder="Email">
