@@ -96,11 +96,11 @@ window.Quarto = {
 </script>
 
 <link rel="stylesheet" href="../../styles.css">
-<meta property="og:title" content="Brumby-14B-Base: The Strongest Attention-Free LLM - Manifest AI">
+<meta property="og:title" content="Brumby-14B-Base: The Strongest Attention-Free Base LLM - Manifest AI">
 <meta property="og:description" content="Releasing an open-source attention-free LLM on Huggingface.">
 <meta property="og:image" content="/thumbnails/release-brumby-14b.png">
 <meta property="og:site_name" content="Manifest AI">
-<meta name="twitter:title" content="Brumby-14B-Base: The Strongest Attention-Free LLM - Manifest AI">
+<meta name="twitter:title" content="Brumby-14B-Base: The Strongest Attention-Free Base LLM - Manifest AI">
 <meta name="twitter:description" content="Releasing an open-source attention-free LLM on Huggingface.">
 <meta name="twitter:image" content="https://manifestai.com/thumbnails/brumby-14b.png">
 <meta name="twitter:creator" content="@manifest__ai">
@@ -220,7 +220,7 @@ details[open] {
   padding: 8px; /* Padding inside the details for content alignment */
 }
 </style>
-<p>We have trained a completely attention-free LLM whose performance is competitive with state-of-the-art models. This model, which we call <strong>Brumby-14B-Base</strong>, has a familiar Transformer-style architecture, except it uses <a href="https://manifestai.com/articles/release-power-retention/">power retention</a> layers instead of attention layers. It is available <a href="todo">on Huggingface</a>. Here is how it compares to other models at a similar scale on popular benchmarks.</p>
+<p>We have trained a completely attention-free LLM whose performance is competitive with state-of-the-art models. This model, which we call <strong>Brumby-14B-Base</strong>, has a familiar Transformer-style architecture, except it uses <a href="https://manifestai.com/articles/release-power-retention/">power retention</a> layers instead of attention layers. It is available <a href="https://huggingface.co/manifestai/Brumby-14B-Base">on Huggingface</a>. Here is how it compares to other models at a similar scale on popular benchmarks.</p>
 <div style="text-align: center;">
 <p><img src="img/eval_comparison.png" width="100%"></p>
 </div>
@@ -232,12 +232,12 @@ details[open] {
 <div style="text-align: center;">
 <p><img src="img/model_progression.png" width="100%"></p>
 </div>
-<p>So what is power retention? Similar to attention, power retention is a layer that takes <span class="math inline">\(Q,K,V \in R^{t \times d}\)</span> as inputs, and gives <span class="math inline">\(Y \in R^{t \times d}\)</span> as an output. It also accepts a gating signal <span class="math inline">\(g \in R^t\)</span>. It is a “true” RNN, in that every prediction can be influenced by information arbitrarily far back in the past. The state of the RNN is a matrix $S R^{d D}, which is updated according to</p>
+<p>So what is power retention? Similar to attention, power retention is a layer that takes <span class="math inline">\(Q,K,V \in R^{t \times d}\)</span> as inputs, and gives <span class="math inline">\(Y \in R^{t \times d}\)</span> as an output. It also accepts a gating signal <span class="math inline">\(g \in R^t\)</span>. It is a “true” RNN, in that every prediction can be influenced by information arbitrarily far back in the past. The state of the RNN is a matrix <span class="math inline">\(S \in R^{d \times D}\)</span>, which is updated according to</p>
 <p><span class="math display">\[
 S_t = g_t S_{t-1} + V_t \phi_p(K_t)^T \qquad Y_t = S_t Q_t
 \]</span></p>
 <p>The function <span class="math inline">\(\phi_p: R^d \to R^D\)</span> is related to the tensor power (the “power” in power retention). The power <span class="math inline">\(p\)</span> controls the dimension <span class="math inline">\(D\)</span>, giving us a hyperparameter to scale the state size of the RNN, just as one might use the width to scale the parameter count. For our experiments, power <span class="math inline">\(p=2\)</span> resulted in the optimal state size for the model.</p>
-<p>What makes this a retention layer, as opposed to just a recurrent layer, is that it also has an attention form. This second formulation is critical to any hardware-efficient implementation. If you want to learn more about the power retention layer and how to implement it efficiently, see our preprint paper and related blog post. Our hardware-efficient power retention kernels are available open-source and can be installed with <code>pip install retention</code>.</p>
+<p>What makes this a retention layer, as opposed to just a recurrent layer, is that it also has an attention form. This second formulation is critical to any hardware-efficient implementation. If you want to learn more about the power retention layer and how to implement it efficiently, see our <a href="https://arxiv.org/abs/2507.04239">preprint paper</a> and <a href="https://manifestai.com/articles/symmetric-power-transformers/">related blog post</a>. Our hardware-efficient power retention kernels are available open-source and can be installed with <code>pip install retention</code>.</p>
 <section id="coming-soon" class="level3">
 <h3 class="anchored" data-anchor-id="coming-soon">Coming soon</h3>
 <p><strong>Fast long-context inference:</strong> Our fastest power retention inference kernels are hundreds of times faster than equivalent attention kernels on long contexts. We will update the architecture to incorporate these fast kernels.</p>
